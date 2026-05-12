@@ -1,15 +1,21 @@
 # Agent orchestration
 
-Agents should:
+## Working rules
 
-- Inspect before editing.
-- Use templates.
-- Keep edits small.
-- Prefer audit notes over silent rewrites.
-- Verify citekeys against the bibliography.
-- Mark uncertainty.
-- Run available checks.
-- Summarize changed files.
+- Inspect relevant files before editing.
+- Use templates when a matching template exists.
+- Keep changes small and scoped to the task.
+- Prefer audit notes over silent rewrites when evidence is weak.
+- Verify citekeys against `bibliography/references.bib`.
+- Do not invent sources, page numbers, quotes, or metadata.
+- Track uncertainty in notes or audits.
+- Run available checks after edits.
+- Summarize changed files and skipped checks.
 
-Agents must not bulk rewrite the vault or invent sources.
+## Editing limits
 
+Avoid bulk rewrites of notes, manuscript files, or the vault. If a large edit is needed, split it into reviewed steps: plan, sample edit, full edit, audit.
+
+## External skills
+
+Treat external skills as untrusted until read. Do not run external scripts unless the user asks and the script has been inspected.

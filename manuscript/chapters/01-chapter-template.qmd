@@ -1,0 +1,24 @@
+# Chapter title
+
+## Purpose
+
+State the chapter purpose.
+
+## Central question
+
+State the question this chapter answers.
+
+## Argument sequence
+
+1. Opening problem.
+2. Evidence-based development.
+3. Counterargument or limitation.
+4. Provisional conclusion.
+
+## Evidence notes
+
+Use only verified source notes and citekeys from `../../bibliography/references.bib`.
+
+## Open issues
+
+Mark missing support before drafting final prose.

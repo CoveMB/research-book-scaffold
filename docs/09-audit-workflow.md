@@ -1,14 +1,15 @@
 # Audit workflow
 
-Audit types:
+Store audit notes in `notes/08-audits/`.
 
-- Claim audit
-- Citation audit
-- Source-quality audit
-- Counterargument audit
-- Bias and assumption audit
-- Continuity audit
-- Final manuscript audit
+| Audit | Checks |
+| --- | --- |
+| Claim audit | Claims have evidence status, confidence, and safer wording |
+| Citation audit | Citekeys exist and match the claim being supported |
+| Source-quality audit | Source type, limits, bias risk, and fit are clear |
+| Counterargument audit | Strong objections and rival readings are recorded |
+| Bias and assumption audit | Hidden assumptions and framing risks are marked |
+| Continuity audit | Terms, claims, and sequence stay consistent |
+| Final manuscript audit | Placeholders, citations, claims, and exports are ready |
 
-Each audit should record scope, findings, severity, required fixes, and decision.
-
+Each audit should include scope, findings, severity, required fixes, decision, and follow-up.

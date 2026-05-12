@@ -1,0 +1,9 @@
+# Appendix title
+
+## Purpose
+
+State why this appendix exists.
+
+## Materials
+
+Add supporting material that should not interrupt the main manuscript.

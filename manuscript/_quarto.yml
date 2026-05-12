@@ -1,0 +1,23 @@
+project:
+  type: book
+  output-dir: ../exports/html
+
+book:
+  title: "Untitled Scholarly Manuscript"
+  chapters:
+    - index.qmd
+    - chapters/00-front-matter.qmd
+    - chapters/01-chapter-template.qmd
+    - chapters/99-back-matter.qmd
+  appendices:
+    - appendices/appendix-template.qmd
+
+bibliography: ../bibliography/references.bib
+
+format:
+  html:
+    toc: true
+  pdf:
+    toc: true
+  docx:
+    toc: true

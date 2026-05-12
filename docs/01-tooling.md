@@ -1,17 +1,19 @@
 # Tooling
 
-Expected tools:
+| Tool | Use | Required |
+| --- | --- | --- |
+| Zotero | Source library, PDFs, metadata | Recommended |
+| Better BibTeX | Stable citekeys and BibTeX export | Recommended |
+| Obsidian or Markdown vault | Notes and local navigation | Optional |
+| Quarto | Book rendering | Optional until export |
+| Pandoc | Format conversion | Optional until export |
+| Git | Version history and checkpoints | Recommended |
+| Codex CLI | Local agent workflows | Optional |
+| Repo-scoped skills | Task-specific agent procedures | Optional |
+| MCP | Controlled access to tools and data | Optional |
+| Obsidian Codex plugin | Agent work inside Obsidian | Optional |
+| Academic Research Skills vendor repo | Extended research workflows | Optional |
 
-| Tool | Use |
-| --- | --- |
-| Zotero | Source library and metadata |
-| Better BibTeX | Stable citekeys |
-| Obsidian | Markdown notes |
-| Quarto | Manuscript rendering |
-| Pandoc | Document conversion |
-| Git | Version history |
-| Codex CLI | Local agent work |
-| MCP | Controlled access to local tools |
+Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help find candidate sources. Import and verify useful sources in Zotero or `bibliography/references.bib` before citing them.
 
-Optional discovery tools may include Elicit, Semantic Scholar, OpenAlex, and Scite.
-
+Do not store API keys or credentials in this repository.

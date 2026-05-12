@@ -2,13 +2,14 @@
 
 | Gate | Pass condition |
 | --- | --- |
-| Source | Metadata is complete enough to cite |
-| Source note | Summary and limits are recorded |
-| Claim | Evidence status is clear |
-| Chapter brief | Argument and gaps are visible |
-| Draft | Claims trace back to notes |
-| Citation | Citekeys exist in bibliography |
-| Red team | Weak points are recorded |
-| Continuity | Terms and claims stay consistent |
-| Export | Checks pass before sharing |
+| Source gate | Metadata is complete enough to cite and source type is clear |
+| Source-note gate | Summary, evidence, limits, and possible use are recorded |
+| Claim gate | Claim type, evidence status, confidence, and counterevidence are marked |
+| Chapter-brief gate | Purpose, main claim, sequence, sources, and gaps are visible |
+| Draft gate | Draft uses notes and marks unsupported claims |
+| Citation gate | Citekeys exist and page needs are marked |
+| Red-team gate | Weak assumptions, overclaims, and counterarguments are listed |
+| Continuity gate | Terms, claims, and argument order stay consistent |
+| Export gate | Checks pass and unresolved placeholders are reviewed |
 
+Do not advance a draft by hiding a failed gate. Record the failure and the next fix.

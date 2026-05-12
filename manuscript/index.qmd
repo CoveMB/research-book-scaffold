@@ -1,0 +1,5 @@
+# Overview
+
+This manuscript scaffold is generic. Replace this page with project-level front matter when the project has a defined scope.
+
+Use citations only after the citekey exists in `../bibliography/references.bib`.
