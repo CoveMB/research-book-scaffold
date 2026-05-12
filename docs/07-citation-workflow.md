@@ -4,10 +4,32 @@
 
 Zotero or `bibliography/references.bib` is the citation source of truth. Notes and drafts must match it.
 
+## Zotero sync
+
+Use Better BibTeX auto-export for normal Zotero sync. Zotero owns the source metadata. This repo stores the exported BibTeX file and checks whether drafts refer to known citekeys.
+
+One-time setup:
+
+1. Install Better BibTeX in Zotero from the official release.
+2. Restart Zotero.
+3. In Zotero settings, open Better BibTeX and leave automatic export on `On Change`. Use `When Idle` if exports slow Zotero down.
+4. In the Zotero sidebar, right-click the collection for this book project and choose `Export Collection...`. Use `Export Library...` only when the whole library belongs in this project.
+5. Set format to `Better BibTeX`.
+6. Check `Keep updated`.
+7. Save the export as `bibliography/references.bib`.
+8. Run `make check-citations` or `python3 scripts/check_citations.py --include-notes`.
+
+After this setup, Zotero updates `bibliography/references.bib` when exported items change. Avoid hand-editing `references.bib`; the next export can overwrite those edits. Fix metadata and citekeys in Zotero instead.
+
+Do not enable Better BibTeX git push from this working copy. It can commit or push unrelated files. Commit bibliography changes through the normal project workflow.
+
+If Zotero auto-export is not available, export manually from Zotero to `bibliography/references.bib`, then run the citation check.
+
 ## Citekeys
 
 - Use Better BibTeX citekeys when possible.
 - Keep citekeys stable after notes or drafts reference them.
+- To pin a citekey in Zotero, add `Citation Key: your_key_here` on its own line in the item `Extra` field.
 - Check manuscript citekeys against `bibliography/references.bib`.
 - Use `python3 scripts/check_citations.py --include-notes` when notes and research logs may contain citekeys.
 - Use `python3 scripts/check_citations.py --require-citations` before treating a manuscript as citation-ready.
