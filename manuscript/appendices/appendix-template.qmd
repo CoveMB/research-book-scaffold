@@ -1,9 +1,9 @@
-# Appendix title
+# Sample appendix
 
 ## Purpose
 
-State why this appendix exists.
+This sample appendix shows where supporting material can live when it would interrupt the main argument.
 
 ## Materials
 
-Add supporting material that should not interrupt the main manuscript.
+Replace this sample with project material before using the manuscript as a real draft.

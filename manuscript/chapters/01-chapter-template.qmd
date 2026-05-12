@@ -1,12 +1,12 @@
-# Chapter title
+# Sample chapter
 
 ## Purpose
 
-State the chapter purpose.
+This sample chapter shows the expected shape of a chapter file. Replace it with verified project material before using the manuscript as a real draft.
 
 ## Central question
 
-State the question this chapter answers.
+Each chapter should answer one central question tied to the book scope.
 
 ## Argument sequence
 
@@ -21,4 +21,4 @@ Use only verified source notes and citekeys from `../../bibliography/references.
 
 ## Open issues
 
-Mark missing support before drafting final prose.
+Keep support gaps visible until they are resolved through notes, claim records, or audits.

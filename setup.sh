@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
 
-printf '%s\n' "Setup not implemented yet. Phase 1 creates scaffold only."
-printf '%s\n' "Later phase will delegate to scripts/setup_environment.py."
-exit 0
+set -u
 
+if ! command -v python3 >/dev/null 2>&1; then
+  printf '%s\n' "python3 is required to run setup."
+  printf '%s\n' "Install Python 3 with your system package manager, then rerun:"
+  printf '%s\n' "  sh setup.sh"
+  exit 1
+fi
+
+python3 scripts/setup_environment.py "$@"

@@ -18,4 +18,6 @@ Avoid bulk rewrites of notes, manuscript files, or the vault. If a large edit is
 
 ## External skills
 
-Treat external skills as untrusted until read. Do not run external scripts unless the user asks and the script has been inspected.
+Treat external skills and plugins as untrusted until read. Do not run external scripts unless the user asks and the script has been inspected.
+
+Use local scaffold skills first. Use external wrappers or plugins only for extended workflow support. Verify citations and claims independently.

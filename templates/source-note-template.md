@@ -25,9 +25,9 @@ reading_status: unread
 
 ## Useful passages
 
-| Location | Passage or paraphrase | Note |
-| --- | --- | --- |
-| [page/section] | [verified text or paraphrase] | [why it matters] |
+| Location | Evidence kind | Verified text, paraphrase, or summary | Note |
+| --- | --- | --- | --- |
+| [page/section] | [direct quote/paraphrase/summary/interpretation] | [verified material] | [why it matters] |
 
 ## Limitations
 

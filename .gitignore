@@ -38,6 +38,9 @@ config/mcp.json
 .obsidian/cache/
 .obsidian/plugins/obsidian-codex/
 
+# Nested vendor repository internals
+vendor/*/.git/
+
 # Local Zotero storage exports
 zotero-storage/
 
@@ -45,4 +48,3 @@ zotero-storage/
 tmp/
 temp/
 *.tmp
-

@@ -33,6 +33,13 @@ OBSIDIAN_VAULT=/path/to/vault bash scripts/install_obsidian_codex.sh
 python3 scripts/setup_environment.py --with-obsidian-codex --obsidian-vault /path/to/vault
 ```
 
+The installer refuses to replace an existing plugin folder unless `--force` is passed.
+For reproducible installs, pass a reviewed release URL and checksum:
+
+```sh
+python3 scripts/setup_environment.py --with-obsidian-codex --obsidian-vault /path/to/vault --obsidian-release-url https://example.invalid/release.zip --obsidian-release-sha256 SHA256
+```
+
 Health check:
 
 ```sh

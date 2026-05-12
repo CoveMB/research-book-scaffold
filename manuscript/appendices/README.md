@@ -2,4 +2,4 @@
 
 Appendix files live here.
 
-Use `appendix-template.qmd` as the generic starting point.
+`appendix-template.qmd` is included in the sample manuscript so exports show the scaffold shape. Replace it when the project has real appendix material.

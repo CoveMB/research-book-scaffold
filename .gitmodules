@@ -1,0 +1,6 @@
+[submodule "vendor/academic-research-skills"]
+	path = vendor/academic-research-skills
+	url = https://github.com/Imbad0202/academic-research-skills.git
+[submodule "vendor/research-book-skills"]
+	path = vendor/research-book-skills
+	url = https://github.com/CoveMB/research-book-skills.git

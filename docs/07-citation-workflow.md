@@ -9,6 +9,8 @@ Zotero or `bibliography/references.bib` is the citation source of truth. Notes a
 - Use Better BibTeX citekeys when possible.
 - Keep citekeys stable after notes or drafts reference them.
 - Check manuscript citekeys against `bibliography/references.bib`.
+- Use `python3 scripts/check_citations.py --include-notes` when notes and research logs may contain citekeys.
+- Use `python3 scripts/check_citations.py --require-citations` before treating a manuscript as citation-ready.
 
 ## Syntax
 
@@ -22,7 +24,7 @@ Use Quarto or Pandoc citation forms:
 
 ## Missing support
 
-Use visible markers for missing support until scripts are added:
+Use visible markers for missing support:
 
 ```md
 {{citation needed}}

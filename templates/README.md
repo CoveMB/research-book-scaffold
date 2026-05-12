@@ -7,12 +7,18 @@ Use these as starting points. Replace bracketed placeholders with verified proje
 ## Available templates
 
 - `source-note-template.md`
+- `project-charter-template.md`
 - `concept-note-template.md`
 - `claim-note-template.md`
-- `case-study-template.md`
-- `chapter-brief-template.md`
-- `literature-map-template.md`
 - `source-matrix-template.md`
-- `search-log-template.md`
 - `audit-template.md`
 - `synthesis-memo-template.md`
+
+## Plugin-owned templates
+
+Use these from `vendor/research-book-skills/` directly so local copies do not drift:
+
+- `skills/case-study-integration/assets/case-study-dossier-template.md`
+- `skills/chapter-architecture/assets/chapter-brief-template.md`
+- `skills/literature-review-mapper/assets/lit-map-template.md`
+- `skills/systematic-source-discovery/assets/search-log-template.md`
