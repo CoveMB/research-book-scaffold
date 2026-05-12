@@ -1,4 +1,4 @@
-.PHONY: help doctor render render-html render-pdf render-docx test check-placeholders check-citations check-citations-strict check-links check-external-skills install-external-skills check-obsidian-codex install-obsidian-codex audit release-audit
+.PHONY: help doctor render render-html render-pdf render-docx test check-placeholders check-citations check-citations-strict check-links check-external-skills install-external-skills update-skills-vendors check-obsidian-codex install-obsidian-codex audit release-audit
 
 help:
 	@echo "Targets:"
@@ -14,6 +14,7 @@ help:
 	@echo "  check-links            Check wiki-style internal links"
 	@echo "  check-external-skills  Check external skill/plugin integration"
 	@echo "  install-external-skills Vendor external skills and update marketplace"
+	@echo "  update-skills-vendors  Fast-forward skill vendors and refresh integrations"
 	@echo "  check-obsidian-codex   Check Obsidian plugin install in the project root vault"
 	@echo "  install-obsidian-codex Install Obsidian plugin in the project root vault"
 	@echo "  audit                  Run repository checks"
@@ -54,6 +55,9 @@ check-external-skills:
 
 install-external-skills:
 	python3 scripts/install_external_skills.py --yes
+
+update-skills-vendors:
+	bash scripts/update-skills-vendors.sh
 
 check-obsidian-codex:
 	python3 scripts/check_obsidian_codex.py

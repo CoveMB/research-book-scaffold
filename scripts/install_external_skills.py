@@ -45,6 +45,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--update-mode", choices=["pinned", "remote"], default="pinned")
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--no-update", action="store_true")
+    parser.add_argument(
+        "--preserve-vendor-checkouts",
+        action="store_true",
+        help="Refresh wrappers and reports without changing configured submodule checkouts.",
+    )
     return parser.parse_args(argv)
 
 
@@ -100,6 +105,9 @@ def clone_or_update(repo_url: str, path: Path, ref: str | None, args: argparse.N
         return
     if is_configured_submodule(path):
         report.add("present", f"{label} configured as Git submodule: {path}")
+        if args.preserve_vendor_checkouts:
+            report.add("skipped", f"{label} submodule checkout preserved")
+            return
         sync_or_init_submodule(path, ref, args, report, label)
         return
     if not path.exists():
