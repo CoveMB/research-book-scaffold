@@ -54,7 +54,7 @@ ARS wrappers live in `.agents/skills/`. Research Book Skills is exposed through 
 - Academic Research Skills can be vendored from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
 - Research Book Skills can be vendored from `CoveMB/research-book-skills` and exposed directly from `vendor/research-book-skills/`.
 
-External integrations stay optional. Review upstream files before use and do not run vendored scripts automatically. The Obsidian setup does not create a nested vault folder, does not write workspace files, and does not modify existing Obsidian settings unless `--force` is passed.
+External integrations stay optional. Review upstream files before use and do not run vendored scripts automatically. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. `--force` only allows replacing an existing plugin folder.
 
 The two external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
 

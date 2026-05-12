@@ -11,13 +11,22 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.error
 import urllib.request
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import install_external_skills
-from project_config import DEFAULT_ARS_REPO, DEFAULT_RBS_REPO, REQUIRED_OBSIDIAN_PLUGIN_FILES
+from project_config import (
+    DEFAULT_ARS_REPO,
+    DEFAULT_RBS_REPO,
+    OBSIDIAN_CODEX_PLUGIN_ID,
+    OBSIDIAN_DIR,
+    OBSIDIAN_PLUGINS_DIR,
+    REQUIRED_OBSIDIAN_PLUGIN_FILES,
+    resolve_obsidian_vault_path,
+)
 
 DEFAULT_OBSIDIAN_REPO = "https://github.com/AKin-lvyifang/obsidian-codex"
 CORE_TOOLS = ["git", "python3", "curl", "unzip"]
@@ -280,12 +289,6 @@ def parse_front_matter(skill_file: Path) -> tuple[str | None, str | None, list[s
     return name, description, issues
 
 
-def discover_skill_dirs(root: Path) -> list[Path]:
-    if not root.exists():
-        return []
-    return sorted(path.parent for path in root.rglob("SKILL.md") if path.is_file())
-
-
 def validate_local_skills(target_dir: Path, report: Report, dry_run: bool) -> None:
     if target_dir.exists():
         report.add("already_present", f"{target_dir} exists")
@@ -309,12 +312,7 @@ def validate_local_skills(target_dir: Path, report: Report, dry_run: bool) -> No
 
 
 def vault_path_from_args(args: argparse.Namespace) -> Path:
-    if args.obsidian_vault:
-        return Path(args.obsidian_vault).expanduser().resolve()
-    env_value = os.environ.get("OBSIDIAN_VAULT")
-    if env_value:
-        return Path(env_value).expanduser().resolve()
-    return Path.cwd()
+    return resolve_obsidian_vault_path(args.obsidian_vault, os.environ.get("OBSIDIAN_VAULT"))
 
 
 def latest_obsidian_release_zip_url() -> str:
@@ -367,8 +365,8 @@ def find_obsidian_plugin_root(extracted_dir: Path) -> Path | None:
 
 
 def ensure_obsidian_plugin_parent(vault_path: Path, report: Report, dry_run: bool) -> Path | None:
-    obsidian_dir = vault_path / ".obsidian"
-    plugins_dir = obsidian_dir / "plugins"
+    obsidian_dir = vault_path / OBSIDIAN_DIR
+    plugins_dir = vault_path / OBSIDIAN_PLUGINS_DIR
     for directory in [obsidian_dir, plugins_dir]:
         if directory.exists():
             if not directory.is_dir():
@@ -388,6 +386,33 @@ def ensure_obsidian_plugin_parent(vault_path: Path, report: Report, dry_run: boo
     return plugins_dir
 
 
+def replace_directory_atomically(source_dir: Path, destination_dir: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix=f".{destination_dir.name}-", dir=destination_dir.parent) as temp_dir:
+        temp_path = Path(temp_dir)
+        staged_dir = temp_path / destination_dir.name
+        backup_dir = temp_path / f"{destination_dir.name}.backup"
+        shutil.copytree(source_dir, staged_dir)
+        if destination_dir.exists():
+            shutil.move(str(destination_dir), backup_dir)
+        try:
+            shutil.move(str(staged_dir), destination_dir)
+        except OSError:
+            if backup_dir.exists() and not destination_dir.exists():
+                shutil.move(str(backup_dir), destination_dir)
+            raise
+
+
+def obsidian_next_steps(include_read_only_test: bool) -> list[str]:
+    steps = [
+        "Restart Obsidian.",
+        "Enable Community Plugins.",
+        "Enable Codex for Obsidian.",
+    ]
+    if include_read_only_test:
+        steps.append("Open the plugin sidebar and run a harmless read-only test first.")
+    return steps
+
+
 def install_obsidian_codex(args: argparse.Namespace, report: Report) -> None:
     if args.skip_obsidian_codex:
         report.add("skipped", "Obsidian plugin skipped by flag")
@@ -400,49 +425,44 @@ def install_obsidian_codex(args: argparse.Namespace, report: Report) -> None:
     plugins_dir = ensure_obsidian_plugin_parent(vault_path, report, args.dry_run)
     if plugins_dir is None:
         return
-    destination_dir = plugins_dir / "obsidian-codex"
+    destination_dir = plugins_dir / OBSIDIAN_CODEX_PLUGIN_ID
     if destination_dir.exists() and not args.force:
         report.add("skipped", f"{destination_dir} exists; use --force to replace")
         return
     if args.dry_run:
         report.add("skipped", f"dry-run would download latest release from {DEFAULT_OBSIDIAN_REPO}/releases/latest")
         report.add("skipped", f"dry-run would install plugin to {destination_dir}")
-        report.next_steps.extend(
-            [
-                "Restart Obsidian.",
-                "Enable Community Plugins.",
-                "Enable Codex for Obsidian.",
-            ]
-        )
+        report.next_steps.extend(obsidian_next_steps(include_read_only_test=False))
         return
 
-    plugins_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="obsidian-plugin-") as temp_dir:
-        temp_path = Path(temp_dir)
-        zip_url = args.obsidian_release_url or latest_obsidian_release_zip_url()
-        archive_path = temp_path / "release.zip"
-        urllib.request.urlretrieve(zip_url, archive_path)
-        verify_archive_checksum(archive_path, args.obsidian_release_sha256)
-        extract_dir = temp_path / "extract"
-        extract_dir.mkdir()
-        with zipfile.ZipFile(archive_path) as archive:
-            safe_extract_zip(archive, extract_dir)
-        plugin_root = find_obsidian_plugin_root(extract_dir)
-        if plugin_root is None:
-            report.add("failed", "Downloaded Obsidian plugin release does not contain expected files")
-            return
-        if destination_dir.exists():
-            shutil.rmtree(destination_dir)
-        shutil.copytree(plugin_root, destination_dir)
+    try:
+        with tempfile.TemporaryDirectory(prefix="obsidian-plugin-") as temp_dir:
+            temp_path = Path(temp_dir)
+            zip_url = args.obsidian_release_url or latest_obsidian_release_zip_url()
+            archive_path = temp_path / "release.zip"
+            urllib.request.urlretrieve(zip_url, archive_path)
+            verify_archive_checksum(archive_path, args.obsidian_release_sha256)
+            extract_dir = temp_path / "extract"
+            extract_dir.mkdir()
+            with zipfile.ZipFile(archive_path) as archive:
+                safe_extract_zip(archive, extract_dir)
+            plugin_root = find_obsidian_plugin_root(extract_dir)
+            if plugin_root is None:
+                report.add("failed", "Downloaded Obsidian plugin release does not contain expected files")
+                return
+            replace_directory_atomically(plugin_root, destination_dir)
+    except (
+        OSError,
+        RuntimeError,
+        ValueError,
+        zipfile.BadZipFile,
+        urllib.error.URLError,
+        json.JSONDecodeError,
+    ) as error:
+        report.add("failed", f"Obsidian plugin install failed: {error}")
+        return
     report.add("installed", f"installed Obsidian plugin to {destination_dir}")
-    report.next_steps.extend(
-        [
-            "Restart Obsidian.",
-            "Enable Community Plugins.",
-            "Enable Codex for Obsidian.",
-            "Open the plugin sidebar and run a harmless read-only test first.",
-        ]
-    )
+    report.next_steps.extend(obsidian_next_steps(include_read_only_test=True))
 
 
 def run_recommendations(args: argparse.Namespace, report: Report) -> None:

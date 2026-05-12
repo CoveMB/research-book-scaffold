@@ -2,38 +2,20 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest import mock
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import setup_environment
-
-
-class SilentReport(setup_environment.Report):
-    def add(self, bucket: str, message: str) -> None:
-        getattr(self, bucket).append(message)
-
-
-def write_plugin_release(archive_path: Path) -> None:
-    with zipfile.ZipFile(archive_path, "w") as archive:
-        archive.writestr("plugin/manifest.json", json.dumps({"id": "obsidian-codex"}))
-        archive.writestr("plugin/main.js", "module.exports = {};")
-        archive.writestr("plugin/styles.css", "")
-
-
-def install_in_directory(work_dir: Path, args: object, report: setup_environment.Report) -> None:
-    original_cwd = Path.cwd()
-    try:
-        os.chdir(work_dir)
-        setup_environment.install_obsidian_codex(args, report)
-    finally:
-        os.chdir(original_cwd)
+from helpers import SilentReport, install_in_directory, write_plugin_release
+from project_config import OBSIDIAN_PLUGIN_DIR
 
 
 class ObsidianInstallerTests(unittest.TestCase):
@@ -54,7 +36,7 @@ class ObsidianInstallerTests(unittest.TestCase):
             report = SilentReport()
             install_in_directory(temp_path, args, report)
 
-            plugin_dir = temp_path / ".obsidian" / "plugins" / "obsidian-codex"
+            plugin_dir = temp_path / OBSIDIAN_PLUGIN_DIR
             self.assertTrue((plugin_dir / "manifest.json").is_file())
             self.assertEqual(community_plugins_path.read_text(encoding="utf-8"), '["existing-plugin"]\n')
             self.assertEqual(workspace_path.read_text(encoding="utf-8"), '{"existing": true}\n')
@@ -113,6 +95,26 @@ class ObsidianInstallerTests(unittest.TestCase):
             install_in_directory(temp_path, args, report)
 
             self.assertTrue(any("archive checksum mismatch" in message for message in report.failed))
+
+    def test_force_install_preserves_existing_plugin_when_replacement_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            archive_path = temp_path / "release.zip"
+            write_plugin_release(archive_path)
+
+            plugin_dir = temp_path / OBSIDIAN_PLUGIN_DIR
+            plugin_dir.mkdir(parents=True)
+            existing_manifest = plugin_dir / "manifest.json"
+            existing_manifest.write_text(json.dumps({"id": "existing"}), encoding="utf-8")
+
+            args = setup_environment.parse_args(["--force", "--obsidian-release-url", archive_path.as_uri()])
+            report = SilentReport()
+
+            with mock.patch.object(setup_environment.shutil, "copytree", side_effect=OSError("copy failed")):
+                install_in_directory(temp_path, args, report)
+
+            self.assertTrue(any("copy failed" in message for message in report.failed))
+            self.assertEqual(existing_manifest.read_text(encoding="utf-8"), json.dumps({"id": "existing"}))
 
     def test_sha256_file_returns_expected_digest(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import argparse
 import contextlib
 import io
-import os
 import sys
 import tempfile
 import unittest
@@ -11,13 +9,11 @@ from pathlib import Path
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import setup_environment
-
-
-class SilentReport(setup_environment.Report):
-    def add(self, bucket: str, message: str) -> None:
-        getattr(self, bucket).append(message)
+from helpers import SilentReport, working_directory
+from project_config import OBSIDIAN_PLUGINS_DIR
 
 
 class SetupEnvironmentTests(unittest.TestCase):
@@ -25,13 +21,8 @@ class SetupEnvironmentTests(unittest.TestCase):
         args = setup_environment.parse_args(["--dry-run"])
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            original_cwd = Path.cwd()
-            try:
-                os.chdir(temp_dir)
-
+            with working_directory(Path(temp_dir)):
                 vault_path = setup_environment.vault_path_from_args(args)
-            finally:
-                os.chdir(original_cwd)
 
         self.assertEqual(vault_path, Path(temp_dir).resolve())
 
@@ -40,16 +31,11 @@ class SetupEnvironmentTests(unittest.TestCase):
         report = SilentReport()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            original_cwd = Path.cwd()
-            try:
-                os.chdir(temp_dir)
-
+            with working_directory(Path(temp_dir)):
                 setup_environment.install_obsidian_codex(args, report)
-            finally:
-                os.chdir(original_cwd)
 
         messages = report.skipped + report.installed + report.already_present
-        self.assertTrue(any(".obsidian/plugins" in message for message in messages))
+        self.assertTrue(any(str(OBSIDIAN_PLUGINS_DIR) in message for message in messages))
         self.assertFalse(any("obsidian-vault" in message for message in messages))
 
     def test_removed_obsidian_install_flag_is_rejected(self) -> None:
@@ -64,6 +50,13 @@ class SetupEnvironmentTests(unittest.TestCase):
         setup_environment.run_recommendations(args, report)
 
         self.assertNotIn("Run python3 scripts/check_obsidian_codex.py", report.next_steps)
+
+    def test_obsidian_next_steps_add_read_only_test_only_after_install(self) -> None:
+        dry_run_steps = setup_environment.obsidian_next_steps(include_read_only_test=False)
+        installed_steps = setup_environment.obsidian_next_steps(include_read_only_test=True)
+
+        self.assertNotIn("Open the plugin sidebar and run a harmless read-only test first.", dry_run_steps)
+        self.assertIn("Open the plugin sidebar and run a harmless read-only test first.", installed_steps)
 
     def test_external_layer_is_skipped_by_default(self) -> None:
         args = setup_environment.parse_args(["--dry-run"])

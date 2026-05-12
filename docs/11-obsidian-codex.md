@@ -32,7 +32,7 @@ Default setup treats the repository root as the vault root:
 python3 scripts/setup_environment.py
 ```
 
-This creates `.obsidian/` in the project root and installs the plugin at `.obsidian/plugins/obsidian-codex/`. It does not create a nested `obsidian-vault/` folder, write Obsidian workspace files, or modify existing Obsidian settings unless `--force` is passed.
+This creates `.obsidian/` in the project root and installs the plugin at `.obsidian/plugins/obsidian-codex/`. It does not create a nested `obsidian-vault/` folder, write Obsidian workspace files, or modify existing Obsidian settings. `--force` only allows replacing an existing plugin folder.
 
 Use an explicit path only when installing into a different vault:
 

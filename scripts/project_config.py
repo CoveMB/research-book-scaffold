@@ -35,5 +35,20 @@ RBS_SKILLS = [
     "book-proposal-scholarship",
 ]
 
-OBSIDIAN_PLUGIN_DIR = Path(".obsidian/plugins/obsidian-codex")
+OBSIDIAN_CODEX_PLUGIN_ID = "obsidian-codex"
+OBSIDIAN_DIR = Path(".obsidian")
+OBSIDIAN_PLUGINS_DIR = OBSIDIAN_DIR / "plugins"
+OBSIDIAN_PLUGIN_DIR = OBSIDIAN_PLUGINS_DIR / OBSIDIAN_CODEX_PLUGIN_ID
 REQUIRED_OBSIDIAN_PLUGIN_FILES = {"manifest.json", "main.js", "styles.css"}
+
+
+def resolve_obsidian_vault_path(
+    requested_path: str | None,
+    env_value: str | None,
+    cwd: Path | None = None,
+) -> Path:
+    if requested_path:
+        return Path(requested_path).expanduser().resolve()
+    if env_value:
+        return Path(env_value).expanduser().resolve()
+    return (cwd or Path.cwd()).resolve()

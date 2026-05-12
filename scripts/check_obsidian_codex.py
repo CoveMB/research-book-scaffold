@@ -10,18 +10,18 @@ import subprocess
 import sys
 from pathlib import Path
 
-from project_config import OBSIDIAN_PLUGIN_DIR, REQUIRED_OBSIDIAN_PLUGIN_FILES
-
-PLUGIN_DIR = OBSIDIAN_PLUGIN_DIR
+from project_config import (
+    OBSIDIAN_CODEX_PLUGIN_ID,
+    OBSIDIAN_DIR,
+    OBSIDIAN_PLUGIN_DIR,
+    REQUIRED_OBSIDIAN_PLUGIN_FILES,
+    resolve_obsidian_vault_path,
+)
 
 
 def get_vault_path(argv: list[str]) -> Path:
-    if len(argv) > 1:
-        return Path(argv[1]).expanduser().resolve()
-    env_value = os.environ.get("OBSIDIAN_VAULT")
-    if env_value:
-        return Path(env_value).expanduser().resolve()
-    return Path.cwd()
+    requested_path = argv[1] if len(argv) > 1 else None
+    return resolve_obsidian_vault_path(requested_path, os.environ.get("OBSIDIAN_VAULT"))
 
 
 def check_cli() -> bool:
@@ -62,7 +62,7 @@ def check_community_plugins(obsidian_dir: Path) -> None:
     if not isinstance(enabled_plugins, list):
         print("WARN invalid community-plugins.json: expected a list")
         return
-    if "obsidian-codex" in enabled_plugins:
+    if OBSIDIAN_CODEX_PLUGIN_ID in enabled_plugins:
         print("PASS Obsidian plugin listed as enabled")
     else:
         print("WARN Obsidian plugin is installed but not listed as enabled")
@@ -79,13 +79,13 @@ def main(argv: list[str]) -> int:
         check_cli()
         return 1
 
-    obsidian_dir = vault_path / ".obsidian"
+    obsidian_dir = vault_path / OBSIDIAN_DIR
     if obsidian_dir.exists() and obsidian_dir.is_dir():
         print(f"PASS Obsidian config exists: {obsidian_dir}")
     else:
         print(f"WARN Obsidian config missing: {obsidian_dir}")
 
-    plugin_dir = vault_path / PLUGIN_DIR
+    plugin_dir = vault_path / OBSIDIAN_PLUGIN_DIR
     if plugin_dir.exists() and plugin_dir.is_dir():
         print(f"PASS plugin directory exists: {plugin_dir}")
     else:

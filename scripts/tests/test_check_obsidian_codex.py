@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import check_obsidian_codex
+from project_config import OBSIDIAN_CODEX_PLUGIN_ID
 
 
 class CheckObsidianCodexTests(unittest.TestCase):
@@ -39,7 +40,7 @@ class CheckObsidianCodexTests(unittest.TestCase):
             obsidian_dir = Path(temp_dir) / ".obsidian"
             obsidian_dir.mkdir()
             (obsidian_dir / "community-plugins.json").write_text(
-                json.dumps({"obsidian-codex": True}),
+                json.dumps({OBSIDIAN_CODEX_PLUGIN_ID: True}),
                 encoding="utf-8",
             )
             output = io.StringIO()
