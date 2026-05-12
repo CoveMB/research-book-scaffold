@@ -12,7 +12,7 @@ Use it carefully because vault notes can contain untrusted source text and perso
 
 - Codex CLI installed and logged in.
 - Obsidian installed.
-- A vault path selected by the user.
+- This project root, unless a different vault path is passed.
 - Git or another backup method for important notes.
 
 ## Manual installation
@@ -26,24 +26,32 @@ Use it carefully because vault notes can contain untrusted source text and perso
 
 ## Scripted installation
 
-Install only with an explicit vault path:
+Default setup treats the repository root as the vault root:
+
+```sh
+python3 scripts/setup_environment.py
+```
+
+This creates `.obsidian/` in the project root and installs the plugin at `.obsidian/plugins/obsidian-codex/`. It does not create a nested `obsidian-vault/` folder, write Obsidian workspace files, or modify existing Obsidian settings unless `--force` is passed.
+
+Use an explicit path only when installing into a different vault:
 
 ```sh
 OBSIDIAN_VAULT=/path/to/vault bash scripts/install_obsidian_codex.sh
-python3 scripts/setup_environment.py --with-obsidian-codex --obsidian-vault /path/to/vault
+python3 scripts/setup_environment.py --obsidian-vault /path/to/vault
 ```
 
 The installer refuses to replace an existing plugin folder unless `--force` is passed.
 For reproducible installs, pass a reviewed release URL and checksum:
 
 ```sh
-python3 scripts/setup_environment.py --with-obsidian-codex --obsidian-vault /path/to/vault --obsidian-release-url https://example.invalid/release.zip --obsidian-release-sha256 SHA256
+python3 scripts/setup_environment.py --obsidian-release-url https://example.invalid/release.zip --obsidian-release-sha256 SHA256
 ```
 
 Health check:
 
 ```sh
-OBSIDIAN_VAULT=/path/to/vault python3 scripts/check_obsidian_codex.py
+python3 scripts/check_obsidian_codex.py
 ```
 
 ## Recommended modes

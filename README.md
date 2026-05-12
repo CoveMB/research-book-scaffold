@@ -50,11 +50,11 @@ ARS wrappers live in `.agents/skills/`. Research Book Skills is exposed through 
 
 ## Optional integrations
 
-- Obsidian Codex can connect an Obsidian vault to local agent workflows. Install it only with an explicit vault path.
+- Obsidian Codex can connect this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/` and installs the plugin in the repository root by default; pass `--skip-obsidian-codex` to skip it or `--obsidian-vault PATH` for a different vault.
 - Academic Research Skills can be vendored from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
 - Research Book Skills can be vendored from `CoveMB/research-book-skills` and exposed directly from `vendor/research-book-skills/`.
 
-External integrations stay optional. Review upstream files before use and do not run vendored scripts automatically.
+External integrations stay optional. Review upstream files before use and do not run vendored scripts automatically. The Obsidian setup does not create a nested vault folder, does not write workspace files, and does not modify existing Obsidian settings unless `--force` is passed.
 
 The two external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
 

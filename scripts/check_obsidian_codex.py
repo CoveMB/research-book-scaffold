@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check optional Obsidian plugin installation without modifying files."""
+"""Check Obsidian plugin installation without modifying files."""
 
 from __future__ import annotations
 
@@ -15,13 +15,13 @@ from project_config import OBSIDIAN_PLUGIN_DIR, REQUIRED_OBSIDIAN_PLUGIN_FILES
 PLUGIN_DIR = OBSIDIAN_PLUGIN_DIR
 
 
-def get_vault_path(argv: list[str]) -> Path | None:
+def get_vault_path(argv: list[str]) -> Path:
     if len(argv) > 1:
-        return Path(argv[1]).expanduser()
+        return Path(argv[1]).expanduser().resolve()
     env_value = os.environ.get("OBSIDIAN_VAULT")
     if env_value:
-        return Path(env_value).expanduser()
-    return None
+        return Path(env_value).expanduser().resolve()
+    return Path.cwd()
 
 
 def check_cli() -> bool:
@@ -59,6 +59,9 @@ def check_community_plugins(obsidian_dir: Path) -> None:
     except json.JSONDecodeError as error:
         print(f"WARN invalid community-plugins.json: {error}")
         return
+    if not isinstance(enabled_plugins, list):
+        print("WARN invalid community-plugins.json: expected a list")
+        return
     if "obsidian-codex" in enabled_plugins:
         print("PASS Obsidian plugin listed as enabled")
     else:
@@ -69,20 +72,12 @@ def main(argv: list[str]) -> int:
     vault_path = get_vault_path(argv)
     failures = 0
 
-    if vault_path is None:
-        print("FAIL vault path missing. Pass a path or set OBSIDIAN_VAULT.")
-        print("Install later:")
-        print("  OBSIDIAN_VAULT=/path/to/vault bash scripts/install_obsidian_codex.sh")
-        print("Check later:")
-        print("  OBSIDIAN_VAULT=/path/to/vault python3 scripts/check_obsidian_codex.py")
-        check_cli()
-        return 1
-
     if vault_path.exists() and vault_path.is_dir():
         print(f"PASS vault exists: {vault_path}")
     else:
         print(f"FAIL vault path missing: {vault_path}")
-        failures += 1
+        check_cli()
+        return 1
 
     obsidian_dir = vault_path / ".obsidian"
     if obsidian_dir.exists() and obsidian_dir.is_dir():

@@ -25,7 +25,7 @@ Read AGENTS.md and summarize the project rules. Do not edit anything.
 ```
 
 ```text
-Create a test note in notes/00-inbox/ named codex-plugin-test.md. Do not modify existing notes.
+Create a test note in notes/00-inbox/ named plugin-test.md. Do not modify existing notes.
 ```
 
 ```text
@@ -43,7 +43,13 @@ Create citations from memory.
 
 ## Later commands
 
-Install only with an explicit vault path:
+Default setup uses the project root as the vault root:
+
+```sh
+python3 scripts/setup_environment.py
+```
+
+Install into a different vault only when needed:
 
 ```sh
 OBSIDIAN_VAULT=/path/to/vault bash scripts/install_obsidian_codex.sh
@@ -54,5 +60,5 @@ For a pinned install, pass a reviewed release URL and SHA-256 checksum to `scrip
 Check installation:
 
 ```sh
-OBSIDIAN_VAULT=/path/to/vault python3 scripts/check_obsidian_codex.py
+python3 scripts/check_obsidian_codex.py
 ```

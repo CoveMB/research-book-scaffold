@@ -68,7 +68,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--skip-rbs", action="store_true")
     parser.add_argument("--with-external-skills", action="store_true")
     parser.add_argument("--skip-obsidian-codex", action="store_true")
-    parser.add_argument("--with-obsidian-codex", action="store_true")
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
     parser.add_argument("--obsidian-release-sha256")
@@ -309,17 +308,13 @@ def validate_local_skills(target_dir: Path, report: Report, dry_run: bool) -> No
             report.add("already_present", f"{skill_file} valid")
 
 
-def vault_path_from_args(args: argparse.Namespace) -> Path | None:
+def vault_path_from_args(args: argparse.Namespace) -> Path:
     if args.obsidian_vault:
-        return Path(args.obsidian_vault).expanduser()
+        return Path(args.obsidian_vault).expanduser().resolve()
     env_value = os.environ.get("OBSIDIAN_VAULT")
     if env_value:
-        return Path(env_value).expanduser()
-    return None
-
-
-def obsidian_requested(args: argparse.Namespace) -> bool:
-    return bool(args.with_obsidian_codex or args.obsidian_vault or os.environ.get("OBSIDIAN_VAULT"))
+        return Path(env_value).expanduser().resolve()
+    return Path.cwd()
 
 
 def latest_obsidian_release_zip_url() -> str:
@@ -371,29 +366,45 @@ def find_obsidian_plugin_root(extracted_dir: Path) -> Path | None:
     return None
 
 
+def ensure_obsidian_plugin_parent(vault_path: Path, report: Report, dry_run: bool) -> Path | None:
+    obsidian_dir = vault_path / ".obsidian"
+    plugins_dir = obsidian_dir / "plugins"
+    for directory in [obsidian_dir, plugins_dir]:
+        if directory.exists():
+            if not directory.is_dir():
+                report.add("failed", f"{directory} exists but is not a directory")
+                return None
+            report.add("already_present", f"{directory} exists")
+            continue
+        if dry_run:
+            report.add("skipped", f"dry-run would create {directory}")
+            continue
+        try:
+            directory.mkdir(parents=True, exist_ok=True)
+        except OSError as error:
+            report.add("failed", f"could not create {directory}: {error}")
+            return None
+        report.add("installed", f"created {directory}")
+    return plugins_dir
+
+
 def install_obsidian_codex(args: argparse.Namespace, report: Report) -> None:
     if args.skip_obsidian_codex:
         report.add("skipped", "Obsidian plugin skipped by flag")
         return
-    if not obsidian_requested(args):
-        report.add("skipped", "Obsidian plugin not requested")
-        report.next_steps.append("Set OBSIDIAN_VAULT=/path/to/vault or pass --obsidian-vault PATH to install the plugin.")
-        return
     vault_path = vault_path_from_args(args)
-    if vault_path is None:
-        report.add("skipped", "Obsidian plugin requires a vault path")
-        return
     if not vault_path.exists():
         report.add("failed", f"Obsidian vault path missing: {vault_path}")
         return
 
-    plugins_dir = vault_path / ".obsidian" / "plugins"
+    plugins_dir = ensure_obsidian_plugin_parent(vault_path, report, args.dry_run)
+    if plugins_dir is None:
+        return
     destination_dir = plugins_dir / "obsidian-codex"
     if destination_dir.exists() and not args.force:
         report.add("skipped", f"{destination_dir} exists; use --force to replace")
         return
     if args.dry_run:
-        report.add("skipped", f"dry-run would create {plugins_dir}")
         report.add("skipped", f"dry-run would download latest release from {DEFAULT_OBSIDIAN_REPO}/releases/latest")
         report.add("skipped", f"dry-run would install plugin to {destination_dir}")
         report.next_steps.extend(
@@ -437,7 +448,7 @@ def install_obsidian_codex(args: argparse.Namespace, report: Report) -> None:
 def run_recommendations(args: argparse.Namespace, report: Report) -> None:
     report.next_steps.append("Run bash scripts/doctor.sh")
     report.next_steps.append("Run python3 scripts/check_external_skills.py")
-    if vault_path_from_args(args):
+    if not args.skip_obsidian_codex:
         report.next_steps.append("Run python3 scripts/check_obsidian_codex.py")
     report.next_steps.append("Run python3 scripts/check_citations.py")
     report.next_steps.append("Run python3 scripts/check_placeholders.py .")

@@ -39,7 +39,9 @@
 
 ## Obsidian plugins
 
-- Install plugins only into an explicit vault path.
+- Use the repository root as the default vault root; pass an explicit vault path only for a separate vault.
+- Do not create nested vault folders inside the repository.
+- Do not write workspace files or modify existing Obsidian settings unless forced.
 - Review plugin source or release contents when practical.
 - Keep command and write approval enabled.
 

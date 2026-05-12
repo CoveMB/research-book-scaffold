@@ -11,8 +11,8 @@ help:
 	@echo "  check-links            Check wiki-style internal links"
 	@echo "  check-external-skills  Check external skill/plugin integration"
 	@echo "  install-external-skills Vendor external skills and update marketplace"
-	@echo "  check-obsidian-codex   Check optional Obsidian plugin install"
-	@echo "  install-obsidian-codex Install optional Obsidian plugin when OBSIDIAN_VAULT is set"
+	@echo "  check-obsidian-codex   Check Obsidian plugin install in the project root vault"
+	@echo "  install-obsidian-codex Install Obsidian plugin in the project root vault"
 	@echo "  audit                  Run repository checks"
 
 doctor:
