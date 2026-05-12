@@ -9,6 +9,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from git_utils import has_git_checkout
 from project_config import ARS_VENDOR, RBS_VENDOR, change_to_project_root
 
 
@@ -66,10 +67,6 @@ def git_stdout(command: list[str], cwd: Path | None = None) -> str:
 
 def submodule_status(path: Path) -> str:
     return git_stdout(["git", "-C", path.as_posix(), "status", "--short"])
-
-
-def has_git_checkout(path: Path) -> bool:
-    return (path / ".git").exists()
 
 
 def fail_if_dirty(vendor: VendorSpec) -> None:

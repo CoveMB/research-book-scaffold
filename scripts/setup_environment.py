@@ -118,12 +118,8 @@ def run_recommendations(args: argparse.Namespace, report: Report) -> None:
     report.next_steps.append("Run python3 scripts/check_placeholders.py .")
 
 
-def install_external_layer(args: argparse.Namespace, report: Report) -> None:
-    if not args.with_external_skills:
-        report.add("skipped", "external skills skipped; run install script or pass --with-external-skills")
-        return
-
-    external_args = argparse.Namespace(
+def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespace:
+    return argparse.Namespace(
         dry_run=args.dry_run,
         yes=args.yes,
         force=args.force,
@@ -138,10 +134,18 @@ def install_external_layer(args: argparse.Namespace, report: Report) -> None:
         update=args.update,
         no_update=args.no_update,
     )
+
+
+def install_external_layer(args: argparse.Namespace, report: Report) -> None:
+    if not args.with_external_skills:
+        report.add("skipped", "external skills skipped; run install script or pass --with-external-skills")
+        return
+
+    external_args = external_args_from_setup_args(args)
     external_report = install_external_skills.Report()
     install_external_skills.install_external(external_args, external_report)
     report.installed.extend(external_report.installed)
-    report.already_present.extend(external_report.present)
+    report.already_present.extend(external_report.already_present)
     report.skipped.extend(external_report.skipped)
     report.failed.extend(external_report.failed)
     report.warnings.extend(external_report.warnings)

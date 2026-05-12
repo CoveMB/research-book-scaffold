@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 from project_config import change_to_project_root
-from script_utils import DOCUMENT_SUFFIXES, PLACEHOLDER_RE, iter_supported_files, read_text
+from script_utils import DOCUMENT_SUFFIXES, PLACEHOLDER_RE, ignored_dirs_with, iter_supported_files, read_text
 
 MARKERS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -17,7 +17,6 @@ MARKERS = [
     PLACEHOLDER_RE,
 ]
 
-DEFAULT_IGNORED_DIRS = {".git", ".quarto", "_book", "vendor", "plugins", "templates"}
 SUPPORTED_SUFFIXES = set(DOCUMENT_SUFFIXES)
 
 
@@ -33,9 +32,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def iter_files(paths: list[str], include_templates: bool) -> list[Path]:
-    ignored_dirs = set(DEFAULT_IGNORED_DIRS)
-    if include_templates:
-        ignored_dirs.discard("templates")
+    ignored_dirs = ignored_dirs_with(
+        extra={"plugins", "templates"},
+        include={"templates"} if include_templates else set(),
+    )
     return iter_supported_files([Path(raw_path) for raw_path in paths], ignored_dirs, SUPPORTED_SUFFIXES)
 
 

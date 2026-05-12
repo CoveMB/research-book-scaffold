@@ -9,6 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from git_utils import changed_paths_from_status, git_stdout, has_git_checkout
 from project_config import (
     ARS_SKILLS,
     ARS_VENDOR,
@@ -44,10 +45,9 @@ def warn(message: str, warnings: list[str]) -> None:
 
 
 def git_origin(path: Path) -> str:
-    if not (path / ".git").exists():
+    if not has_git_checkout(path):
         return ""
-    result = subprocess.run(["git", "remote", "get-url", "origin"], cwd=path, text=True, capture_output=True, check=False)
-    return result.stdout.strip() if result.returncode == 0 else ""
+    return git_stdout(["git", "remote", "get-url", "origin"], cwd=path) or ""
 
 
 def is_submodule_path(path: Path) -> bool:
@@ -75,7 +75,7 @@ def check_submodule(path: Path, expected_url: str, label: str, failures: list[st
 
 
 def submodule_dirty_message(label: str, status_text: str) -> str:
-    changed_paths = [line[3:].strip() for line in status_text.splitlines() if line.strip()]
+    changed_paths = changed_paths_from_status(status_text)
     if not changed_paths:
         return ""
     return f"{label} submodule has uncommitted changes: {', '.join(changed_paths)}"

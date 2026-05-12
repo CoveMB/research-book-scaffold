@@ -5,11 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import sys
 import shutil
 from pathlib import Path
 
+from git_utils import git_stdout, has_git_checkout
 from project_config import (
     ARS_SKILLS,
     ARS_VENDOR,
@@ -104,7 +104,7 @@ def clone_or_update(repo_url: str, path: Path, ref: str | None, args: argparse.N
     if not git_available(report):
         return
     if is_configured_submodule(path):
-        report.add("present", f"{label} configured as Git submodule: {path}")
+        report.add("already_present", f"{label} configured as Git submodule: {path}")
         if args.preserve_vendor_checkouts:
             report.add("skipped", f"{label} submodule checkout preserved")
             return
@@ -116,7 +116,7 @@ def clone_or_update(repo_url: str, path: Path, ref: str | None, args: argparse.N
         if ok:
             checkout_ref(path, ref, report, args.dry_run, label)
         return
-    report.add("present", f"{label} vendor exists: {path}")
+    report.add("already_present", f"{label} vendor exists: {path}")
     if not (path / ".git").exists():
         report.add("warnings", f"{path} exists but is not a Git checkout; update skipped")
         return
@@ -129,15 +129,14 @@ def clone_or_update(repo_url: str, path: Path, ref: str | None, args: argparse.N
 
 
 def commit_hash(path: Path) -> str:
-    if not (path / ".git").exists():
+    if not has_git_checkout(path):
         return "unknown"
-    result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=path, text=True, capture_output=True, check=False)
-    return result.stdout.strip() if result.returncode == 0 else "unknown"
+    return git_stdout(["git", "rev-parse", "HEAD"], cwd=path) or "unknown"
 
 
 def write_if_changed(path: Path, text: str, args: argparse.Namespace, report: Report, label: str) -> bool:
     if path.exists() and path.read_text(encoding="utf-8", errors="replace") == text:
-        report.add("present", f"{label} current: {path}")
+        report.add("already_present", f"{label} current: {path}")
         return True
     if path.exists() and not args.force:
         report.add("skipped", f"{path} exists; use --force to replace")
@@ -160,7 +159,7 @@ def validate_ars(report: Report) -> bool:
     for skill_name in ARS_SKILLS:
         path = ars_skill_path(skill_name)
         if path.exists():
-            report.add("present", f"ARS skill found: {path}")
+            report.add("already_present", f"ARS skill found: {path}")
         else:
             report.add("failed", f"ARS skill missing: {path}")
             ok = False
@@ -219,7 +218,7 @@ def validate_rbs(report: Report) -> bool:
     ok = True
     for path in required:
         if path.exists():
-            report.add("present", f"RBS component found: {path}")
+            report.add("already_present", f"RBS component found: {path}")
         else:
             report.add("failed", f"RBS component missing: {path}")
             ok = False

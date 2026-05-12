@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from project_config import change_to_project_root
+from script_utils import replace_placeholders
 
 
 def parse_args() -> argparse.Namespace:
@@ -39,10 +40,7 @@ def parse_replacements(raw_values: list[str]) -> dict[str, str]:
 
 
 def apply_replacements(text: str, replacements: dict[str, str]) -> str:
-    for key, value in replacements.items():
-        text = text.replace(f"{{{{{key}}}}}", value)
-        text = text.replace(f"{{{{ {key} }}}}", value)
-    return text
+    return replace_placeholders(text, replacements)
 
 
 def main() -> int:

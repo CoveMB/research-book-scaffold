@@ -14,9 +14,12 @@ import new_from_template
 
 class TemplateToolTests(unittest.TestCase):
     def test_new_from_template_replaces_explicit_placeholders(self) -> None:
-        text = new_from_template.apply_replacements("{{Title}}\n{{ Claim }}\n", {"Title": "Chapter 1", "Claim": "Supported claim"})
+        text = new_from_template.apply_replacements(
+            "{{Title}}\n{{ Claim }}\n{{  Claim  }}\n",
+            {"Title": "Chapter 1", "Claim": "Supported claim"},
+        )
 
-        self.assertEqual(text, "Chapter 1\nSupported claim\n")
+        self.assertEqual(text, "Chapter 1\nSupported claim\nSupported claim\n")
 
     def test_placeholder_checker_flags_explicit_placeholders(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -1,12 +1,11 @@
 #!/usr/bin/env sh
 
-set -u
-
-SCRIPT_DIR=${0%/*}
-if [ "$SCRIPT_DIR" = "$0" ]; then
-  SCRIPT_DIR=.
+SCRIPT_ENTRY_DIR=${0%/*}
+if [ "$SCRIPT_ENTRY_DIR" = "$0" ]; then
+  SCRIPT_ENTRY_DIR=.
 fi
-SCRIPT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR" && pwd)
-PROJECT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+SCRIPT_HELPER_DIR="$SCRIPT_ENTRY_DIR"
+. "$SCRIPT_ENTRY_DIR/script_env.sh"
+require_python3 "render the manuscript"
 
 python3 "$PROJECT_ROOT/scripts/render_manuscript.py" "$@"

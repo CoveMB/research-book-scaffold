@@ -95,6 +95,12 @@ def exit_code_for_findings(
     return 0
 
 
+def no_citation_warning(manuscript_keys: set[str], require_citations: bool) -> str | None:
+    if manuscript_keys or require_citations:
+        return None
+    return "WARN no citations found; release-audit requires at least one verified citation."
+
+
 def main() -> int:
     change_to_project_root()
     args = parse_args()
@@ -133,6 +139,9 @@ def main() -> int:
 
     if args.require_citations and not manuscript_keys:
         print("FAIL no citations found in scanned files.")
+    warning = no_citation_warning(manuscript_keys, args.require_citations)
+    if warning:
+        print(warning)
 
     print(
         f"\nChecked {len(manuscript_files)} scanned file(s), "

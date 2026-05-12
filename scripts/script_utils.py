@@ -17,7 +17,6 @@ PLACEHOLDER_RE = re.compile(r"\{\{\s*[A-Za-z][A-Za-z0-9_ -]{0,80}\s*\}\}")
 @dataclass
 class StatusReport:
     installed: list[str] = field(default_factory=list)
-    present: list[str] = field(default_factory=list)
     already_present: list[str] = field(default_factory=list)
     skipped: list[str] = field(default_factory=list)
     failed: list[str] = field(default_factory=list)
@@ -40,8 +39,23 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8", errors="replace")
 
 
+def replace_placeholders(text: str, replacements: dict[str, str]) -> str:
+    def replace_match(match: re.Match[str]) -> str:
+        raw_key = match.group(0).strip("{} ")
+        return replacements.get(raw_key, match.group(0))
+
+    return PLACEHOLDER_RE.sub(replace_match, text)
+
+
 def should_skip_path(path: Path, ignored_dirs: set[str]) -> bool:
     return any(part in ignored_dirs for part in path.parts)
+
+
+def ignored_dirs_with(extra: Iterable[str] = (), include: Iterable[str] = ()) -> set[str]:
+    ignored = set(DEFAULT_IGNORED_DIRS)
+    ignored.update(extra)
+    ignored.difference_update(include)
+    return ignored
 
 
 def iter_supported_files(

@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from environment_checks import CORE_TOOLS, OPTIONAL_TOOLS, command_exists
+from git_utils import git_stdout
 from project_config import change_to_project_root
 
 
@@ -47,6 +48,48 @@ def check_dir(path: Path, counts: dict[str, int]) -> None:
         record("fail", f"{path} missing", counts)
 
 
+def branch_tracking_status(
+    current_branch: str | None,
+    upstream: str | None,
+    divergence: tuple[int, int] | None,
+) -> tuple[str, str]:
+    if not current_branch:
+        return "warn", "git repository is detached; check out intended branch before work"
+    if not upstream:
+        return "warn", f"git branch {current_branch} has no upstream configured"
+    if divergence is None:
+        return "warn", f"git branch {current_branch} tracking status unavailable"
+
+    behind_count, ahead_count = divergence
+    if ahead_count and behind_count:
+        return (
+            "warn",
+            f"git branch {current_branch} has diverged from {upstream}: "
+            f"{ahead_count} ahead, {behind_count} behind",
+        )
+    if ahead_count:
+        return "warn", f"git branch {current_branch} is {ahead_count} commit(s) ahead of {upstream}"
+    if behind_count:
+        return "warn", f"git branch {current_branch} is {behind_count} commit(s) behind {upstream}"
+    return "pass", f"git branch {current_branch} tracks {upstream} and is up to date"
+
+
+def current_branch_tracking_status() -> tuple[str, str]:
+    current_branch = git_stdout(["git", "branch", "--show-current"])
+    upstream = git_stdout(["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
+    divergence_text = git_stdout(["git", "rev-list", "--left-right", "--count", "@{u}...HEAD"]) if upstream else None
+    divergence = None
+    if divergence_text:
+        left, right = divergence_text.split()
+        divergence = (int(left), int(right))
+    return branch_tracking_status(current_branch, upstream, divergence)
+
+
+def check_git_branch_tracking(counts: dict[str, int]) -> None:
+    status, message = current_branch_tracking_status()
+    record(status, message, counts)
+
+
 def main() -> int:
     change_to_project_root()
     counts = {"pass": 0, "warn": 0, "fail": 0}
@@ -59,6 +102,8 @@ def main() -> int:
         check_file(path, counts)
     for path in REQUIRED_DIRS:
         check_dir(path, counts)
+    if command_exists("git"):
+        check_git_branch_tracking(counts)
 
     print(f"\nSummary: {counts['pass']} pass, {counts['warn']} warn, {counts['fail']} fail")
     return 1 if counts["fail"] else 0

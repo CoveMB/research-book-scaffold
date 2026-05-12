@@ -4,7 +4,8 @@
 | --- | --- | --- |
 | Zotero | Source library, PDFs, metadata | Recommended |
 | Better BibTeX | Stable citekeys and BibTeX export | Recommended |
-| Obsidian or Markdown vault | Project-root notes and local navigation | Optional |
+| Obsidian project-root vault | Project-root notes and local navigation | Required |
+| Markdown editor | Direct file editing outside Obsidian | Optional |
 | Quarto | Book rendering | Optional until export |
 | Pandoc | Format conversion | Optional until export |
 | Git | Version history and checkpoints | Recommended |

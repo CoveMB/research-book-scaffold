@@ -1,19 +1,13 @@
 #!/usr/bin/env sh
 
-set -u
-
-SCRIPT_DIR=${0%/*}
-if [ "$SCRIPT_DIR" = "$0" ]; then
-  SCRIPT_DIR=.
+SCRIPT_ENTRY_DIR=${0%/*}
+if [ "$SCRIPT_ENTRY_DIR" = "$0" ]; then
+  SCRIPT_ENTRY_DIR=.
 fi
-SCRIPT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR" && pwd)
-cd "$SCRIPT_DIR" || exit 1
+SCRIPT_HELPER_DIR="$SCRIPT_ENTRY_DIR/scripts"
+. "$SCRIPT_ENTRY_DIR/scripts/script_env.sh"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  printf '%s\n' "python3 is required to run setup."
-  printf '%s\n' "Install Python 3 with your system package manager, then rerun:"
-  printf '%s\n' "  sh setup.sh"
-  exit 1
-fi
+cd "$PROJECT_ROOT" || exit 1
+require_python3 "run setup"
 
 python3 scripts/setup_environment.py "$@"

@@ -1,18 +1,13 @@
 #!/usr/bin/env sh
 
-set -u
-
-SCRIPT_DIR=${0%/*}
-if [ "$SCRIPT_DIR" = "$0" ]; then
-  SCRIPT_DIR=.
+SCRIPT_ENTRY_DIR=${0%/*}
+if [ "$SCRIPT_ENTRY_DIR" = "$0" ]; then
+  SCRIPT_ENTRY_DIR=.
 fi
-SCRIPT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR" && pwd)
-PROJECT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+SCRIPT_HELPER_DIR="$SCRIPT_ENTRY_DIR"
+. "$SCRIPT_ENTRY_DIR/script_env.sh"
+
 cd "$PROJECT_ROOT" || exit 1
-
-if ! command -v python3 >/dev/null 2>&1; then
-  printf '%s\n' "python3 is required to update skill vendors."
-  exit 1
-fi
+require_python3 "update skill vendors"
 
 python3 "$PROJECT_ROOT/scripts/update_skills_vendors.py" "$@"

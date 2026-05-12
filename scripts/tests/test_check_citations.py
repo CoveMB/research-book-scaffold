@@ -25,6 +25,14 @@ class CheckCitationsTests(unittest.TestCase):
             1,
         )
 
+    def test_empty_non_strict_scan_warns_without_failing(self) -> None:
+        self.assertEqual(
+            check_citations.no_citation_warning(manuscript_keys=set(), require_citations=False),
+            "WARN no citations found; release-audit requires at least one verified citation.",
+        )
+        self.assertIsNone(check_citations.no_citation_warning(manuscript_keys={"smith2024"}, require_citations=False))
+        self.assertIsNone(check_citations.no_citation_warning(manuscript_keys=set(), require_citations=True))
+
     def test_parse_citations_finds_bare_pandoc_citations(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "chapter.qmd"

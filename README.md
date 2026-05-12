@@ -28,7 +28,7 @@ If the repository was cloned without submodules, run:
 git submodule update --init --recursive
 ```
 
-After setup, read `AGENTS.md`, add verified sources to Zotero or `bibliography/references.bib`, create notes from `templates/`, and draft in `manuscript/`.
+After setup, read `AGENTS.md`, add verified sources to Zotero or `bibliography/references.bib`, create notes from `templates/`, and draft in `manuscript/`. Obsidian is the required vault interface for local agent workflows; Markdown editors remain useful for direct file edits.
 
 ## Common commands
 
@@ -61,7 +61,7 @@ ARS wrappers live in `.agents/skills/`. Research Book Skills is exposed through 
 - Academic Research Skills can be vendored from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
 - Research Book Skills can be vendored from `CoveMB/research-book-skills` and exposed directly from `vendor/research-book-skills/`.
 
-External repositories stay optional. Review upstream files before use and do not run vendored scripts automatically. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. `--force` only allows replacing an existing plugin folder.
+External repositories stay optional. Review upstream files before use and do not run vendored scripts automatically. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. It installs the required Obsidian plugin by default when missing. `--force` only allows replacing an existing plugin folder. For reproducible plugin installation, pass a reviewed release URL and SHA-256 checksum.
 
 The two external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
 
@@ -69,7 +69,7 @@ The two external repositories under `vendor/` are Git submodules. After cloning,
 git submodule update --init --recursive
 ```
 
-`make install-external-skills` also initializes them. `bash setup.sh` checks local tools, scaffold files, and the Obsidian agent without changing external repositories unless `--with-external-skills` is passed.
+`make install-external-skills` also initializes them. `bash setup.sh` checks local tools, scaffold files, and the required Obsidian integration without changing external repositories unless `--with-external-skills` is passed.
 
 ## Do not automate
 

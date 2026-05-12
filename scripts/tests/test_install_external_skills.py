@@ -36,7 +36,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
             )
 
         run_mock.assert_not_called()
-        self.assertEqual(report.present, ["Example configured as Git submodule: vendor/example"])
+        self.assertEqual(report.already_present, ["Example configured as Git submodule: vendor/example"])
         self.assertEqual(report.skipped, ["Example submodule checkout preserved"])
 
 

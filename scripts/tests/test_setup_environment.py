@@ -75,6 +75,30 @@ class SetupEnvironmentTests(unittest.TestCase):
             report.skipped,
         )
 
+    def test_external_args_are_mapped_from_setup_args(self) -> None:
+        args = setup_environment.parse_args(
+            [
+                "--dry-run",
+                "--yes",
+                "--force",
+                "--skip-ars",
+                "--rbs-ref",
+                "main",
+                "--no-rbs-plugin",
+                "--no-update",
+            ]
+        )
+
+        external_args = setup_environment.external_args_from_setup_args(args)
+
+        self.assertTrue(external_args.dry_run)
+        self.assertTrue(external_args.yes)
+        self.assertTrue(external_args.force)
+        self.assertTrue(external_args.skip_ars)
+        self.assertEqual(external_args.rbs_ref, "main")
+        self.assertTrue(external_args.no_rbs_plugin)
+        self.assertTrue(external_args.no_update)
+
 
 if __name__ == "__main__":
     unittest.main()
