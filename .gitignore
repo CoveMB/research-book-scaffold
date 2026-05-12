@@ -1,0 +1,48 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Quarto and generated output
+.quarto/
+_book/
+exports/pdf/*
+exports/docx/*
+exports/html/*
+exports/epub/*
+!exports/pdf/.gitkeep
+!exports/docx/.gitkeep
+!exports/html/.gitkeep
+!exports/epub/.gitkeep
+
+# Local secrets and machine config
+.env
+.env.*
+*.local
+config/*.local.*
+config/mcp.json
+
+# Local Obsidian state and plugin artifacts
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache/
+.obsidian/plugins/obsidian-codex/
+
+# Local Zotero storage exports
+zotero-storage/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
