@@ -35,26 +35,33 @@ After setup, read `AGENTS.md`, add verified sources to Zotero or `bibliography/r
 ```sh
 make doctor
 make audit
+make release-audit
 make render
+make render-html
+make render-pdf
+make render-docx
 make check-citations-strict
 make install-external-skills
 ```
 
 ## Templates
 
-Use `templates/` for source notes, concept notes, claim notes, chapter briefs, search logs, audits, and synthesis memos. Create new notes from templates instead of starting from a blank file.
+Use `templates/` for local source notes, concept notes, claim notes, audits, source matrices, project charters, and synthesis memos. Plugin-owned chapter brief, search log, literature map, and case-study templates are listed in `templates/README.md`.
 
 ## Repo-scoped skills and plugins
 
 ARS wrappers live in `.agents/skills/`. Research Book Skills is exposed through `.agents/plugins/marketplace.json`, which points directly at the vendored submodule. Use them for bounded tasks such as search planning, source notes, claim audits, drafting from notes, and final manuscript checks.
 
-## Optional integrations
+## Required local agent integration
 
-- Obsidian Codex can connect this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/` and installs the plugin in the repository root by default; pass `--skip-obsidian-codex` to skip it or `--obsidian-vault PATH` for a different vault.
+- Obsidian Codex connects this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/` and installs the plugin in the repository root by default; pass `--obsidian-vault PATH` only for a different vault.
+
+## Optional external integrations
+
 - Academic Research Skills can be vendored from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
 - Research Book Skills can be vendored from `CoveMB/research-book-skills` and exposed directly from `vendor/research-book-skills/`.
 
-External integrations stay optional. Review upstream files before use and do not run vendored scripts automatically. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. `--force` only allows replacing an existing plugin folder.
+External repositories stay optional. Review upstream files before use and do not run vendored scripts automatically. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. `--force` only allows replacing an existing plugin folder.
 
 The two external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
 
@@ -62,7 +69,7 @@ The two external repositories under `vendor/` are Git submodules. After cloning,
 git submodule update --init --recursive
 ```
 
-`make install-external-skills` also initializes them. `bash setup.sh` checks local tools and scaffold files without changing external integrations unless `--with-external-skills` is passed.
+`make install-external-skills` also initializes them. `bash setup.sh` checks local tools, scaffold files, and the Obsidian agent without changing external repositories unless `--with-external-skills` is passed.
 
 ## Do not automate
 

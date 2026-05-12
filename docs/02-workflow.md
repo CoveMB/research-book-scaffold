@@ -10,7 +10,7 @@
 6. Track claims in `notes/04-claim-ledger/`.
 7. Draft chapter briefs in `notes/07-chapter-briefs/`.
 8. Draft only from notes and briefs in `manuscript/`.
-9. Audit citations, placeholders, links, claims, and continuity before export.
+9. Audit citations, placeholders, links, claims, and continuity before export with `make release-audit`.
 10. Render exports only after checks pass and known limitations are recorded.
 
 ## Full sequence
@@ -34,6 +34,6 @@
 | 15. Red-team review | Challenge argument | Draft | Review note | Notes | RBS peer-review workflows | Objections logged |
 | 16. Continuity review | Check consistency | Drafts | Review note | Notes | RBS continuity workflow | Terms consistent |
 | 17. Style revision | Improve prose | Audited draft | Revised draft | Editor | RBS prose editor workflow | Meaning preserved |
-| 18. Final manuscript check | Prepare export | Draft, audits | Readiness note | Scripts | RBS continuity/citation workflows | Checks pass |
-| 19. Export | Render output | Quarto source | HTML, PDF, DOCX | Quarto | Final check docs | Output reviewed |
+| 18. Final manuscript check | Prepare export | Draft, audits | Readiness note | `make release-audit` | RBS continuity/citation workflows | Checks pass |
+| 19. Export | Render output | Quarto source | HTML, PDF, DOCX | `make render-*` | Final check docs | Output reviewed |
 | 20. Version/archive | Preserve state | Final files | Commit or archive | Git | Project rules in `AGENTS.md` | Status clean |

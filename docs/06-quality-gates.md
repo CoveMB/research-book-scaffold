@@ -10,6 +10,6 @@
 | Citation gate | Citekeys exist and page needs are marked |
 | Red-team gate | Weak assumptions, overclaims, and counterarguments are listed |
 | Continuity gate | Terms, claims, and argument order stay consistent |
-| Export gate | Checks pass and unresolved placeholders are reviewed |
+| Export gate | `make release-audit` passes and unresolved placeholders are reviewed |
 
 Do not advance a draft by hiding a failed gate. Record the failure and the next fix.

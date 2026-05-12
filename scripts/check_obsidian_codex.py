@@ -15,6 +15,7 @@ from project_config import (
     OBSIDIAN_DIR,
     OBSIDIAN_PLUGIN_DIR,
     REQUIRED_OBSIDIAN_PLUGIN_FILES,
+    change_to_project_root,
     resolve_obsidian_vault_path,
 )
 
@@ -69,6 +70,7 @@ def check_community_plugins(obsidian_dir: Path) -> None:
 
 
 def main(argv: list[str]) -> int:
+    change_to_project_root()
     vault_path = get_vault_path(argv)
     failures = 0
 
@@ -102,7 +104,8 @@ def main(argv: list[str]) -> int:
 
     if obsidian_dir.exists():
         check_community_plugins(obsidian_dir)
-    check_cli()
+    if not check_cli():
+        failures += 1
 
     return 1 if failures else 0
 

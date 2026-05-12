@@ -43,13 +43,18 @@ class SetupEnvironmentTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 setup_environment.parse_args(["--with-obsidian-codex"])
 
-    def test_recommendations_skip_obsidian_check_when_plugin_skipped(self) -> None:
-        args = setup_environment.parse_args(["--skip-obsidian-codex"])
+    def test_skip_obsidian_agent_flag_is_rejected(self) -> None:
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                setup_environment.parse_args(["--skip-obsidian-codex"])
+
+    def test_recommendations_always_include_obsidian_agent_check(self) -> None:
+        args = setup_environment.parse_args([])
         report = SilentReport()
 
         setup_environment.run_recommendations(args, report)
 
-        self.assertNotIn("Run python3 scripts/check_obsidian_codex.py", report.next_steps)
+        self.assertIn("Run python3 scripts/check_obsidian_codex.py", report.next_steps)
 
     def test_obsidian_next_steps_add_read_only_test_only_after_install(self) -> None:
         dry_run_steps = setup_environment.obsidian_next_steps(include_read_only_test=False)

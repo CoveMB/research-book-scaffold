@@ -10,24 +10,24 @@ confidence: low
 
 ## Claim text
 
-[Claim.]
+{{CLAIM}}
 
 ## Supporting sources
 
-- [citekey plus location if needed.]
+- {{SUPPORTING_CITEKEY_AND_LOCATION}}
 
 ## Counter-sources
 
-- [citekey plus location if needed.]
+- {{COUNTER_CITEKEY_AND_LOCATION}}
 
 ## Safer wording
 
-[Qualified wording.]
+{{QUALIFIED_WORDING}}
 
 ## What would falsify or weaken this
 
-- [Evidence, method, or counterexample.]
+- {{FALSIFYING_OR_WEAKENING_EVIDENCE}}
 
 ## Next research task
 
-- [Task.]
+- {{NEXT_RESEARCH_TASK}}

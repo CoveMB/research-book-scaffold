@@ -1,6 +1,6 @@
 # Obsidian Codex
 
-Obsidian Codex is an optional Obsidian plugin that connects a vault to local agent workflows.
+Obsidian Codex is the required Obsidian plugin that connects a vault to local agent workflows.
 
 ## Access and value
 

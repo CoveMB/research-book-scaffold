@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -23,6 +24,20 @@ class CheckCitationsTests(unittest.TestCase):
             check_citations.exit_code_for_findings(missing=[], manuscript_keys=set(), require_citations=True),
             1,
         )
+
+    def test_parse_citations_finds_bare_pandoc_citations(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "chapter.qmd"
+            path.write_text("This claim follows @smith2024 and [@doe2023].\n", encoding="utf-8")
+
+            keys = check_citations.parse_citations(path)
+
+        self.assertEqual(keys, {"smith2024", "doe2023"})
+
+    def test_duplicate_bibliography_keys_are_reported(self) -> None:
+        text = "@book{smith2024,\n}\n@article{smith2024,\n}\n@string{ignored = \"x\"}\n"
+
+        self.assertEqual(check_citations.duplicate_bib_keys(text), ["smith2024"])
 
 
 if __name__ == "__main__":

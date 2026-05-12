@@ -7,38 +7,38 @@ status: draft
 
 ## Working title
 
-[Title.]
+{{TITLE}}
 
 ## Book purpose
 
-[Purpose.]
+{{PURPOSE}}
 
 ## Audience
 
-[Primary readers.]
+{{PRIMARY_READERS}}
 
 ## Central question
 
-[Question.]
+{{QUESTION}}
 
 ## Scope boundaries
 
 ### In scope
 
-- [Boundary.]
+- {{IN_SCOPE_BOUNDARY}}
 
 ### Out of scope
 
-- [Boundary.]
+- {{OUT_OF_SCOPE_BOUNDARY}}
 
 ## Source base
 
-- [Known source type, archive, database, collection, or literature.]
+- {{KNOWN_SOURCE_BASE}}
 
 ## Key uncertainties
 
-- [Uncertainty.]
+- {{KEY_UNCERTAINTY}}
 
 ## First research tasks
 
-- [Task.]
+- {{FIRST_RESEARCH_TASK}}

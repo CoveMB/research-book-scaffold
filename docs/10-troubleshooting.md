@@ -2,7 +2,7 @@
 
 | Problem | Fix |
 | --- | --- |
-| Missing Codex CLI | Install and log in only when needed. Do not store credentials in repo. |
+| Missing Codex CLI | Install and log in before setup or Obsidian agent checks. Do not store credentials in repo. |
 | Missing Python | Install Python 3, then rerun setup or checks. |
 | Missing Git | Install Git before relying on status, diff, or checkpoints. |
 | Missing Quarto | Install Quarto before rendering the manuscript. |

@@ -7,6 +7,8 @@ import argparse
 import sys
 from pathlib import Path
 
+from project_config import change_to_project_root
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -18,7 +20,7 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=[],
         metavar="KEY=VALUE",
-        help="Replace {{KEY}}, {{ KEY }}, and [[KEY]] placeholders.",
+        help="Replace {{KEY}} and {{ KEY }} placeholders.",
     )
     return parser.parse_args()
 
@@ -40,13 +42,11 @@ def apply_replacements(text: str, replacements: dict[str, str]) -> str:
     for key, value in replacements.items():
         text = text.replace(f"{{{{{key}}}}}", value)
         text = text.replace(f"{{{{ {key} }}}}", value)
-        text = text.replace(f"[[{key}]]", value)
-        text = text.replace(f"[{key}]", value)
-        text = text.replace(f"[{key}.]", value)
     return text
 
 
 def main() -> int:
+    change_to_project_root()
     args = parse_args()
     template_path = Path(args.template)
     destination_path = Path(args.destination)

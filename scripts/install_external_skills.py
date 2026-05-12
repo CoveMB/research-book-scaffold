@@ -7,7 +7,6 @@ import argparse
 import json
 import subprocess
 import sys
-from dataclasses import dataclass, field
 import shutil
 from pathlib import Path
 
@@ -19,26 +18,16 @@ from project_config import (
     GITMODULES_PATH,
     MARKETPLACE_PLUGIN_PATH,
     PLUGIN_MARKETPLACE,
-    RBS_SKILLS,
+    RBS_MARKETPLACE_NAME,
     RBS_VENDOR,
     SKILLS_DIR,
+    change_to_project_root,
 )
+from script_utils import StatusReport, run_command, read_text
 
 
-@dataclass
-class Report:
-    installed: list[str] = field(default_factory=list)
-    present: list[str] = field(default_factory=list)
-    skipped: list[str] = field(default_factory=list)
-    failed: list[str] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)
-
-    def add(self, bucket: str, message: str) -> None:
-        getattr(self, bucket).append(message)
-        print(f"{bucket.upper()}: {message}")
-
-    def ok(self) -> bool:
-        return not self.failed
+class Report(StatusReport):
+    pass
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -53,22 +42,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--rbs-repo", default=DEFAULT_RBS_REPO)
     parser.add_argument("--rbs-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
+    parser.add_argument("--update-mode", choices=["pinned", "remote"], default="pinned")
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--no-update", action="store_true")
     return parser.parse_args(argv)
 
 
 def run(command: list[str], report: Report, dry_run: bool, action: str, cwd: Path | None = None) -> bool:
-    printable = " ".join(command)
-    if dry_run:
-        report.add("skipped", f"dry-run would run: {printable}")
-        return True
-    result = subprocess.run(command, cwd=cwd, text=True, check=False)
-    if result.returncode == 0:
-        report.add("installed", action)
-        return True
-    report.add("failed", f"{action} failed with exit {result.returncode}: {printable}")
-    return False
+    return run_command(command, report, dry_run, action, cwd=cwd)
 
 
 def git_available(report: Report) -> bool:
@@ -79,7 +60,15 @@ def git_available(report: Report) -> bool:
 
 
 def should_update(args: argparse.Namespace) -> bool:
-    return args.update and not args.no_update
+    return update_mode(args) == "remote"
+
+
+def update_mode(args: argparse.Namespace) -> str:
+    if args.update:
+        return "remote"
+    if args.no_update:
+        return "pinned"
+    return args.update_mode
 
 
 def checkout_ref(path: Path, ref: str | None, report: Report, dry_run: bool, label: str) -> None:
@@ -90,7 +79,7 @@ def checkout_ref(path: Path, ref: str | None, report: Report, dry_run: bool, lab
 def is_configured_submodule(path: Path) -> bool:
     if not GITMODULES_PATH.exists():
         return False
-    text = GITMODULES_PATH.read_text(encoding="utf-8", errors="replace")
+    text = read_text(GITMODULES_PATH)
     return f"path = {path.as_posix()}" in text
 
 
@@ -235,7 +224,7 @@ def marketplace_text() -> str:
         "interface": {"displayName": "Local Research Workflow Plugins"},
         "plugins": [
             {
-                "name": "research-book-skills",
+                "name": RBS_MARKETPLACE_NAME,
                 "source": {"source": "local", "path": MARKETPLACE_PLUGIN_PATH},
                 "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
                 "category": "Productivity",
@@ -289,7 +278,7 @@ def report_text(
     return "\n".join(lines)
 
 
-def write_install_reports(args: argparse.Namespace, report: Report, ars_wrappers: list[Path], rbs_wrappers: list[Path], plugin_exposed: bool, marketplace_written: bool) -> None:
+def write_ars_install_report(args: argparse.Namespace, report: Report, ars_wrappers: list[Path]) -> None:
     ars_report = report_text(
         "Installed Academic Research Skills",
         args.ars_repo,
@@ -304,13 +293,15 @@ def write_install_reports(args: argparse.Namespace, report: Report, ars_wrappers
     )
     write_if_changed(SKILLS_DIR / "ARS_INSTALLED.md", ars_report, args, report, "ARS install report")
 
+
+def write_rbs_install_report(args: argparse.Namespace, report: Report, plugin_exposed: bool, marketplace_written: bool) -> None:
     rbs_report = report_text(
         "Installed Research Book Skills",
         args.rbs_repo,
         args.rbs_ref,
         commit_hash(RBS_VENDOR),
         RBS_VENDOR,
-        rbs_wrappers,
+        [],
         RBS_VENDOR if plugin_exposed else None,
         PLUGIN_MARKETPLACE if marketplace_written else None,
         "MIT.",
@@ -327,6 +318,8 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
     ars_wrappers: list[Path] = []
     plugin_exposed = False
     marketplace_written = False
+    ars_ready = False
+    rbs_ready = False
 
     if args.skip_ars:
         report.add("skipped", "ARS skipped")
@@ -334,26 +327,31 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
         clone_or_update(args.ars_repo, ARS_VENDOR, args.ars_ref, args, report, "ARS")
         if ARS_VENDOR.exists() and validate_ars(report):
             ars_wrappers = create_ars_wrappers(args, report)
+            ars_ready = bool(ars_wrappers)
 
     if args.skip_rbs:
         report.add("skipped", "RBS skipped")
     else:
         clone_or_update(args.rbs_repo, RBS_VENDOR, args.rbs_ref, args, report, "RBS")
         if RBS_VENDOR.exists() and validate_rbs(report):
+            rbs_ready = True
             if args.no_rbs_plugin:
                 report.add("skipped", "RBS marketplace exposure skipped by --no-rbs-plugin")
             else:
                 plugin_exposed = True
                 marketplace_written = write_marketplace(args, report)
 
-    if not args.skip_ars or not args.skip_rbs:
-        write_install_reports(args, report, ars_wrappers, [], plugin_exposed, marketplace_written)
+    if ars_ready:
+        write_ars_install_report(args, report, ars_wrappers)
+    if rbs_ready:
+        write_rbs_install_report(args, report, plugin_exposed, marketplace_written)
 
     report.add("warnings", "External repositories are untrusted until inspected")
     report.add("warnings", "Vendored scripts were not executed")
 
 
 def main(argv: list[str]) -> int:
+    change_to_project_root()
     args = parse_args(argv)
     report = Report()
     if args.dry_run:

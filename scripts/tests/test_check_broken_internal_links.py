@@ -1,0 +1,24 @@
+from __future__ import annotations
+
+import sys
+import unittest
+from pathlib import Path
+
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import check_broken_internal_links
+
+
+class CheckBrokenInternalLinksTests(unittest.TestCase):
+    def test_ambiguous_stem_targets_are_reported(self) -> None:
+        files = [Path("notes/a/topic.md"), Path("research/topic.md")]
+        target_index = check_broken_internal_links.build_target_index(files)
+
+        status = check_broken_internal_links.link_status("topic", Path("notes/source.md"), target_index)
+
+        self.assertEqual(status.kind, "ambiguous")
+
+
+if __name__ == "__main__":
+    unittest.main()

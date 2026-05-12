@@ -13,42 +13,42 @@ reading_status: unread
 
 ## Summary
 
-[Brief summary.]
+{{BRIEF_SUMMARY}}
 
 ## Main claims
 
-- [Claim.]
+- {{CLAIM}}
 
 ## Evidence or method
 
-- [Evidence, method, data, archive, or argument type.]
+- {{EVIDENCE_METHOD_OR_ARGUMENT_TYPE}}
 
 ## Useful passages
 
 | Location | Evidence kind | Verified text, paraphrase, or summary | Note |
 | --- | --- | --- | --- |
-| [page/section] | [direct quote/paraphrase/summary/interpretation] | [verified material] | [why it matters] |
+| {{PAGE_OR_SECTION}} | {{EVIDENCE_KIND}} | {{VERIFIED_MATERIAL}} | {{WHY_IT_MATTERS}} |
 
 ## Limitations
 
-- [Limits, gaps, bias risk, or uncertainty.]
+- {{LIMITS_GAPS_OR_UNCERTAINTY}}
 
 ## What it supports
 
-- [Claim or question this source supports.]
+- {{SUPPORTED_CLAIM_OR_QUESTION}}
 
 ## What it challenges
 
-- [Claim or assumption this source challenges.]
+- {{CHALLENGED_CLAIM_OR_ASSUMPTION}}
 
 ## Related claims
 
-- [Claim ID.]
+- {{CLAIM_ID}}
 
 ## Related concepts
 
-- [Concept note.]
+- {{CONCEPT_NOTE}}
 
 ## Possible manuscript use
 
-- [Where this source may be useful.]
+- {{MANUSCRIPT_USE}}

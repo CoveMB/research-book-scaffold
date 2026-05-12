@@ -2,7 +2,7 @@
 
 Reusable templates for notes, research records, audits, and manuscript planning.
 
-Use these as starting points. Replace bracketed placeholders with verified project material.
+Use these as starting points. Replace `{{PLACEHOLDER}}` markers with verified project material.
 
 ## Available templates
 

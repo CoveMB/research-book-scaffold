@@ -8,24 +8,24 @@ status: draft
 
 ## Working definition
 
-[Definition.]
+{{DEFINITION}}
 
 ## Competing definitions
 
-- [Alternative definition.]
+- {{ALTERNATIVE_DEFINITION}}
 
 ## What this is not
 
-- [Boundary or common confusion.]
+- {{BOUNDARY_OR_COMMON_CONFUSION}}
 
 ## Related sources
 
-- [citekey or source note.]
+- {{CITEKEY_OR_SOURCE_NOTE}}
 
 ## Related claims
 
-- [Claim ID.]
+- {{CLAIM_ID}}
 
 ## Risks of misuse
 
-- [Risk, ambiguity, or overextension.]
+- {{RISK_AMBIGUITY_OR_OVEREXTENSION}}

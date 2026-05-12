@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import setup_environment
+import obsidian_agent
 from helpers import SilentReport, install_in_directory, write_plugin_release
 from project_config import OBSIDIAN_PLUGIN_DIR
 
@@ -110,7 +111,7 @@ class ObsidianInstallerTests(unittest.TestCase):
             args = setup_environment.parse_args(["--force", "--obsidian-release-url", archive_path.as_uri()])
             report = SilentReport()
 
-            with mock.patch.object(setup_environment.shutil, "copytree", side_effect=OSError("copy failed")):
+            with mock.patch.object(obsidian_agent.shutil, "copytree", side_effect=OSError("copy failed")):
                 install_in_directory(temp_path, args, report)
 
             self.assertTrue(any("copy failed" in message for message in report.failed))

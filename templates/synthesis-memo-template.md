@@ -7,28 +7,28 @@ status: draft
 
 ## Question
 
-[Question.]
+{{QUESTION}}
 
 ## Provisional synthesis
 
-[Synthesis.]
+{{SYNTHESIS}}
 
 ## Strongest evidence
 
-- [Evidence and citekey.]
+- {{STRONGEST_EVIDENCE_AND_CITEKEY}}
 
 ## Strongest counterevidence
 
-- [Evidence and citekey.]
+- {{STRONGEST_COUNTEREVIDENCE_AND_CITEKEY}}
 
 ## Uncertainties
 
-- [Uncertainty.]
+- {{UNCERTAINTY}}
 
 ## Manuscript implications
 
-- [Implication.]
+- {{MANUSCRIPT_IMPLICATION}}
 
 ## Next steps
 
-- [Task.]
+- {{NEXT_STEP}}

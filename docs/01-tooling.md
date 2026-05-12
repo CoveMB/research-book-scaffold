@@ -8,10 +8,10 @@
 | Quarto | Book rendering | Optional until export |
 | Pandoc | Format conversion | Optional until export |
 | Git | Version history and checkpoints | Recommended |
-| Codex CLI | Local agent workflows | Optional |
+| Codex CLI | Local agent workflows | Required |
 | Repo-scoped skills | Task-specific agent procedures | Optional |
 | MCP | Controlled access to tools and data | Optional |
-| Obsidian Codex plugin | Agent work inside Obsidian | Optional |
+| Obsidian Codex plugin | Agent work inside Obsidian | Required |
 | Academic Research Skills vendor repo | External academic paper and pipeline workflows | Optional |
 | Research Book Skills plugin | External research book workflows | Optional |
 

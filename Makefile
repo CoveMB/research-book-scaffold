@@ -1,9 +1,12 @@
-.PHONY: help doctor render test check-placeholders check-citations check-citations-strict check-links check-external-skills install-external-skills check-obsidian-codex install-obsidian-codex audit
+.PHONY: help doctor render render-html render-pdf render-docx test check-placeholders check-citations check-citations-strict check-links check-external-skills install-external-skills check-obsidian-codex install-obsidian-codex audit release-audit
 
 help:
 	@echo "Targets:"
 	@echo "  doctor                 Check local tools and scaffold files"
 	@echo "  render                 Render manuscript when Quarto is installed"
+	@echo "  render-html            Render manuscript HTML only"
+	@echo "  render-pdf             Render manuscript PDF only"
+	@echo "  render-docx            Render manuscript DOCX only"
 	@echo "  test                   Run script unit tests"
 	@echo "  check-placeholders     Scan Markdown/QMD placeholders"
 	@echo "  check-citations        Check manuscript citekeys"
@@ -14,12 +17,22 @@ help:
 	@echo "  check-obsidian-codex   Check Obsidian plugin install in the project root vault"
 	@echo "  install-obsidian-codex Install Obsidian plugin in the project root vault"
 	@echo "  audit                  Run repository checks"
+	@echo "  release-audit          Run strict manuscript readiness checks"
 
 doctor:
 	bash scripts/doctor.sh
 
 render:
 	bash scripts/render.sh
+
+render-html:
+	bash scripts/render.sh --to html
+
+render-pdf:
+	bash scripts/render.sh --to pdf
+
+render-docx:
+	bash scripts/render.sh --to docx
 
 test:
 	python3 -m unittest discover scripts/tests
@@ -49,3 +62,5 @@ install-obsidian-codex:
 	bash scripts/install_obsidian_codex.sh
 
 audit: test check-placeholders check-citations check-links check-external-skills
+
+release-audit: test check-placeholders check-citations-strict check-links check-external-skills

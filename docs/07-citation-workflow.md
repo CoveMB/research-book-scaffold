@@ -11,6 +11,7 @@ Zotero or `bibliography/references.bib` is the citation source of truth. Notes a
 - Check manuscript citekeys against `bibliography/references.bib`.
 - Use `python3 scripts/check_citations.py --include-notes` when notes and research logs may contain citekeys.
 - Use `python3 scripts/check_citations.py --require-citations` before treating a manuscript as citation-ready.
+- Use `python3 scripts/check_citations.py --show-unused` only when you want bibliography cleanup noise.
 
 ## Syntax
 

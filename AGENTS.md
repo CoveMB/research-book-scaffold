@@ -134,10 +134,10 @@ python3 scripts/check_broken_internal_links.py
 python3 scripts/check_external_skills.py
 ```
 
-Before sharing or exporting a manuscript, run the full audit target:
+Before sharing or exporting a manuscript, run the strict release audit target:
 
 ```sh
-make audit
+make release-audit
 ```
 
 ## Reporting

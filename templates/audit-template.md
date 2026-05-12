@@ -8,32 +8,32 @@ status: draft
 
 ## Scope
 
-[Files, sections, claims, or sources audited.]
+{{AUDIT_SCOPE}}
 
 ## Findings
 
-- [Finding.]
+- {{FINDING}}
 
 ## Severe issues
 
-- [Issue.]
+- {{SEVERE_ISSUE}}
 
 ## Medium issues
 
-- [Issue.]
+- {{MEDIUM_ISSUE}}
 
 ## Minor issues
 
-- [Issue.]
+- {{MINOR_ISSUE}}
 
 ## Required fixes
 
-- [Fix.]
+- {{REQUIRED_FIX}}
 
 ## Decision
 
-[Ready, blocked, revise, or re-audit.]
+{{DECISION}}
 
 ## Follow-up
 
-- [Task.]
+- {{FOLLOW_UP_TASK}}

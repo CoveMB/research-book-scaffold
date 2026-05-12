@@ -18,16 +18,16 @@ from project_config import (
     LEGACY_RBS_PLUGIN,
     MARKETPLACE_PLUGIN_PATH,
     PLUGIN_MARKETPLACE,
+    RBS_MARKETPLACE_NAME,
+    RBS_PLUGIN_JSON_NAME,
     RBS_SKILLS,
     RBS_VENDOR,
     SKILLS_DIR,
+    change_to_project_root,
 )
+from script_utils import read_text
 
 OLD_ARS_REPO = "CoveMB/" + "academic-research-skills"
-
-
-def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="replace")
 
 
 def check(condition: bool, success: str, failure: str, failures: list[str]) -> None:
@@ -65,6 +65,20 @@ def check_submodule(path: Path, expected_url: str, label: str, failures: list[st
         check(expected_url in text, f"{label} URL registered in .gitmodules", f"{label} URL missing from .gitmodules", failures)
     result = subprocess.run(["git", "submodule", "status", "--", str(path)], text=True, capture_output=True, check=False)
     check(result.returncode == 0 and str(path) in result.stdout, f"{label} submodule status OK", f"{label} submodule status failed", failures)
+    if path.exists():
+        status_result = subprocess.run(["git", "status", "--short"], cwd=path, text=True, capture_output=True, check=False)
+        if status_result.returncode == 0:
+            message = submodule_dirty_message(label, status_result.stdout)
+            check(not message, f"{label} submodule clean", message, failures)
+        else:
+            check(False, f"{label} submodule clean", f"{label} submodule status unavailable", failures)
+
+
+def submodule_dirty_message(label: str, status_text: str) -> str:
+    changed_paths = [line[3:].strip() for line in status_text.splitlines() if line.strip()]
+    if not changed_paths:
+        return ""
+    return f"{label} submodule has uncommitted changes: {', '.join(changed_paths)}"
 
 
 def has_front_matter(path: Path) -> bool:
@@ -80,18 +94,32 @@ def check_ars(failures: list[str], warnings: list[str]) -> None:
         check("Imbad0202/academic-research-skills" in origin, f"ARS origin OK: {origin}", f"unexpected ARS origin: {origin}", failures)
     else:
         warn("ARS origin unavailable", warnings)
-    for skill_name in ARS_SKILLS:
-        upstream = ARS_VENDOR / skill_name / "SKILL.md"
-        wrapper = SKILLS_DIR / f"ars-{skill_name}" / "SKILL.md"
-        check(upstream.exists(), f"ARS upstream skill exists: {upstream}", f"ARS upstream skill missing: {upstream}", failures)
-        check(wrapper.exists(), f"ARS wrapper exists: {wrapper}", f"ARS wrapper missing: {wrapper}", failures)
+    check_skills_exist("ARS", ARS_VENDOR, ARS_SKILLS, failures, wrapper_prefix="ars-")
+
+
+def check_skills_exist(
+    label: str,
+    vendor_root: Path,
+    skill_names: list[str],
+    failures: list[str],
+    wrapper_prefix: str | None = None,
+) -> None:
+    for skill_name in skill_names:
+        upstream = vendor_root / skill_name / "SKILL.md"
+        check(upstream.exists(), f"{label} upstream skill exists: {upstream}", f"{label} upstream skill missing: {upstream}", failures)
+        if not wrapper_prefix:
+            continue
+        wrapper = SKILLS_DIR / f"{wrapper_prefix}{skill_name}" / "SKILL.md"
+        expected_name = f"{wrapper_prefix}{skill_name}"
+        check(wrapper.exists(), f"{label} wrapper exists: {wrapper}", f"{label} wrapper missing: {wrapper}", failures)
         if wrapper.exists():
             text = read_text(wrapper)
-            check(has_front_matter(wrapper), f"ARS wrapper front matter OK: {wrapper}", f"ARS wrapper missing front matter: {wrapper}", failures)
-            check(f"name: ars-{skill_name}" in text, f"ARS wrapper name OK: ars-{skill_name}", f"ARS wrapper name missing: {wrapper}", failures)
-            check(str(upstream) in text, f"ARS wrapper points upstream: {wrapper}", f"ARS wrapper does not point upstream: {wrapper}", failures)
-            check("Claude" in text and "Do not execute vendored scripts" in text, f"ARS wrapper warning OK: {wrapper}", f"ARS wrapper warning missing: {wrapper}", failures)
-    check((SKILLS_DIR / "ARS_INSTALLED.md").exists(), "ARS install report exists", "ARS install report missing", failures)
+            check(has_front_matter(wrapper), f"{label} wrapper front matter OK: {wrapper}", f"{label} wrapper missing front matter: {wrapper}", failures)
+            check(f"name: {expected_name}" in text, f"{label} wrapper name OK: {expected_name}", f"{label} wrapper name missing: {wrapper}", failures)
+            check(str(upstream) in text, f"{label} wrapper points upstream: {wrapper}", f"{label} wrapper does not point upstream: {wrapper}", failures)
+            check("Claude" in text and "Do not execute vendored scripts" in text, f"{label} wrapper warning OK: {wrapper}", f"{label} wrapper warning missing: {wrapper}", failures)
+    if label == "ARS":
+        check((SKILLS_DIR / "ARS_INSTALLED.md").exists(), "ARS install report exists", "ARS install report missing", failures)
 
 
 def check_rbs(failures: list[str], warnings: list[str]) -> None:
@@ -111,15 +139,13 @@ def check_rbs(failures: list[str], warnings: list[str]) -> None:
             print(f"FAIL RBS plugin.json invalid JSON: {error}")
         else:
             check(
-                plugin_payload.get("name") == "research-book-skills",
+                plugin_payload.get("name") == RBS_PLUGIN_JSON_NAME,
                 "RBS plugin name OK",
                 f"RBS plugin name unexpected: {plugin_payload.get('name')}",
                 failures,
             )
     check((RBS_VENDOR / "skills").exists(), "RBS vendor skills folder exists", "RBS vendor skills folder missing", failures)
-    for skill_name in RBS_SKILLS:
-        skill_file = RBS_VENDOR / "skills" / skill_name / "SKILL.md"
-        check(skill_file.exists(), f"RBS skill exists: {skill_name}", f"RBS skill missing: {skill_file}", failures)
+    check_skills_exist("RBS", RBS_VENDOR / "skills", RBS_SKILLS, failures)
     check(not LEGACY_RBS_PLUGIN.exists(), "legacy RBS plugin copy absent", f"legacy RBS plugin copy should be removed: {LEGACY_RBS_PLUGIN}", failures)
     check((SKILLS_DIR / "RBS_INSTALLED.md").exists(), "RBS install report exists", "RBS install report missing", failures)
 
@@ -135,8 +161,8 @@ def check_marketplace(failures: list[str]) -> None:
         print(f"FAIL marketplace invalid JSON: {error}")
         return
     plugins = payload.get("plugins", [])
-    entry = next((plugin for plugin in plugins if plugin.get("name") == "research-book-skills"), None)
-    check(entry is not None, "marketplace has research-book-skills entry", "marketplace missing research-book-skills entry", failures)
+    entry = next((plugin for plugin in plugins if plugin.get("name") == RBS_MARKETPLACE_NAME), None)
+    check(entry is not None, f"marketplace has {RBS_MARKETPLACE_NAME} entry", f"marketplace missing {RBS_MARKETPLACE_NAME} entry", failures)
     if entry:
         source = entry.get("source", {})
         check(source.get("path") == MARKETPLACE_PLUGIN_PATH, "marketplace path OK", f"marketplace path unexpected: {source.get('path')}", failures)
@@ -165,6 +191,7 @@ def check_old_repo_reference(failures: list[str], warnings: list[str]) -> None:
 
 
 def main() -> int:
+    change_to_project_root()
     failures: list[str] = []
     warnings: list[str] = []
     check_ars(failures, warnings)

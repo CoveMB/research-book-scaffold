@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ARS_REPO = "https://github.com/Imbad0202/academic-research-skills.git"
 DEFAULT_RBS_REPO = "https://github.com/CoveMB/research-book-skills.git"
 
@@ -15,6 +17,8 @@ SKILLS_DIR = Path(".agents/skills")
 PLUGIN_MARKETPLACE = Path(".agents/plugins/marketplace.json")
 MARKETPLACE_PLUGIN_PATH = "./vendor/research-book-skills"
 LEGACY_RBS_PLUGIN = Path("plugins/research-book-skills")
+RBS_MARKETPLACE_NAME = "research-book-skills"
+RBS_PLUGIN_JSON_NAME = "scholarly-research-book"
 
 ARS_SKILLS = ["deep-research", "academic-paper", "academic-paper-reviewer", "academic-pipeline"]
 RBS_SKILLS = [
@@ -52,3 +56,7 @@ def resolve_obsidian_vault_path(
     if env_value:
         return Path(env_value).expanduser().resolve()
     return (cwd or Path.cwd()).resolve()
+
+
+def change_to_project_root() -> None:
+    os.chdir(PROJECT_ROOT)
