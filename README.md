@@ -50,7 +50,7 @@ Use `templates/` for local source notes, concept notes, claim notes, audits, sou
 
 ## Repo-scoped skills and plugins
 
-ARS wrappers live in `.agents/skills/`. Research Book Skills is exposed through `.agents/plugins/marketplace.json`, which points directly at the vendored submodule. Use them for bounded tasks such as search planning, source notes, claim audits, drafting from notes, and final manuscript checks.
+ARS wrappers live in `.agents/skills/`. Research Book Skills is exposed through `.agents/plugins/marketplace.json`, which points directly at the vendored submodule. Use them for bounded tasks such as search planning, candidate dedupe, source-note conversion, evidence extraction, claim traceability, claim audits, release/privacy review, proposal comps, drafting from notes, and final manuscript checks.
 
 ## Required local agent integration
 

@@ -6,7 +6,7 @@ Repository:
 https://github.com/CoveMB/research-book-skills.git
 ```
 
-Purpose: research nonfiction and research book workflows for planning, source discovery, argument structure, chapter design, citation audit, continuity review, and proposal work.
+Purpose: research nonfiction and research book workflows for planning, source discovery, source-note conversion, evidence extraction, argument structure, chapter design, claim traceability, citation audit, release-risk review, continuity review, and proposal work.
 
 ## Upstream orientation
 
@@ -25,18 +25,24 @@ This repository is structured as a local plugin with:
 - `research-book-orchestrator`
 - `scholarly-research-agenda`
 - `systematic-source-discovery`
+- `discovery-runner-deduper`
+- `annotation-to-source-note`
+- `extraction-table-builder`
 - `literature-review-mapper`
 - `annotated-bibliography-builder`
 - `methodology-source-auditor`
 - `claim-evidence-ledger`
+- `claim-traceability-graph`
 - `argument-architecture`
 - `counterargument-peer-review`
 - `chapter-architecture`
 - `scholarly-prose-editor`
 - `citation-integrity-auditor`
+- `rights-privacy-release-auditor`
 - `manuscript-continuity-editor`
 - `case-study-integration`
 - `book-proposal-scholarship`
+- `book-comps-verifier`
 
 ## Local handling
 
@@ -51,10 +57,16 @@ This repository is structured as a local plugin with:
 - Book-level workflow orchestration.
 - Argument and chapter architecture.
 - Source discovery for long-form work.
+- Candidate-source dedupe and screening.
+- Annotation-to-source-note conversion.
+- Evidence extraction tables and source matrices.
 - Claim-evidence ledgers.
+- Claim-to-source traceability checks.
 - Citation integrity audits.
+- Rights, privacy, quotation, and release-risk audits.
 - Manuscript continuity review.
 - Book proposal drafting.
+- Comparable-title verification for proposals.
 
 ## Avoid
 

@@ -15,3 +15,8 @@ vendored plugin skills.
 
 - `quarto-export-readiness`: release-audit and Quarto manuscript export readiness.
 - `vault-hygiene-triage`: notes/research vault organization, inbox triage, placeholders, and wiki-link hygiene.
+
+Use the vendored Research Book Skills `rights-privacy-release-auditor` for
+external-sharing risk. Use `quarto-export-readiness` for this repository's
+`make release-audit`, Quarto render, and export-check workflow. Use
+`vault-hygiene-triage` for this repository's folder hygiene and inbox triage.
