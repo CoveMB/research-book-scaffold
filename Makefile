@@ -40,10 +40,10 @@ render-docx:
 
 test:
 	python3 -m unittest discover scripts/tests
-	python3 -m unittest discover test/qa/tests
+	python3 -m unittest discover test/tests
 
 lint:
-	python3 -m compileall -q scripts test/qa/tools test/qa/tests
+	python3 -m compileall -q scripts test/tools test/tests
 
 check-placeholders:
 	python3 scripts/check_placeholders.py .

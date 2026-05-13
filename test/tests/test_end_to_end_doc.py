@@ -6,8 +6,8 @@ import unittest
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[3]
-RUNBOOK = ROOT / "test" / "qa" / "docs" / "production-release-qa.md"
+ROOT = Path(__file__).resolve().parents[2]
+RUNBOOK = ROOT / "test" / "docs" / "end-to-end.md"
 
 sys.path.insert(0, str(ROOT / "scripts"))
 
@@ -37,8 +37,13 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         self.runbook_text = RUNBOOK.read_text(encoding="utf-8")
 
     def test_runbook_lives_under_root_test_folder(self) -> None:
+        legacy_runbook_name = "15-production-" + "release-qa.md"
+        legacy_nested_test_path = "test/" + "qa"
+
         self.assertIn("# Production Release QA Runbook", self.runbook_text)
-        self.assertFalse((ROOT / "docs" / "15-production-release-qa.md").exists())
+        self.assertFalse((ROOT / "docs" / legacy_runbook_name).exists())
+        self.assertFalse((ROOT / "test" / "qa").exists())
+        self.assertNotIn(legacy_nested_test_path, self.runbook_text)
 
     def test_runbook_mentions_every_make_target(self) -> None:
         for target in make_targets():
@@ -57,8 +62,8 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             self.assertIn(f"`{skill_name}`", self.runbook_text)
 
     def test_runbook_points_to_seed_tool_and_fixture_resources(self) -> None:
-        self.assertIn("`test/qa/tools/seed_release_qa.py`", self.runbook_text)
-        self.assertIn("`test/qa/fixtures/release_seed/`", self.runbook_text)
+        self.assertIn("`test/tools/seed_release_qa.py`", self.runbook_text)
+        self.assertIn("`test/fixtures/release_seed/`", self.runbook_text)
         self.assertIn("synthetic", self.runbook_text.lower())
         self.assertIn("not scholarly evidence", self.runbook_text.lower())
 
@@ -70,6 +75,35 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             "Codex CLI runs from the scaffold project root",
             "Zotero and Better BibTeX can be used with `bibliography/references.bib`",
             "Quarto, Pandoc, and the configured TeX engine can render from the scaffold",
+        ]
+        for phrase in expected_phrases:
+            self.assertIn(phrase, self.runbook_text)
+
+    def test_runbook_requires_clean_clone_before_mutating_seed_and_zotero_steps(self) -> None:
+        expected_phrases = [
+            "The disposable QA clone must be clean before applying the seed",
+            "`git status --short` prints no tracked or untracked project changes",
+            "Do not run `python3 test/tools/seed_release_qa.py apply` from an authoring checkout",
+            "Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean",
+            "`git diff -- bibliography/references.bib` shows only expected verified Zotero or Better BibTeX changes",
+        ]
+        for phrase in expected_phrases:
+            self.assertIn(phrase, self.runbook_text)
+
+    def test_vendor_update_is_not_in_routine_targeted_checks(self) -> None:
+        targeted_start = self.runbook_text.index("Targeted script checks:")
+        targeted_end = self.runbook_text.index("## Vendor Update QA")
+        targeted_section = self.runbook_text[targeted_start:targeted_end]
+
+        self.assertNotIn("bash scripts/update-skills-vendors.sh --skip-checks", targeted_section)
+        self.assertIn("## Vendor Update QA", self.runbook_text)
+        self.assertIn("Only run this section when the release intentionally updates vendored skill repositories.", self.runbook_text)
+
+    def test_render_qa_is_scoped_to_export_targets(self) -> None:
+        expected_phrases = [
+            "Run this section only when export or render QA is in scope.",
+            "If render tooling is out of scope, record Quarto, Pandoc, or TeX as skipped with release impact.",
+            "Missing Quarto, Pandoc, or TeX is a blocker only for releases that claim rendered artifacts.",
         ]
         for phrase in expected_phrases:
             self.assertIn(phrase, self.runbook_text)

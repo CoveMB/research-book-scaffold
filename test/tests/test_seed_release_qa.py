@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[3]
-TOOL_PATH = ROOT / "test" / "qa" / "tools" / "seed_release_qa.py"
+ROOT = Path(__file__).resolve().parents[2]
+TOOL_PATH = ROOT / "test" / "tools" / "seed_release_qa.py"
 
 
 def load_seed_tool():
@@ -72,6 +72,10 @@ class SeedReleaseQaTests(unittest.TestCase):
         references_text = (project_root / "bibliography/references.bib").read_text(encoding="utf-8")
         self.assertIn("@book{qaSeed2026", references_text)
         self.assertIn("QA Seed Manuscript", (project_root / "manuscript/_quarto.yml").read_text(encoding="utf-8"))
+
+    def test_default_paths_use_root_test_layout(self) -> None:
+        self.assertEqual(self.seed_tool.DEFAULT_FIXTURE_ROOT, ROOT / "test" / "fixtures" / "release_seed" / "project")
+        self.assertEqual(self.seed_tool.DEFAULT_PROJECT_ROOT, ROOT)
 
     def test_status_reports_missing_then_applied_seed_files(self) -> None:
         project_root = create_disposable_project()

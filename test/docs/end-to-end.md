@@ -2,7 +2,7 @@
 
 Use this runbook to test a release candidate from a fresh clone through setup, script verification, seeded content checks, skill usage, manuscript gates, rendering, and release decision. Run destructive, mutating, networked, and intentionally failing checks only in a disposable QA clone.
 
-The synthetic files under `test/qa/fixtures/release_seed/` and the tool `test/qa/tools/seed_release_qa.py` exist only to exercise repository QA paths. They are not scholarly evidence, not source support, and not releasable manuscript content.
+The synthetic files under `test/fixtures/release_seed/` and the tool `test/tools/seed_release_qa.py` exist only to exercise repository QA paths. They are not scholarly evidence, not source support, and not releasable manuscript content.
 
 ## Release Standard
 
@@ -131,7 +131,7 @@ Obsidian opens the scaffold project root as a vault:
 
 1. Open Obsidian.
 2. Choose the release QA clone root as the vault folder.
-3. Confirm `AGENTS.md`, `notes/`, `research/`, `manuscript/`, and `test/qa/docs/production-release-qa.md` are visible.
+3. Confirm `AGENTS.md`, `notes/`, `research/`, `manuscript/`, and `test/docs/end-to-end.md` are visible.
 4. Open a note from `notes/` and a manuscript file from `manuscript/`.
 
 Expected result:
@@ -170,17 +170,20 @@ Zotero and Better BibTeX can be used with `bibliography/references.bib`:
 
 1. Open Zotero.
 2. Confirm Better BibTeX is installed and enabled when citation-library QA is in scope.
-3. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
-4. Run `python3 scripts/check_citations.py --include-notes --require-citations`.
+3. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
+4. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
+5. Inspect `git diff -- bibliography/references.bib`.
+6. Run `python3 scripts/check_citations.py --include-notes --require-citations`.
 
 Expected result:
 
 - Zotero opens the relevant library.
 - Better BibTeX can provide stable citekeys.
 - `bibliography/references.bib` remains the repository citation source of truth.
+- `git diff -- bibliography/references.bib` shows only expected verified Zotero or Better BibTeX changes.
 - No generated or unverified bibliographic metadata is accepted as evidence.
 
-Quarto, Pandoc, and the configured TeX engine can render from the scaffold:
+Quarto, Pandoc, and the configured TeX engine can render from the scaffold when export or render QA is in scope:
 
 ```sh
 quarto --version
@@ -196,6 +199,7 @@ Expected result:
 - Quarto and Pandoc are available to the scaffold.
 - The configured TeX engine is available before PDF QA.
 - Rendered outputs are generated from `manuscript/` into `exports/`.
+- Missing render tools are recorded as skipped or blocking according to the release target.
 
 ## Make Target QA Matrix
 
@@ -259,14 +263,26 @@ The reusable release seed covers:
 Check seed status before applying:
 
 ```sh
-python3 test/qa/tools/seed_release_qa.py status
-python3 test/qa/tools/seed_release_qa.py apply --dry-run
+python3 test/tools/seed_release_qa.py status
+python3 test/tools/seed_release_qa.py apply --dry-run
 ```
+
+The disposable QA clone must be clean before applying the seed:
+
+```sh
+git status --short
+```
+
+Expected result:
+
+- `git status --short` prints no tracked or untracked project changes.
+- Do not run `python3 test/tools/seed_release_qa.py apply` from an authoring checkout.
+- If the clone is not clean, stop and create a fresh disposable QA clone before continuing.
 
 Apply the seed in a disposable QA clone:
 
 ```sh
-python3 test/qa/tools/seed_release_qa.py apply
+python3 test/tools/seed_release_qa.py apply
 ```
 
 Run content gates against the seed:
@@ -292,8 +308,8 @@ Expected result:
 Clean the seed before returning to normal release QA:
 
 ```sh
-python3 test/qa/tools/seed_release_qa.py clean --dry-run
-python3 test/qa/tools/seed_release_qa.py clean
+python3 test/tools/seed_release_qa.py clean --dry-run
+python3 test/tools/seed_release_qa.py clean
 git status --short
 ```
 
@@ -334,8 +350,8 @@ Run support coverage:
 
 ```sh
 python3 -m unittest discover scripts/tests
-python3 -m unittest discover test/qa/tests
-python3 -m compileall -q scripts test/qa/tools test/qa/tests
+python3 -m unittest discover test/tests
+python3 -m compileall -q scripts test/tools test/tests
 ```
 
 Expected result:
@@ -351,7 +367,6 @@ python3 scripts/doctor.py
 python3 scripts/check_obsidian_codex.py
 python3 scripts/install_external_skills.py --dry-run --yes
 python3 scripts/check_external_skills.py
-bash scripts/update-skills-vendors.sh --skip-checks
 python3 scripts/check_placeholders.py .
 python3 scripts/check_placeholders.py --include-templates templates
 python3 scripts/check_citations.py
@@ -369,6 +384,26 @@ Expected result:
 - Non-mutating checks exit 0 where prerequisites exist.
 - Missing optional render tooling is reported as a tooling blocker, not a manuscript failure.
 - Vendor checks fail if submodule pointers differ from the parent index, are uninitialized, conflicted, dirty, or from an unexpected origin.
+
+## Vendor Update QA
+
+Only run this section when the release intentionally updates vendored skill repositories.
+
+```sh
+bash scripts/update-skills-vendors.sh --skip-checks
+python3 scripts/check_external_skills.py
+bash scripts/doctor.sh
+git status --short --branch
+git submodule status --recursive
+```
+
+Expected result:
+
+- The updater fast-forwards only selected vendor submodules.
+- Local skill wrappers, marketplace metadata, and install reports are refreshed.
+- Post-update checks pass.
+- Submodule pointer changes are visible for review.
+- No unexpected files are modified.
 
 ## Negative Fixture Checks
 
@@ -545,6 +580,8 @@ Expected result:
 
 ## Render QA
 
+Run this section only when export or render QA is in scope.
+
 Run render preflight:
 
 ```sh
@@ -562,6 +599,8 @@ make render
 
 Expected result:
 
+- If render tooling is out of scope, record Quarto, Pandoc, or TeX as skipped with release impact.
+- Missing Quarto, Pandoc, or TeX is a blocker only for releases that claim rendered artifacts.
 - HTML and DOCX targets do not require a PDF engine.
 - PDF and all-format render require the configured PDF engine, defaulting to `lualatex`.
 - Rendered outputs appear under the configured Quarto output location in `exports/`.

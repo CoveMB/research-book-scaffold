@@ -10,9 +10,9 @@ from pathlib import Path
 from typing import NamedTuple
 
 
-QA_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FIXTURE_ROOT = QA_ROOT / "fixtures" / "release_seed" / "project"
-DEFAULT_PROJECT_ROOT = QA_ROOT.parents[1]
+TEST_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_FIXTURE_ROOT = TEST_ROOT / "fixtures" / "release_seed" / "project"
+DEFAULT_PROJECT_ROOT = TEST_ROOT.parent
 RESTORE_TARGETS = (
     Path("bibliography/references.bib"),
     Path("manuscript/_quarto.yml"),
