@@ -4,20 +4,13 @@
 from __future__ import annotations
 
 import argparse
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from git_utils import has_git_checkout
-from project_config import ARS_VENDOR, RBS_VENDOR, change_to_project_root
-
-
-@dataclass(frozen=True)
-class VendorSpec:
-    label: str
-    path: Path
-    branch: str = "main"
+from git_utils import GitCommandError, git_stdout_required, has_git_checkout
+from project_config import EXTERNAL_VENDOR_SPECS, VENDOR_UPDATE_HEALTH_CHECKS, ExternalVendorSpec, change_to_project_root
+from script_utils import CommandError, run_command_required as run_checked
 
 
 @dataclass(frozen=True)
@@ -40,44 +33,31 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def vendor_specs(args: argparse.Namespace) -> list[VendorSpec]:
-    vendors = []
-    if not args.skip_ars:
-        vendors.append(VendorSpec("ARS", ARS_VENDOR))
-    if not args.skip_rbs:
-        vendors.append(VendorSpec("RBS", RBS_VENDOR))
+def vendor_specs(args: argparse.Namespace) -> list[ExternalVendorSpec]:
+    skipped_keys = {
+        key
+        for key, should_skip in {"ars": args.skip_ars, "rbs": args.skip_rbs}.items()
+        if should_skip
+    }
+    vendors = [vendor for vendor in EXTERNAL_VENDOR_SPECS if vendor.key not in skipped_keys]
     if not vendors:
         raise UpdateError("No vendors selected; remove one skip flag.")
     return vendors
 
 
-def run_checked(command: list[str], action: str, cwd: Path | None = None) -> None:
-    print(f"RUN {action}: {' '.join(command)}")
-    result = subprocess.run(command, cwd=cwd, text=True, check=False)
-    if result.returncode != 0:
-        raise UpdateError(f"{action} failed with exit code {result.returncode}")
-
-
-def git_stdout(command: list[str], cwd: Path | None = None) -> str:
-    result = subprocess.run(command, cwd=cwd, text=True, capture_output=True, check=False)
-    if result.returncode != 0:
-        raise UpdateError(f"git command failed: {' '.join(command)}")
-    return result.stdout.strip()
-
-
 def submodule_status(path: Path) -> str:
-    return git_stdout(["git", "-C", path.as_posix(), "status", "--short"])
+    return git_stdout_required(["git", "-C", path.as_posix(), "status", "--short"])
 
 
-def fail_if_dirty(vendor: VendorSpec) -> None:
+def fail_if_dirty(vendor: ExternalVendorSpec) -> None:
     status = submodule_status(vendor.path)
     if status:
         raise UpdateError(f"{vendor.label} vendor has uncommitted changes:\n{status}")
 
 
-def ensure_vendor_branch(vendor: VendorSpec) -> None:
+def ensure_vendor_branch(vendor: ExternalVendorSpec) -> None:
     path = vendor.path.as_posix()
-    current_branch = git_stdout(["git", "-C", path, "branch", "--show-current"])
+    current_branch = git_stdout_required(["git", "-C", path, "branch", "--show-current"])
     if current_branch == vendor.branch:
         return
     if current_branch:
@@ -98,7 +78,7 @@ def short_ref(ref: str) -> str:
     return ref[:12] if len(ref) > 12 else ref
 
 
-def update_vendor(vendor: VendorSpec) -> VendorUpdate:
+def update_vendor(vendor: ExternalVendorSpec) -> VendorUpdate:
     path = vendor.path.as_posix()
     run_checked(["git", "submodule", "sync", "--", path], f"sync {vendor.label} submodule")
     if not has_git_checkout(vendor.path):
@@ -109,10 +89,10 @@ def update_vendor(vendor: VendorSpec) -> VendorUpdate:
     fail_if_dirty(vendor)
     run_checked(["git", "-C", path, "fetch", "--prune"], f"fetch {vendor.label} remote")
     ensure_vendor_branch(vendor)
-    old_ref = git_stdout(["git", "-C", path, "rev-parse", "HEAD"])
+    old_ref = git_stdout_required(["git", "-C", path, "rev-parse", "HEAD"])
     run_checked(["git", "-C", path, "pull", "--ff-only"], f"fast-forward {vendor.label}")
     fail_if_dirty(vendor)
-    new_ref = git_stdout(["git", "-C", path, "rev-parse", "HEAD"])
+    new_ref = git_stdout_required(["git", "-C", path, "rev-parse", "HEAD"])
     return VendorUpdate(vendor.label, vendor.path, old_ref, new_ref)
 
 
@@ -140,8 +120,8 @@ def run_health_checks(args: argparse.Namespace) -> None:
     if args.skip_checks:
         print("SKIP post-update checks")
         return
-    run_checked(["python3", "scripts/check_external_skills.py"], "check external skill integrations")
-    run_checked(["bash", "scripts/doctor.sh"], "run repository doctor")
+    for check in VENDOR_UPDATE_HEALTH_CHECKS:
+        run_checked(list(check.command), check.action)
 
 
 def print_summary(summaries: list[VendorUpdate]) -> None:
@@ -151,7 +131,7 @@ def print_summary(summaries: list[VendorUpdate]) -> None:
 
 
 def update_skills_vendors(args: argparse.Namespace) -> list[VendorUpdate]:
-    current_branch = git_stdout(["git", "branch", "--show-current"])
+    current_branch = git_stdout_required(["git", "branch", "--show-current"])
     if not current_branch:
         raise UpdateError("Parent repository is detached; check out intended branch first.")
     print(f"Branch: {current_branch}")
@@ -170,7 +150,7 @@ def main(argv: list[str]) -> int:
     args = parse_args(argv)
     try:
         update_skills_vendors(args)
-    except UpdateError as error:
+    except (CommandError, GitCommandError, UpdateError) as error:
         print(f"FAIL {error}", file=sys.stderr)
         return 1
     return 0

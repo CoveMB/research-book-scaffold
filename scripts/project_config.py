@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -19,6 +20,25 @@ MARKETPLACE_PLUGIN_PATH = "./vendor/research-book-skills"
 LEGACY_RBS_PLUGIN = Path("plugins/research-book-skills")
 RBS_MARKETPLACE_NAME = "research-book-skills"
 RBS_PLUGIN_JSON_NAME = "scholarly-research-book"
+
+
+@dataclass(frozen=True)
+class ExternalVendorSpec:
+    key: str
+    label: str
+    path: Path
+    default_repo: str
+    branch: str = "main"
+
+
+@dataclass(frozen=True)
+class CommandSpec:
+    command: tuple[str, ...]
+    action: str
+
+    def shell_text(self) -> str:
+        return " ".join(self.command)
+
 
 ARS_SKILLS = ["deep-research", "academic-paper", "academic-paper-reviewer", "academic-pipeline"]
 RBS_SKILLS = [
@@ -44,6 +64,24 @@ RBS_SKILLS = [
     "book-proposal-scholarship",
     "book-comps-verifier",
 ]
+
+EXTERNAL_VENDOR_SPECS = (
+    ExternalVendorSpec("ars", "ARS", ARS_VENDOR, DEFAULT_ARS_REPO),
+    ExternalVendorSpec("rbs", "RBS", RBS_VENDOR, DEFAULT_RBS_REPO),
+)
+
+SETUP_RECOMMENDED_CHECKS = (
+    CommandSpec(("bash", "scripts/doctor.sh"), "run repository doctor"),
+    CommandSpec(("python3", "scripts/check_external_skills.py"), "check external skill integrations"),
+    CommandSpec(("python3", "scripts/check_obsidian_codex.py"), "check Obsidian plugin install"),
+    CommandSpec(("python3", "scripts/check_citations.py"), "check manuscript citations"),
+    CommandSpec(("python3", "scripts/check_placeholders.py", "."), "check unresolved placeholders"),
+)
+
+VENDOR_UPDATE_HEALTH_CHECKS = (
+    CommandSpec(("python3", "scripts/check_external_skills.py"), "check external skill integrations"),
+    CommandSpec(("bash", "scripts/doctor.sh"), "run repository doctor"),
+)
 
 OBSIDIAN_CODEX_PLUGIN_ID = "obsidian-codex"
 OBSIDIAN_DIR = Path(".obsidian")

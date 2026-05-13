@@ -8,7 +8,10 @@ import unittest
 import sys
 
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.tests.helpers import add_scripts_to_path
+
+
+add_scripts_to_path()
 
 import render_manuscript
 

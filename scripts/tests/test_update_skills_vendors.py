@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import contextlib
 import io
-import sys
 import unittest
 from pathlib import Path
 from unittest import mock
 
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.tests.helpers import add_scripts_to_path
+
+
+add_scripts_to_path()
 
 import update_skills_vendors
-from project_config import ARS_VENDOR, RBS_VENDOR
+from project_config import ARS_VENDOR, RBS_VENDOR, VENDOR_UPDATE_HEALTH_CHECKS
 
 
 class UpdateSkillsVendorsTests(unittest.TestCase):
@@ -31,7 +33,7 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
 
         with (
             mock.patch.object(update_skills_vendors, "run_checked", side_effect=fake_run),
-            mock.patch.object(update_skills_vendors, "git_stdout", side_effect=self.fake_git_stdout),
+            mock.patch.object(update_skills_vendors, "git_stdout_required", side_effect=self.fake_git_stdout),
             mock.patch.object(update_skills_vendors, "submodule_status", return_value=""),
         ):
             with contextlib.redirect_stdout(io.StringIO()):
@@ -53,8 +55,8 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
             ),
             calls,
         )
-        self.assertIn(("python3", "scripts/check_external_skills.py"), calls)
-        self.assertIn(("bash", "scripts/doctor.sh"), calls)
+        for check in VENDOR_UPDATE_HEALTH_CHECKS:
+            self.assertIn(tuple(check.command), calls)
         self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS"])
 
     def test_skip_flags_limit_vendor_refresh_scope(self) -> None:
@@ -67,7 +69,7 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
 
         with (
             mock.patch.object(update_skills_vendors, "run_checked", side_effect=fake_run),
-            mock.patch.object(update_skills_vendors, "git_stdout", side_effect=self.fake_git_stdout),
+            mock.patch.object(update_skills_vendors, "git_stdout_required", side_effect=self.fake_git_stdout),
             mock.patch.object(update_skills_vendors, "submodule_status", return_value=""),
         ):
             with contextlib.redirect_stdout(io.StringIO()):
@@ -87,7 +89,8 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
             ),
             calls,
         )
-        self.assertNotIn(("python3", "scripts/check_external_skills.py"), calls)
+        for check in VENDOR_UPDATE_HEALTH_CHECKS:
+            self.assertNotIn(tuple(check.command), calls)
         self.assertEqual([summary.label for summary in summaries], ["RBS"])
 
     def test_dirty_vendor_fails_before_pull(self) -> None:
@@ -95,7 +98,7 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
 
         with (
             mock.patch.object(update_skills_vendors, "run_checked"),
-            mock.patch.object(update_skills_vendors, "git_stdout", side_effect=self.fake_git_stdout),
+            mock.patch.object(update_skills_vendors, "git_stdout_required", side_effect=self.fake_git_stdout),
             mock.patch.object(update_skills_vendors, "submodule_status", return_value=" M SKILL.md\n"),
         ):
             with contextlib.redirect_stdout(io.StringIO()):

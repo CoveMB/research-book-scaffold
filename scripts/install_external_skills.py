@@ -23,7 +23,7 @@ from project_config import (
     SKILLS_DIR,
     change_to_project_root,
 )
-from script_utils import StatusReport, run_command, read_text
+from script_utils import StatusReport, run_command, read_text, write_text_if_changed
 
 
 class Report(StatusReport):
@@ -135,19 +135,7 @@ def commit_hash(path: Path) -> str:
 
 
 def write_if_changed(path: Path, text: str, args: argparse.Namespace, report: Report, label: str) -> bool:
-    if path.exists() and path.read_text(encoding="utf-8", errors="replace") == text:
-        report.add("already_present", f"{label} current: {path}")
-        return True
-    if path.exists() and not args.force:
-        report.add("skipped", f"{path} exists; use --force to replace")
-        return False
-    if args.dry_run:
-        report.add("skipped", f"dry-run would write {path}")
-        return True
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-    report.add("installed", f"wrote {label}: {path}")
-    return True
+    return write_text_if_changed(path, text, report, label, dry_run=args.dry_run, force=args.force)
 
 
 def ars_skill_path(skill_name: str) -> Path:

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sys
 import tempfile
 import unittest
 import zipfile
@@ -10,12 +9,10 @@ from pathlib import Path
 from unittest import mock
 
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+from scripts.tests.helpers import SilentReport, install_in_directory, write_plugin_release
 
 import setup_environment
 import obsidian_agent
-from helpers import SilentReport, install_in_directory, write_plugin_release
 from project_config import OBSIDIAN_PLUGIN_DIR
 
 

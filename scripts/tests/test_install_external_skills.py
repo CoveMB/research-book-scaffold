@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-import sys
 import unittest
 from pathlib import Path
 from unittest import mock
 
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.tests.helpers import add_scripts_to_path
+
+
+add_scripts_to_path()
 
 import install_external_skills
 

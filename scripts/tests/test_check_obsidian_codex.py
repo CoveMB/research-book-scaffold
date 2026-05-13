@@ -3,13 +3,15 @@ from __future__ import annotations
 import contextlib
 import io
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.tests.helpers import add_scripts_to_path
+
+
+add_scripts_to_path()
 
 import check_obsidian_codex
 from project_config import OBSIDIAN_CODEX_PLUGIN_ID

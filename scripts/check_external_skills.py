@@ -12,9 +12,7 @@ from pathlib import Path
 from git_utils import changed_paths_from_status, git_stdout, has_git_checkout
 from project_config import (
     ARS_SKILLS,
-    ARS_VENDOR,
-    DEFAULT_ARS_REPO,
-    DEFAULT_RBS_REPO,
+    EXTERNAL_VENDOR_SPECS,
     GITMODULES_PATH,
     LEGACY_RBS_PLUGIN,
     MARKETPLACE_PLUGIN_PATH,
@@ -22,13 +20,13 @@ from project_config import (
     RBS_MARKETPLACE_NAME,
     RBS_PLUGIN_JSON_NAME,
     RBS_SKILLS,
-    RBS_VENDOR,
     SKILLS_DIR,
     change_to_project_root,
 )
 from script_utils import read_text
 
 OLD_ARS_REPO = "CoveMB/" + "academic-research-skills"
+VENDOR_SPECS_BY_KEY = {spec.key: spec for spec in EXTERNAL_VENDOR_SPECS}
 
 
 def check(condition: bool, success: str, failure: str, failures: list[str]) -> None:
@@ -87,14 +85,15 @@ def has_front_matter(path: Path) -> bool:
 
 
 def check_ars(failures: list[str], warnings: list[str]) -> None:
-    check_submodule(ARS_VENDOR, DEFAULT_ARS_REPO, "ARS", failures)
-    check(ARS_VENDOR.exists(), f"ARS vendor exists: {ARS_VENDOR}", f"ARS vendor missing: {ARS_VENDOR}", failures)
-    origin = git_origin(ARS_VENDOR)
+    spec = VENDOR_SPECS_BY_KEY["ars"]
+    check_submodule(spec.path, spec.default_repo, spec.label, failures)
+    check(spec.path.exists(), f"{spec.label} vendor exists: {spec.path}", f"{spec.label} vendor missing: {spec.path}", failures)
+    origin = git_origin(spec.path)
     if origin:
         check("Imbad0202/academic-research-skills" in origin, f"ARS origin OK: {origin}", f"unexpected ARS origin: {origin}", failures)
     else:
         warn("ARS origin unavailable", warnings)
-    check_skills_exist("ARS", ARS_VENDOR, ARS_SKILLS, failures, wrapper_prefix="ars-")
+    check_skills_exist(spec.label, spec.path, ARS_SKILLS, failures, wrapper_prefix="ars-")
 
 
 def check_skills_exist(
@@ -123,17 +122,19 @@ def check_skills_exist(
 
 
 def check_rbs(failures: list[str], warnings: list[str]) -> None:
-    check_submodule(RBS_VENDOR, DEFAULT_RBS_REPO, "RBS", failures)
-    check(RBS_VENDOR.exists(), f"RBS vendor exists: {RBS_VENDOR}", f"RBS vendor missing: {RBS_VENDOR}", failures)
-    origin = git_origin(RBS_VENDOR)
+    spec = VENDOR_SPECS_BY_KEY["rbs"]
+    check_submodule(spec.path, spec.default_repo, spec.label, failures)
+    check(spec.path.exists(), f"{spec.label} vendor exists: {spec.path}", f"{spec.label} vendor missing: {spec.path}", failures)
+    origin = git_origin(spec.path)
     if origin:
         check("CoveMB/research-book-skills" in origin, f"RBS origin OK: {origin}", f"unexpected RBS origin: {origin}", failures)
     else:
         warn("RBS origin unavailable", warnings)
-    check((RBS_VENDOR / ".codex-plugin" / "plugin.json").exists(), "RBS vendor plugin.json exists", "RBS vendor plugin.json missing", failures)
-    if (RBS_VENDOR / ".codex-plugin" / "plugin.json").exists():
+    plugin_json = spec.path / ".codex-plugin" / "plugin.json"
+    check(plugin_json.exists(), "RBS vendor plugin.json exists", "RBS vendor plugin.json missing", failures)
+    if plugin_json.exists():
         try:
-            plugin_payload = json.loads(read_text(RBS_VENDOR / ".codex-plugin" / "plugin.json"))
+            plugin_payload = json.loads(read_text(plugin_json))
         except json.JSONDecodeError as error:
             failures.append(f"RBS plugin.json invalid JSON: {error}")
             print(f"FAIL RBS plugin.json invalid JSON: {error}")
@@ -144,8 +145,8 @@ def check_rbs(failures: list[str], warnings: list[str]) -> None:
                 f"RBS plugin name unexpected: {plugin_payload.get('name')}",
                 failures,
             )
-    check((RBS_VENDOR / "skills").exists(), "RBS vendor skills folder exists", "RBS vendor skills folder missing", failures)
-    check_skills_exist("RBS", RBS_VENDOR / "skills", RBS_SKILLS, failures)
+    check((spec.path / "skills").exists(), "RBS vendor skills folder exists", "RBS vendor skills folder missing", failures)
+    check_skills_exist(spec.label, spec.path / "skills", RBS_SKILLS, failures)
     check(not LEGACY_RBS_PLUGIN.exists(), "legacy RBS plugin copy absent", f"legacy RBS plugin copy should be removed: {LEGACY_RBS_PLUGIN}", failures)
     check((SKILLS_DIR / "RBS_INSTALLED.md").exists(), "RBS install report exists", "RBS install report missing", failures)
 

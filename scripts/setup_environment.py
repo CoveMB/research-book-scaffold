@@ -16,7 +16,7 @@ from obsidian_agent import (
     sha256_file,
     vault_path_from_args,
 )
-from project_config import DEFAULT_ARS_REPO, DEFAULT_RBS_REPO, change_to_project_root
+from project_config import DEFAULT_ARS_REPO, DEFAULT_RBS_REPO, SETUP_RECOMMENDED_CHECKS, change_to_project_root
 from script_utils import StatusReport, read_text
 
 
@@ -111,11 +111,7 @@ def validate_local_skills(target_dir: Path, report: Report, dry_run: bool) -> No
 
 
 def run_recommendations(args: argparse.Namespace, report: Report) -> None:
-    report.next_steps.append("Run bash scripts/doctor.sh")
-    report.next_steps.append("Run python3 scripts/check_external_skills.py")
-    report.next_steps.append("Run python3 scripts/check_obsidian_codex.py")
-    report.next_steps.append("Run python3 scripts/check_citations.py")
-    report.next_steps.append("Run python3 scripts/check_placeholders.py .")
+    report.next_steps.extend(f"Run {check.shell_text()}" for check in SETUP_RECOMMENDED_CHECKS)
 
 
 def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespace:

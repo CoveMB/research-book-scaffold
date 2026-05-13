@@ -2,18 +2,15 @@ from __future__ import annotations
 
 import contextlib
 import io
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+from scripts.tests.helpers import SilentReport, working_directory
 
 import setup_environment
-from helpers import SilentReport, working_directory
-from project_config import OBSIDIAN_PLUGINS_DIR
+from project_config import OBSIDIAN_PLUGINS_DIR, SETUP_RECOMMENDED_CHECKS
 
 
 class SetupEnvironmentTests(unittest.TestCase):
@@ -55,6 +52,17 @@ class SetupEnvironmentTests(unittest.TestCase):
         setup_environment.run_recommendations(args, report)
 
         self.assertIn("Run python3 scripts/check_obsidian_codex.py", report.next_steps)
+
+    def test_recommendations_follow_configured_check_manifest(self) -> None:
+        args = setup_environment.parse_args([])
+        report = SilentReport()
+
+        setup_environment.run_recommendations(args, report)
+
+        self.assertEqual(
+            report.next_steps,
+            [f"Run {check.shell_text()}" for check in SETUP_RECOMMENDED_CHECKS],
+        )
 
     def test_obsidian_next_steps_add_read_only_test_only_after_install(self) -> None:
         dry_run_steps = setup_environment.obsidian_next_steps(include_read_only_test=False)

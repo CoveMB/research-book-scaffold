@@ -14,6 +14,10 @@ DEFAULT_IGNORED_DIRS = {".git", ".quarto", "_book", "vendor"}
 PLACEHOLDER_RE = re.compile(r"\{\{\s*[A-Za-z][A-Za-z0-9_ -]{0,80}\s*\}\}")
 
 
+class CommandError(RuntimeError):
+    """Raised when a required command exits unsuccessfully."""
+
+
 @dataclass
 class StatusReport:
     installed: list[str] = field(default_factory=list)
@@ -37,6 +41,34 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         return path.read_text(encoding="utf-8", errors="replace")
+
+
+def write_text_file(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def write_text_if_changed(
+    path: Path,
+    text: str,
+    report: StatusReport,
+    label: str,
+    *,
+    dry_run: bool = False,
+    force: bool = False,
+) -> bool:
+    if path.exists() and read_text(path) == text:
+        report.add("already_present", f"{label} current: {path}")
+        return True
+    if path.exists() and not force:
+        report.add("skipped", f"{path} exists; use --force to replace")
+        return False
+    if dry_run:
+        report.add("skipped", f"dry-run would write {path}")
+        return True
+    write_text_file(path, text)
+    report.add("installed", f"wrote {label}: {path}")
+    return True
 
 
 def replace_placeholders(text: str, replacements: dict[str, str]) -> str:
@@ -99,3 +131,14 @@ def run_command(
         return True
     report.add("failed", f"{action}: command exited {result.returncode}: {printable}")
     return False
+
+
+def run_command_required(command: list[str], action: str, cwd: Path | None = None) -> None:
+    printable = " ".join(command)
+    print(f"RUN {action}: {printable}")
+    try:
+        result = subprocess.run(command, cwd=cwd, text=True, check=False)
+    except OSError as error:
+        raise CommandError(f"{action}: {error}") from error
+    if result.returncode != 0:
+        raise CommandError(f"{action} failed with exit code {result.returncode}")

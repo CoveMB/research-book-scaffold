@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from project_config import change_to_project_root
-from script_utils import replace_placeholders
+from script_utils import replace_placeholders, write_text_file
 
 
 def parse_args() -> argparse.Namespace:
@@ -67,8 +67,7 @@ def main() -> int:
     text = template_path.read_text(encoding="utf-8")
     text = apply_replacements(text, replacements)
 
-    destination_path.parent.mkdir(parents=True, exist_ok=True)
-    destination_path.write_text(text, encoding="utf-8")
+    write_text_file(destination_path, text)
     print(f"Created {destination_path}")
     return 0
 

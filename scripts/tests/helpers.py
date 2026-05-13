@@ -3,9 +3,31 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import sys
 import zipfile
 from collections.abc import Iterator
 from pathlib import Path
+
+
+TESTS_DIR = Path(__file__).resolve().parent
+SCRIPTS_DIR = TESTS_DIR.parent
+
+
+def add_path(path: Path) -> None:
+    path_text = str(path)
+    if path_text not in sys.path:
+        sys.path.insert(0, path_text)
+
+
+def add_scripts_to_path() -> None:
+    add_path(SCRIPTS_DIR)
+
+
+def add_tests_to_path() -> None:
+    add_path(TESTS_DIR)
+
+
+add_scripts_to_path()
 
 import setup_environment
 from project_config import OBSIDIAN_CODEX_PLUGIN_ID, REQUIRED_OBSIDIAN_PLUGIN_FILES
