@@ -90,9 +90,14 @@ class SetupEnvironmentTests(unittest.TestCase):
                 "--yes",
                 "--force",
                 "--skip-ars",
+                "--skip-subagent-orchestrator",
                 "--rbs-ref",
                 "main",
+                "--subagent-orchestrator-ref",
+                "main",
                 "--no-rbs-plugin",
+                "--no-subagent-orchestrator-plugin",
+                "--install-subagent-orchestrator",
                 "--no-update",
             ]
         )
@@ -103,9 +108,14 @@ class SetupEnvironmentTests(unittest.TestCase):
         self.assertTrue(external_args.yes)
         self.assertTrue(external_args.force)
         self.assertTrue(external_args.skip_ars)
+        self.assertTrue(external_args.skip_subagent_orchestrator)
         self.assertEqual(external_args.rbs_ref, "main")
+        self.assertEqual(external_args.subagent_orchestrator_ref, "main")
         self.assertTrue(external_args.no_rbs_plugin)
+        self.assertTrue(external_args.no_subagent_orchestrator_plugin)
+        self.assertTrue(external_args.install_subagent_orchestrator)
         self.assertTrue(external_args.no_update)
+        self.assertFalse(external_args.preserve_vendor_checkouts)
 
 
 if __name__ == "__main__":

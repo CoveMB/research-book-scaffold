@@ -21,12 +21,21 @@ from project_config import (
     RBS_PLUGIN_JSON_NAME,
     RBS_SKILLS,
     SKILLS_DIR,
+    SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
+    SUBAGENT_ORCHESTRATOR_SKILLS,
     change_to_project_root,
 )
 from script_utils import read_text
 
 OLD_ARS_REPO = "CoveMB/" + "academic-research-skills"
 VENDOR_SPECS_BY_KEY = {spec.key: spec for spec in EXTERNAL_VENDOR_SPECS}
+MARKETPLACE_PATHS_BY_NAME = {
+    RBS_MARKETPLACE_NAME: MARKETPLACE_PLUGIN_PATH,
+    SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME: SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
+}
 
 
 def check(condition: bool, success: str, failure: str, failures: list[str]) -> None:
@@ -62,7 +71,14 @@ def check_submodule(path: Path, expected_url: str, label: str, failures: list[st
         text = read_text(GITMODULES_PATH)
         check(expected_url in text, f"{label} URL registered in .gitmodules", f"{label} URL missing from .gitmodules", failures)
     result = subprocess.run(["git", "submodule", "status", "--", str(path)], text=True, capture_output=True, check=False)
-    check(result.returncode == 0 and str(path) in result.stdout, f"{label} submodule status OK", f"{label} submodule status failed", failures)
+    status_ok = result.returncode == 0 and str(path) in result.stdout
+    working_tree_checkout_ok = is_submodule_path(path) and has_git_checkout(path)
+    check(
+        status_ok or working_tree_checkout_ok,
+        f"{label} submodule status OK",
+        f"{label} submodule status failed",
+        failures,
+    )
     if path.exists():
         status_result = subprocess.run(["git", "status", "--short"], cwd=path, text=True, capture_output=True, check=False)
         if status_result.returncode == 0:
@@ -121,6 +137,24 @@ def check_skills_exist(
         check((SKILLS_DIR / "ARS_INSTALLED.md").exists(), "ARS install report exists", "ARS install report missing", failures)
 
 
+def check_plugin_json_name(plugin_json: Path, expected_name: str, label: str, failures: list[str]) -> None:
+    check(plugin_json.exists(), f"{label} plugin.json exists", f"{label} plugin.json missing", failures)
+    if not plugin_json.exists():
+        return
+    try:
+        plugin_payload = json.loads(read_text(plugin_json))
+    except json.JSONDecodeError as error:
+        failures.append(f"{label} plugin.json invalid JSON: {error}")
+        print(f"FAIL {label} plugin.json invalid JSON: {error}")
+        return
+    check(
+        plugin_payload.get("name") == expected_name,
+        f"{label} plugin name OK",
+        f"{label} plugin name unexpected: {plugin_payload.get('name')}",
+        failures,
+    )
+
+
 def check_rbs(failures: list[str], warnings: list[str]) -> None:
     spec = VENDOR_SPECS_BY_KEY["rbs"]
     check_submodule(spec.path, spec.default_repo, spec.label, failures)
@@ -130,25 +164,65 @@ def check_rbs(failures: list[str], warnings: list[str]) -> None:
         check("CoveMB/research-book-skills" in origin, f"RBS origin OK: {origin}", f"unexpected RBS origin: {origin}", failures)
     else:
         warn("RBS origin unavailable", warnings)
-    plugin_json = spec.path / ".codex-plugin" / "plugin.json"
-    check(plugin_json.exists(), "RBS vendor plugin.json exists", "RBS vendor plugin.json missing", failures)
-    if plugin_json.exists():
-        try:
-            plugin_payload = json.loads(read_text(plugin_json))
-        except json.JSONDecodeError as error:
-            failures.append(f"RBS plugin.json invalid JSON: {error}")
-            print(f"FAIL RBS plugin.json invalid JSON: {error}")
-        else:
-            check(
-                plugin_payload.get("name") == RBS_PLUGIN_JSON_NAME,
-                "RBS plugin name OK",
-                f"RBS plugin name unexpected: {plugin_payload.get('name')}",
-                failures,
-            )
+    check_plugin_json_name(spec.path / ".codex-plugin" / "plugin.json", RBS_PLUGIN_JSON_NAME, "RBS", failures)
     check((spec.path / "skills").exists(), "RBS vendor skills folder exists", "RBS vendor skills folder missing", failures)
     check_skills_exist(spec.label, spec.path / "skills", RBS_SKILLS, failures)
     check(not LEGACY_RBS_PLUGIN.exists(), "legacy RBS plugin copy absent", f"legacy RBS plugin copy should be removed: {LEGACY_RBS_PLUGIN}", failures)
     check((SKILLS_DIR / "RBS_INSTALLED.md").exists(), "RBS install report exists", "RBS install report missing", failures)
+
+
+def check_subagent_orchestrator(failures: list[str], warnings: list[str]) -> None:
+    spec = VENDOR_SPECS_BY_KEY["subagent-orchestrator"]
+    check_submodule(spec.path, spec.default_repo, spec.label, failures)
+    check(spec.path.exists(), f"{spec.label} vendor exists: {spec.path}", f"{spec.label} vendor missing: {spec.path}", failures)
+    origin = git_origin(spec.path)
+    if origin:
+        check(
+            "CoveMB/subagent-orchestration-plugin" in origin,
+            f"Subagent Orchestrator origin OK: {origin}",
+            f"unexpected Subagent Orchestrator origin: {origin}",
+            failures,
+        )
+    else:
+        warn("Subagent Orchestrator origin unavailable", warnings)
+    check_plugin_json_name(
+        SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / ".codex-plugin" / "plugin.json",
+        SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME,
+        "Subagent Orchestrator",
+        failures,
+    )
+    check_skills_exist(spec.label, SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / "skills", SUBAGENT_ORCHESTRATOR_SKILLS, failures)
+    check(
+        (SKILLS_DIR / "SUBAGENT_ORCHESTRATOR_INSTALLED.md").exists(),
+        "Subagent Orchestrator install report exists",
+        "Subagent Orchestrator install report missing",
+        failures,
+    )
+
+
+def check_marketplace_entry(
+    plugins: list[object],
+    plugin_name: str,
+    expected_path: str,
+    failures: list[str],
+) -> None:
+    entry = next(
+        (plugin for plugin in plugins if isinstance(plugin, dict) and plugin.get("name") == plugin_name),
+        None,
+    )
+    check(entry is not None, f"marketplace has {plugin_name} entry", f"marketplace missing {plugin_name} entry", failures)
+    if not entry:
+        return
+    source = entry.get("source", {})
+    if not isinstance(source, dict):
+        check(False, f"marketplace source OK for {plugin_name}", f"marketplace source invalid for {plugin_name}", failures)
+        return
+    check(
+        source.get("path") == expected_path,
+        f"marketplace path OK for {plugin_name}",
+        f"marketplace path unexpected for {plugin_name}: {source.get('path')}",
+        failures,
+    )
 
 
 def check_marketplace(failures: list[str]) -> None:
@@ -162,11 +236,11 @@ def check_marketplace(failures: list[str]) -> None:
         print(f"FAIL marketplace invalid JSON: {error}")
         return
     plugins = payload.get("plugins", [])
-    entry = next((plugin for plugin in plugins if plugin.get("name") == RBS_MARKETPLACE_NAME), None)
-    check(entry is not None, f"marketplace has {RBS_MARKETPLACE_NAME} entry", f"marketplace missing {RBS_MARKETPLACE_NAME} entry", failures)
-    if entry:
-        source = entry.get("source", {})
-        check(source.get("path") == MARKETPLACE_PLUGIN_PATH, "marketplace path OK", f"marketplace path unexpected: {source.get('path')}", failures)
+    if not isinstance(plugins, list):
+        check(False, "marketplace plugin list OK", "marketplace plugins must be a list", failures)
+        return
+    for plugin_name, expected_path in MARKETPLACE_PATHS_BY_NAME.items():
+        check_marketplace_entry(plugins, plugin_name, expected_path, failures)
 
 
 def check_old_repo_reference(failures: list[str], warnings: list[str]) -> None:
@@ -197,6 +271,7 @@ def main() -> int:
     warnings: list[str] = []
     check_ars(failures, warnings)
     check_rbs(failures, warnings)
+    check_subagent_orchestrator(failures, warnings)
     check_marketplace(failures)
     check_old_repo_reference(failures, warnings)
     print(f"\nSummary: {len(failures)} fail, {len(warnings)} warn")

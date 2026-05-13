@@ -8,6 +8,7 @@ Expected external repositories are Git submodules:
 
 - `academic-research-skills/`: vendored from `https://github.com/Imbad0202/academic-research-skills.git`.
 - `research-book-skills/`: vendored from `https://github.com/CoveMB/research-book-skills.git`.
+- `subagent-orchestration-plugin/`: optional plugin vendored from `https://github.com/CoveMB/subagent-orchestration-plugin.git`.
 
 Preserve upstream files unchanged.
 

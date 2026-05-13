@@ -4,3 +4,6 @@
 [submodule "vendor/research-book-skills"]
 	path = vendor/research-book-skills
 	url = https://github.com/CoveMB/research-book-skills.git
+[submodule "vendor/subagent-orchestration-plugin"]
+	path = vendor/subagent-orchestration-plugin
+	url = https://github.com/CoveMB/subagent-orchestration-plugin.git

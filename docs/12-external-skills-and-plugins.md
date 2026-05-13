@@ -18,6 +18,10 @@ External workflows extend the scaffold. They do not replace local safety rules.
 - Do not edit upstream files in `vendor/`.
 - Keep marketplace exposure separate from skill wrapper creation.
 - External skills can guide workflow discipline, but citations and claims still need independent verification.
+- Subagents can organize work, but cannot authorize evidence.
+- Scaffold source, citation, manuscript, audit, and vendor rules always win.
+- Subagent output is not evidence.
+- Do not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims from memory.
 
 ## Inspecting external skills
 
@@ -52,9 +56,20 @@ The updater:
 - runs `python3 scripts/check_external_skills.py`
 - runs `bash scripts/doctor.sh`
 
-After a successful run, review the submodule pointer changes and any refreshed files before committing. Use `--skip-ars` or `--skip-rbs` to update only one vendor type. Use `--skip-checks` only when another verification command will be run immediately afterward.
+After a successful run, review the submodule pointer changes and any refreshed files before committing. Use `--skip-ars`, `--skip-rbs`, or `--skip-subagent-orchestrator` to leave a vendor pinned while updating others. Use `--skip-checks` only when another verification command will be run immediately afterward.
+
+## Optional subagent plugin
+
+`CoveMB/subagent-orchestration-plugin` is vendored at `vendor/subagent-orchestration-plugin/` and exposed through `.agents/plugins/marketplace.json` from:
+
+```text
+./vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator
+```
+
+The scaffold does not run the plugin installer by default and does not make subagents automatic for every research task. If explicitly requested, `make install-subagent-orchestrator` runs the vendored installer with `--scope project` and keeps it available-only. It must not install global hooks, global config, or global agents.
 
 ## License caution
 
 - `Imbad0202/academic-research-skills`: CC-BY-NC-4.0.
 - `CoveMB/research-book-skills`: MIT.
+- `CoveMB/subagent-orchestration-plugin`: MIT.

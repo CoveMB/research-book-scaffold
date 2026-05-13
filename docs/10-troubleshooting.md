@@ -14,5 +14,6 @@
 | Obsidian Codex not visible | Restart Obsidian, enable Community Plugins, then enable the plugin. |
 | External skills not installed | Run `python3 scripts/install_external_skills.py --yes`, then review reports. |
 | Research Book Skills plugin not visible | Check `vendor/research-book-skills/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
+| Subagent Orchestrator plugin not visible | Check `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
 | Agent edited too much | Inspect diff, keep intended changes, revert only with user approval. |
 | Export failed | Check Quarto, Pandoc, bibliography path, and unresolved citation errors. |

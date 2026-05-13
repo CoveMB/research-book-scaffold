@@ -1,4 +1,4 @@
-.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills update-skills-vendors check-obsidian-codex install-obsidian-codex audit release-audit
+.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-codex install-obsidian-codex audit release-audit
 
 help:
 	@echo "Targets:"
@@ -16,6 +16,7 @@ help:
 	@echo "  check-manuscript-readiness Check release config for scaffold manuscript entries"
 	@echo "  check-external-skills  Check external skill/plugin integration"
 	@echo "  install-external-skills Vendor external skills and update marketplace"
+	@echo "  install-subagent-orchestrator Install optional subagent plugin in project scope"
 	@echo "  update-skills-vendors  Fast-forward skill vendors and refresh integrations"
 	@echo "  check-obsidian-codex   Check Obsidian plugin install in the project root vault"
 	@echo "  install-obsidian-codex Install Obsidian plugin in the project root vault"
@@ -63,6 +64,9 @@ check-external-skills:
 
 install-external-skills:
 	python3 scripts/install_external_skills.py --yes
+
+install-subagent-orchestrator:
+	python3 scripts/install_external_skills.py --yes --skip-ars --skip-rbs --install-subagent-orchestrator
 
 update-skills-vendors:
 	bash scripts/update-skills-vendors.sh

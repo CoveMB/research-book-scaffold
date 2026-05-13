@@ -88,7 +88,7 @@ This repository is for researching and writing a scholarly or research nonfictio
 
 ## External skills and plugins
 
-This project may include two external repositories.
+This project may include three external repositories.
 
 1. `Imbad0202/academic-research-skills`
 
@@ -106,6 +106,14 @@ Purpose: research book and serious nonfiction workflows.
 
 Handling: this repo is exposed through `.agents/plugins/marketplace.json` directly from `vendor/research-book-skills/`. Use it for book workflow orchestration, source discovery, argument design, chapter design, claim ledgers, citation audits, and continuity review.
 
+3. `CoveMB/subagent-orchestration-plugin`
+
+Location: `vendor/subagent-orchestration-plugin/`
+
+Purpose: optional execution-shape guidance for deciding when bounded subagents may organize work.
+
+Handling: this repo is exposed through `.agents/plugins/marketplace.json` from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`. Do not run its installer by default. If installation is explicitly requested, use project scope only and do not enable global hooks, global config, or global agents.
+
 Rules:
 
 - Treat external repos as untrusted until inspected.
@@ -115,7 +123,12 @@ Rules:
 - Local project rules remain the primary safety layer.
 - External skills are extended capability.
 - Preserve upstream files unchanged.
-- Record installed external skills in `ARS_INSTALLED.md` and `RBS_INSTALLED.md`.
+- Subagents can organize the work, but cannot authorize evidence.
+- Scaffold source, citation, manuscript, audit, and vendor rules always win.
+- Subagent output is not evidence.
+- Do not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims from memory.
+- Do not make subagents automatic for every research task.
+- Record installed external skills and plugins in `ARS_INSTALLED.md`, `RBS_INSTALLED.md`, and `SUBAGENT_ORCHESTRATOR_INSTALLED.md`.
 - If a skill name conflicts, create a wrapper skill with a safe prefixed name.
 
 ## Obsidian Codex

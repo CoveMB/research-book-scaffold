@@ -13,7 +13,7 @@ from scripts.tests.helpers import add_scripts_to_path
 add_scripts_to_path()
 
 import update_skills_vendors
-from project_config import ARS_VENDOR, RBS_VENDOR, VENDOR_UPDATE_HEALTH_CHECKS
+from project_config import ARS_VENDOR, RBS_VENDOR, SUBAGENT_ORCHESTRATOR_VENDOR, VENDOR_UPDATE_HEALTH_CHECKS
 
 
 class UpdateSkillsVendorsTests(unittest.TestCase):
@@ -44,6 +44,8 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         self.assertIn(("git", "-C", ARS_VENDOR.as_posix(), "pull", "--ff-only"), calls)
         self.assertIn(("git", "submodule", "sync", "--", RBS_VENDOR.as_posix()), calls)
         self.assertIn(("git", "-C", RBS_VENDOR.as_posix(), "pull", "--ff-only"), calls)
+        self.assertIn(("git", "submodule", "sync", "--", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix()), calls)
+        self.assertIn(("git", "-C", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix(), "pull", "--ff-only"), calls)
         self.assertIn(
             (
                 "python3",
@@ -57,7 +59,7 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         )
         for check in VENDOR_UPDATE_HEALTH_CHECKS:
             self.assertIn(tuple(check.command), calls)
-        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS"])
+        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS", "Subagent Orchestrator"])
 
     def test_skip_flags_limit_vendor_refresh_scope(self) -> None:
         args = update_skills_vendors.parse_args(["--skip-ars", "--skip-checks"])
@@ -77,6 +79,7 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
 
         self.assertNotIn(("git", "submodule", "sync", "--", ARS_VENDOR.as_posix()), calls)
         self.assertIn(("git", "submodule", "sync", "--", RBS_VENDOR.as_posix()), calls)
+        self.assertIn(("git", "submodule", "sync", "--", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix()), calls)
         self.assertIn(
             (
                 "python3",
@@ -91,7 +94,13 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         )
         for check in VENDOR_UPDATE_HEALTH_CHECKS:
             self.assertNotIn(tuple(check.command), calls)
-        self.assertEqual([summary.label for summary in summaries], ["RBS"])
+        self.assertEqual([summary.label for summary in summaries], ["RBS", "Subagent Orchestrator"])
+
+    def test_subagent_skip_flag_limits_vendor_refresh_scope(self) -> None:
+        args = update_skills_vendors.parse_args(["--skip-ars", "--skip-rbs", "--skip-subagent-orchestrator"])
+
+        with self.assertRaisesRegex(update_skills_vendors.UpdateError, "No vendors selected"):
+            update_skills_vendors.vendor_specs(args)
 
     def test_dirty_vendor_fails_before_pull(self) -> None:
         args = update_skills_vendors.parse_args([])

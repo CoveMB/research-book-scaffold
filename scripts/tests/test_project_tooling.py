@@ -30,6 +30,15 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertEqual(specs_by_key["rbs"].label, "RBS")
         self.assertEqual(specs_by_key["rbs"].path, project_config.RBS_VENDOR)
         self.assertEqual(specs_by_key["rbs"].default_repo, project_config.DEFAULT_RBS_REPO)
+        self.assertEqual(specs_by_key["subagent-orchestrator"].label, "Subagent Orchestrator")
+        self.assertEqual(
+            specs_by_key["subagent-orchestrator"].path,
+            project_config.SUBAGENT_ORCHESTRATOR_VENDOR,
+        )
+        self.assertEqual(
+            specs_by_key["subagent-orchestrator"].default_repo,
+            project_config.DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
+        )
 
 
 if __name__ == "__main__":

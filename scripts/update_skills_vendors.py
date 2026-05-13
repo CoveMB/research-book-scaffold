@@ -29,6 +29,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skip-ars", action="store_true", help="Skip Academic Research Skills.")
     parser.add_argument("--skip-rbs", action="store_true", help="Skip Research Book Skills.")
+    parser.add_argument("--skip-subagent-orchestrator", action="store_true", help="Skip Subagent Orchestrator.")
     parser.add_argument("--skip-checks", action="store_true", help="Skip post-update health checks.")
     return parser.parse_args(argv)
 
@@ -36,7 +37,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def vendor_specs(args: argparse.Namespace) -> list[ExternalVendorSpec]:
     skipped_keys = {
         key
-        for key, should_skip in {"ars": args.skip_ars, "rbs": args.skip_rbs}.items()
+        for key, should_skip in {
+            "ars": args.skip_ars,
+            "rbs": args.skip_rbs,
+            "subagent-orchestrator": args.skip_subagent_orchestrator,
+        }.items()
         if should_skip
     }
     vendors = [vendor for vendor in EXTERNAL_VENDOR_SPECS if vendor.key not in skipped_keys]
@@ -109,6 +114,8 @@ def refresh_command(args: argparse.Namespace) -> list[str]:
         command.append("--skip-ars")
     if args.skip_rbs:
         command.append("--skip-rbs")
+    if args.skip_subagent_orchestrator:
+        command.append("--skip-subagent-orchestrator")
     return command
 
 

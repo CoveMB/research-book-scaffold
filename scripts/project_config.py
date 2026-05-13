@@ -10,16 +10,22 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ARS_REPO = "https://github.com/Imbad0202/academic-research-skills.git"
 DEFAULT_RBS_REPO = "https://github.com/CoveMB/research-book-skills.git"
+DEFAULT_SUBAGENT_ORCHESTRATOR_REPO = "https://github.com/CoveMB/subagent-orchestration-plugin.git"
 
 GITMODULES_PATH = Path(".gitmodules")
 ARS_VENDOR = Path("vendor/academic-research-skills")
 RBS_VENDOR = Path("vendor/research-book-skills")
+SUBAGENT_ORCHESTRATOR_VENDOR = Path("vendor/subagent-orchestration-plugin")
 SKILLS_DIR = Path(".agents/skills")
 PLUGIN_MARKETPLACE = Path(".agents/plugins/marketplace.json")
 MARKETPLACE_PLUGIN_PATH = "./vendor/research-book-skills"
+SUBAGENT_ORCHESTRATOR_PLUGIN_PATH = "./vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator"
+SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT = SUBAGENT_ORCHESTRATOR_VENDOR / "plugin" / "subagent-orchestrator"
 LEGACY_RBS_PLUGIN = Path("plugins/research-book-skills")
 RBS_MARKETPLACE_NAME = "research-book-skills"
 RBS_PLUGIN_JSON_NAME = "scholarly-research-book"
+SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME = "subagent-orchestrator"
+SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME = "subagent-orchestrator"
 
 
 @dataclass(frozen=True)
@@ -41,6 +47,7 @@ class CommandSpec:
 
 
 ARS_SKILLS = ["deep-research", "academic-paper", "academic-paper-reviewer", "academic-pipeline"]
+SUBAGENT_ORCHESTRATOR_SKILLS = ["using-subagent-orchestrator", "subagent-orchestrator"]
 RBS_SKILLS = [
     "research-book-orchestrator",
     "scholarly-research-agenda",
@@ -68,6 +75,12 @@ RBS_SKILLS = [
 EXTERNAL_VENDOR_SPECS = (
     ExternalVendorSpec("ars", "ARS", ARS_VENDOR, DEFAULT_ARS_REPO),
     ExternalVendorSpec("rbs", "RBS", RBS_VENDOR, DEFAULT_RBS_REPO),
+    ExternalVendorSpec(
+        "subagent-orchestrator",
+        "Subagent Orchestrator",
+        SUBAGENT_ORCHESTRATOR_VENDOR,
+        DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
+    ),
 )
 
 SETUP_RECOMMENDED_CHECKS = (

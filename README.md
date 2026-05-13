@@ -50,7 +50,7 @@ Use `templates/` for local source notes, concept notes, claim notes, audits, sou
 
 ## Repo-scoped skills and plugins
 
-ARS wrappers live in `.agents/skills/`. Research Book Skills is exposed through `.agents/plugins/marketplace.json`, which points directly at the vendored submodule. Use them for bounded tasks such as search planning, candidate dedupe, source-note conversion, evidence extraction, claim traceability, claim audits, release/privacy review, proposal comps, drafting from notes, and final manuscript checks.
+ARS wrappers live in `.agents/skills/`. Research Book Skills and the optional Subagent Orchestrator plugin are exposed through `.agents/plugins/marketplace.json`, which points directly at reviewed vendored paths. Use them for bounded tasks such as search planning, candidate dedupe, source-note conversion, evidence extraction, claim traceability, claim audits, release/privacy review, proposal comps, drafting from notes, final manuscript checks, and orchestration planning when subagents would materially help.
 
 ## Required local agent integration
 
@@ -60,10 +60,11 @@ ARS wrappers live in `.agents/skills/`. Research Book Skills is exposed through 
 
 - Academic Research Skills can be vendored from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
 - Research Book Skills can be vendored from `CoveMB/research-book-skills` and exposed directly from `vendor/research-book-skills/`.
+- Subagent Orchestrator can be vendored from `CoveMB/subagent-orchestration-plugin` and exposed from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`.
 
-External repositories stay optional. Review upstream files before use and do not run vendored scripts automatically. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. It installs the required Obsidian plugin by default when missing. `--force` only allows replacing an existing plugin folder. For reproducible plugin installation, pass a reviewed release URL and SHA-256 checksum.
+External repositories stay optional. Review upstream files before use and do not run vendored scripts automatically. The subagent plugin installer is not run by default; when explicitly requested, use `make install-subagent-orchestrator` so the installer receives `--scope project` and stays available-only. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. It installs the required Obsidian plugin by default when missing. `--force` only allows replacing an existing plugin folder. For reproducible plugin installation, pass a reviewed release URL and SHA-256 checksum.
 
-The two external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
+The external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
 
 ```sh
 git submodule update --init --recursive

@@ -15,9 +15,10 @@
 | Obsidian Codex plugin | Agent work inside Obsidian | Required |
 | Academic Research Skills vendor repo | External academic paper and pipeline workflows | Optional |
 | Research Book Skills plugin | External research book workflows | Optional |
+| Subagent Orchestrator plugin | Optional execution-shape guidance for bounded subagents | Optional |
 
 Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help find candidate sources. Import and verify useful sources in Zotero or `bibliography/references.bib` before citing them.
 
 Do not store API keys or credentials in this repository.
 
-External repositories live under `vendor/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the vendored Research Book Skills submodule.
+External repositories live under `vendor/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the vendored Research Book Skills submodule and the nested optional Subagent Orchestrator plugin path.

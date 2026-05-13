@@ -15,12 +15,19 @@ from project_config import (
     ARS_VENDOR,
     DEFAULT_ARS_REPO,
     DEFAULT_RBS_REPO,
+    DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
     GITMODULES_PATH,
     MARKETPLACE_PLUGIN_PATH,
     PLUGIN_MARKETPLACE,
+    PROJECT_ROOT,
     RBS_MARKETPLACE_NAME,
     RBS_VENDOR,
     SKILLS_DIR,
+    SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
+    SUBAGENT_ORCHESTRATOR_SKILLS,
+    SUBAGENT_ORCHESTRATOR_VENDOR,
     change_to_project_root,
 )
 from script_utils import StatusReport, run_command, read_text, write_text_if_changed
@@ -37,11 +44,20 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--skip-ars", action="store_true")
     parser.add_argument("--skip-rbs", action="store_true")
+    parser.add_argument("--skip-subagent-orchestrator", action="store_true")
     parser.add_argument("--ars-repo", default=DEFAULT_ARS_REPO)
     parser.add_argument("--ars-ref")
     parser.add_argument("--rbs-repo", default=DEFAULT_RBS_REPO)
     parser.add_argument("--rbs-ref")
+    parser.add_argument("--subagent-orchestrator-repo", default=DEFAULT_SUBAGENT_ORCHESTRATOR_REPO)
+    parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
+    parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
+    parser.add_argument(
+        "--install-subagent-orchestrator",
+        action="store_true",
+        help="Run the vendored Subagent Orchestrator installer in project scope.",
+    )
     parser.add_argument("--update-mode", choices=["pinned", "remote"], default="pinned")
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--no-update", action="store_true")
@@ -213,24 +229,66 @@ def validate_rbs(report: Report) -> bool:
     return ok
 
 
-def marketplace_text() -> str:
+def validate_subagent_orchestrator(report: Report) -> bool:
+    required = [
+        SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / ".codex-plugin" / "plugin.json",
+        *(SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / "skills" / skill / "SKILL.md" for skill in SUBAGENT_ORCHESTRATOR_SKILLS),
+    ]
+    ok = True
+    for path in required:
+        if path.exists():
+            report.add("already_present", f"Subagent Orchestrator component found: {path}")
+        else:
+            report.add("failed", f"Subagent Orchestrator component missing: {path}")
+            ok = False
+    return ok
+
+
+def marketplace_entry(name: str, plugin_path: str) -> dict[str, object]:
+    return {
+        "name": name,
+        "source": {"source": "local", "path": plugin_path},
+        "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+        "category": "Productivity",
+    }
+
+
+def marketplace_entries(include_rbs: bool, include_subagent_orchestrator: bool) -> list[dict[str, object]]:
+    entries: list[dict[str, object]] = []
+    if include_rbs:
+        entries.append(marketplace_entry(RBS_MARKETPLACE_NAME, MARKETPLACE_PLUGIN_PATH))
+    if include_subagent_orchestrator:
+        entries.append(
+            marketplace_entry(
+                SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME,
+                SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
+            )
+        )
+    return entries
+
+
+def marketplace_text(include_rbs: bool = True, include_subagent_orchestrator: bool = True) -> str:
     payload = {
         "name": "local-research-workflow-plugins",
         "interface": {"displayName": "Local Research Workflow Plugins"},
-        "plugins": [
-            {
-                "name": RBS_MARKETPLACE_NAME,
-                "source": {"source": "local", "path": MARKETPLACE_PLUGIN_PATH},
-                "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
-                "category": "Productivity",
-            }
-        ],
+        "plugins": marketplace_entries(include_rbs, include_subagent_orchestrator),
     }
     return json.dumps(payload, indent=2) + "\n"
 
 
-def write_marketplace(args: argparse.Namespace, report: Report) -> bool:
-    return write_if_changed(PLUGIN_MARKETPLACE, marketplace_text(), args, report, "plugin marketplace")
+def write_marketplace(
+    args: argparse.Namespace,
+    report: Report,
+    include_rbs: bool,
+    include_subagent_orchestrator: bool,
+) -> bool:
+    return write_if_changed(
+        PLUGIN_MARKETPLACE,
+        marketplace_text(include_rbs, include_subagent_orchestrator),
+        args,
+        report,
+        "plugin marketplace",
+    )
 
 
 def report_text(
@@ -305,6 +363,65 @@ def write_rbs_install_report(args: argparse.Namespace, report: Report, plugin_ex
     write_if_changed(SKILLS_DIR / "RBS_INSTALLED.md", rbs_report, args, report, "RBS install report")
 
 
+def write_subagent_orchestrator_install_report(
+    args: argparse.Namespace,
+    report: Report,
+    plugin_exposed: bool,
+    marketplace_written: bool,
+) -> None:
+    install_report = report_text(
+        "Installed Subagent Orchestrator",
+        args.subagent_orchestrator_repo,
+        args.subagent_orchestrator_ref,
+        commit_hash(SUBAGENT_ORCHESTRATOR_VENDOR),
+        SUBAGENT_ORCHESTRATOR_VENDOR,
+        [],
+        SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT if plugin_exposed else None,
+        PLUGIN_MARKETPLACE if marketplace_written else None,
+        "MIT.",
+        [
+            "Execution-shape helper only; not evidence.",
+            "Project rules, citation rules, manuscript rules, audit rules, and vendor rules win.",
+            "Vendored installer was not run unless explicitly requested.",
+        ],
+    )
+    write_if_changed(
+        SKILLS_DIR / "SUBAGENT_ORCHESTRATOR_INSTALLED.md",
+        install_report,
+        args,
+        report,
+        "Subagent Orchestrator install report",
+    )
+
+
+def subagent_orchestrator_install_command() -> list[str]:
+    return [
+        "bash",
+        (SUBAGENT_ORCHESTRATOR_VENDOR / "install.sh").as_posix(),
+        "--scope",
+        "project",
+        "--repo-root",
+        PROJECT_ROOT.as_posix(),
+        "--from-vendor",
+        (PROJECT_ROOT / SUBAGENT_ORCHESTRATOR_VENDOR).as_posix(),
+        "--available-only",
+        "--link-skills",
+        "--with-repo-marketplace",
+    ]
+
+
+def maybe_install_subagent_orchestrator(args: argparse.Namespace, report: Report) -> None:
+    if not args.install_subagent_orchestrator:
+        report.add("skipped", "Subagent Orchestrator project installer not run by default")
+        return
+    run(
+        subagent_orchestrator_install_command(),
+        report,
+        args.dry_run,
+        "installed Subagent Orchestrator project-scoped integration",
+    )
+
+
 def install_external(args: argparse.Namespace, report: Report) -> None:
     if args.update and args.no_update:
         report.add("failed", "choose either --update or --no-update, not both")
@@ -312,9 +429,11 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
 
     ars_wrappers: list[Path] = []
     plugin_exposed = False
+    subagent_plugin_exposed = False
     marketplace_written = False
     ars_ready = False
     rbs_ready = False
+    subagent_ready = False
 
     if args.skip_ars:
         report.add("skipped", "ARS skipped")
@@ -334,15 +453,46 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
                 report.add("skipped", "RBS marketplace exposure skipped by --no-rbs-plugin")
             else:
                 plugin_exposed = True
-                marketplace_written = write_marketplace(args, report)
+
+    if args.skip_subagent_orchestrator:
+        report.add("skipped", "Subagent Orchestrator skipped")
+    else:
+        clone_or_update(
+            args.subagent_orchestrator_repo,
+            SUBAGENT_ORCHESTRATOR_VENDOR,
+            args.subagent_orchestrator_ref,
+            args,
+            report,
+            "Subagent Orchestrator",
+        )
+        if SUBAGENT_ORCHESTRATOR_VENDOR.exists() and validate_subagent_orchestrator(report):
+            subagent_ready = True
+            if args.no_subagent_orchestrator_plugin:
+                report.add(
+                    "skipped",
+                    "Subagent Orchestrator marketplace exposure skipped by --no-subagent-orchestrator-plugin",
+                )
+            else:
+                subagent_plugin_exposed = True
+            maybe_install_subagent_orchestrator(args, report)
+
+    if plugin_exposed or subagent_plugin_exposed:
+        marketplace_written = write_marketplace(args, report, plugin_exposed, subagent_plugin_exposed)
 
     if ars_ready:
         write_ars_install_report(args, report, ars_wrappers)
     if rbs_ready:
         write_rbs_install_report(args, report, plugin_exposed, marketplace_written)
+    if subagent_ready:
+        write_subagent_orchestrator_install_report(args, report, subagent_plugin_exposed, marketplace_written)
 
     report.add("warnings", "External repositories are untrusted until inspected")
-    report.add("warnings", "Vendored scripts were not executed")
+    if args.install_subagent_orchestrator and args.dry_run:
+        report.add("warnings", "Dry run only; vendored scripts were not executed")
+    elif args.install_subagent_orchestrator:
+        report.add("warnings", "Only the explicitly requested Subagent Orchestrator project installer was executed")
+    else:
+        report.add("warnings", "Vendored scripts were not executed")
 
 
 def main(argv: list[str]) -> int:

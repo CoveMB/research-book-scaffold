@@ -16,7 +16,13 @@ from obsidian_agent import (
     sha256_file,
     vault_path_from_args,
 )
-from project_config import DEFAULT_ARS_REPO, DEFAULT_RBS_REPO, SETUP_RECOMMENDED_CHECKS, change_to_project_root
+from project_config import (
+    DEFAULT_ARS_REPO,
+    DEFAULT_RBS_REPO,
+    DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
+    SETUP_RECOMMENDED_CHECKS,
+    change_to_project_root,
+)
 from script_utils import StatusReport, read_text
 
 
@@ -48,6 +54,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--skip-packages", action="store_true")
     parser.add_argument("--skip-ars", action="store_true")
     parser.add_argument("--skip-rbs", action="store_true")
+    parser.add_argument("--skip-subagent-orchestrator", action="store_true")
     parser.add_argument("--with-external-skills", action="store_true")
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
@@ -58,7 +65,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--ars-ref")
     parser.add_argument("--rbs-repo", default=DEFAULT_RBS_REPO)
     parser.add_argument("--rbs-ref")
+    parser.add_argument("--subagent-orchestrator-repo", default=DEFAULT_SUBAGENT_ORCHESTRATOR_REPO)
+    parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
+    parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
+    parser.add_argument("--install-subagent-orchestrator", action="store_true")
     parser.add_argument("--update-mode", choices=["pinned", "remote"], default="pinned")
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--no-update", action="store_true")
@@ -121,14 +132,20 @@ def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespac
         force=args.force,
         skip_ars=args.skip_ars,
         skip_rbs=args.skip_rbs,
+        skip_subagent_orchestrator=args.skip_subagent_orchestrator,
         ars_repo=args.ars_repo,
         ars_ref=args.ars_ref,
         rbs_repo=args.rbs_repo,
         rbs_ref=args.rbs_ref,
+        subagent_orchestrator_repo=args.subagent_orchestrator_repo,
+        subagent_orchestrator_ref=args.subagent_orchestrator_ref,
         no_rbs_plugin=args.no_rbs_plugin,
+        no_subagent_orchestrator_plugin=args.no_subagent_orchestrator_plugin,
+        install_subagent_orchestrator=args.install_subagent_orchestrator,
         update_mode=args.update_mode,
         update=args.update,
         no_update=args.no_update,
+        preserve_vendor_checkouts=False,
     )
 
 

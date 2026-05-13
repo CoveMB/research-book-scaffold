@@ -41,6 +41,17 @@ class InstallExternalSkillsTests(unittest.TestCase):
         self.assertEqual(report.already_present, ["Example configured as Git submodule: vendor/example"])
         self.assertEqual(report.skipped, ["Example submodule checkout preserved"])
 
+    def test_subagent_orchestrator_installer_is_project_scoped_and_available_only(self) -> None:
+        command = install_external_skills.subagent_orchestrator_install_command()
+
+        self.assertIn("--scope", command)
+        self.assertEqual(command[command.index("--scope") + 1], "project")
+        self.assertIn("--available-only", command)
+        self.assertIn("--link-skills", command)
+        self.assertIn("--with-repo-marketplace", command)
+        self.assertNotIn("--activate-gate", command)
+        self.assertNotIn("--with-project-agents", command)
+
 
 if __name__ == "__main__":
     unittest.main()
