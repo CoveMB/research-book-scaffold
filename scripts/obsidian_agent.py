@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import shutil
+import sys
 import tempfile
 import urllib.error
 import urllib.request
@@ -24,6 +25,16 @@ from script_utils import StatusReport
 
 
 DEFAULT_OBSIDIAN_REPO = "https://github.com/AKin-lvyifang/obsidian-codex"
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--obsidian-vault")
+    parser.add_argument("--obsidian-release-url")
+    parser.add_argument("--obsidian-release-sha256")
+    return parser.parse_args(argv)
 
 
 def vault_path_from_args(args: argparse.Namespace) -> Path:
@@ -175,3 +186,36 @@ def install_obsidian_codex(args: argparse.Namespace, report: StatusReport) -> No
         return
     report.add("installed", f"installed Obsidian plugin to {destination_dir}")
     report.next_steps.extend(obsidian_next_steps(include_read_only_test=True))
+
+
+def print_summary(report: StatusReport) -> None:
+    print("\nObsidian plugin install report")
+    sections = [
+        ("Installed", report.installed),
+        ("Already present", report.already_present),
+        ("Skipped", report.skipped),
+        ("Failed", report.failed),
+        ("Warnings", report.warnings),
+        ("Next manual steps", report.next_steps),
+    ]
+    for title, values in sections:
+        print(f"\n{title}:")
+        if not values:
+            print("- none")
+        else:
+            for value in values:
+                print(f"- {value}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(sys.argv[1:] if argv is None else argv)
+    report = StatusReport()
+    if args.dry_run:
+        print("Dry run: no Obsidian plugin files will be changed.\n")
+    install_obsidian_codex(args, report)
+    print_summary(report)
+    return 1 if report.failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

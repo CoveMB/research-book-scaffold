@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import tempfile
 import unittest
 import zipfile
@@ -15,8 +16,24 @@ import setup_environment
 import obsidian_agent
 from project_config import OBSIDIAN_PLUGIN_DIR
 
+ROOT = Path(__file__).resolve().parents[2]
+
 
 class ObsidianInstallerTests(unittest.TestCase):
+    def test_obsidian_wrapper_runs_obsidian_only_dry_run(self) -> None:
+        result = subprocess.run(
+            ["/bin/sh", "scripts/install_obsidian_codex.sh", "--dry-run"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Obsidian plugin install report", result.stdout)
+        self.assertNotIn("package checks", result.stdout)
+        self.assertNotIn("external skills skipped", result.stdout)
+
     def test_default_install_uses_root_vault_and_preserves_settings(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)

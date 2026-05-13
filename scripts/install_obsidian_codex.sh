@@ -10,4 +10,4 @@ SCRIPT_HELPER_DIR="$SCRIPT_ENTRY_DIR"
 cd "$PROJECT_ROOT" || exit 1
 require_python3 "install the Obsidian plugin"
 
-python3 scripts/setup_environment.py "$@"
+python3 "$PROJECT_ROOT/scripts/obsidian_agent.py" "$@"

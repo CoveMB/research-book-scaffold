@@ -50,6 +50,11 @@ class SetupEnvironmentTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 setup_environment.parse_args(["--install-subagent-orchestrator"])
 
+    def test_update_conflict_is_rejected_during_argparse(self) -> None:
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                setup_environment.parse_args(["--update", "--no-update"])
+
     def test_missing_local_skills_directory_dry_run_does_not_crash(self) -> None:
         report = SilentReport()
 
@@ -59,18 +64,16 @@ class SetupEnvironmentTests(unittest.TestCase):
         self.assertTrue(any("dry-run would create" in message for message in report.skipped))
 
     def test_recommendations_always_include_obsidian_agent_check(self) -> None:
-        args = setup_environment.parse_args([])
         report = SilentReport()
 
-        setup_environment.run_recommendations(args, report)
+        setup_environment.run_recommendations(report)
 
         self.assertIn("Run python3 scripts/check_obsidian_codex.py", report.next_steps)
 
     def test_recommendations_follow_configured_check_manifest(self) -> None:
-        args = setup_environment.parse_args([])
         report = SilentReport()
 
-        setup_environment.run_recommendations(args, report)
+        setup_environment.run_recommendations(report)
 
         self.assertEqual(
             report.next_steps,

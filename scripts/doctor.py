@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from project_config import change_to_project_root
 
 REQUIRED_FILES = [Path("bibliography/references.bib"), Path("manuscript/_quarto.yml")]
 REQUIRED_DIRS = [Path(".agents/skills"), Path("templates"), Path("notes"), Path("research")]
+VERSION_CHECK_COMMANDS = {"codex": ["codex", "--version"]}
 
 
 def record(status: str, message: str, counts: dict[str, int]) -> None:
@@ -20,11 +22,23 @@ def record(status: str, message: str, counts: dict[str, int]) -> None:
     print(f"{status.upper()} {message}")
 
 
+def command_runs(command: list[str]) -> bool:
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return result.returncode == 0
+
+
 def check_required_command(command: str, counts: dict[str, int]) -> None:
-    if command_exists(command):
-        record("pass", f"{command} found", counts)
-    else:
+    if not command_exists(command):
         record("fail", f"{command} missing", counts)
+        return
+    version_command = VERSION_CHECK_COMMANDS.get(command)
+    if version_command and not command_runs(version_command):
+        record("warn", f"{command} found but version check failed", counts)
+        return
+    record("pass", f"{command} found", counts)
 
 
 def check_optional_command(command: str, counts: dict[str, int]) -> None:

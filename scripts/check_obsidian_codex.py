@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import shutil
@@ -20,9 +21,21 @@ from project_config import (
 )
 
 
-def get_vault_path(argv: list[str]) -> Path:
-    requested_path = argv[1] if len(argv) > 1 else None
-    return resolve_obsidian_vault_path(requested_path, os.environ.get("OBSIDIAN_VAULT"))
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="check_obsidian_codex.py",
+        description=__doc__,
+    )
+    parser.add_argument(
+        "vault",
+        nargs="?",
+        help="Obsidian vault path. Defaults to OBSIDIAN_VAULT or the project root.",
+    )
+    return parser.parse_args(argv)
+
+
+def vault_path_from_args(args: argparse.Namespace) -> Path:
+    return resolve_obsidian_vault_path(args.vault, os.environ.get("OBSIDIAN_VAULT"))
 
 
 def check_cli() -> bool:
@@ -69,9 +82,10 @@ def check_community_plugins(obsidian_dir: Path) -> None:
         print("WARN Obsidian plugin is installed but not listed as enabled")
 
 
-def main(argv: list[str]) -> int:
+def main(argv: list[str] | None = None) -> int:
     change_to_project_root()
-    vault_path = get_vault_path(argv)
+    args = parse_args(sys.argv[1:] if argv is None else argv)
+    vault_path = vault_path_from_args(args)
     failures = 0
 
     if vault_path.exists() and vault_path.is_dir():
@@ -111,4 +125,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())

@@ -11,12 +11,12 @@ from scripts.tests.helpers import add_scripts_to_path
 add_scripts_to_path()
 
 import check_placeholders
-import new_from_template
+from script_utils import replace_placeholders
 
 
 class TemplateToolTests(unittest.TestCase):
     def test_new_from_template_replaces_explicit_placeholders(self) -> None:
-        text = new_from_template.apply_replacements(
+        text = replace_placeholders(
             "{{Title}}\n{{ Claim }}\n{{  Claim  }}\n",
             {"Title": "Chapter 1", "Claim": "Supported claim"},
         )

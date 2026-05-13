@@ -31,8 +31,7 @@ from project_config import (
 from script_utils import StatusReport, run_command, read_text, write_text_if_changed
 
 
-class Report(StatusReport):
-    pass
+Report = StatusReport
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -51,9 +50,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
     parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
-    parser.add_argument("--update-mode", choices=["pinned", "remote"], default="pinned")
-    parser.add_argument("--update", action="store_true")
-    parser.add_argument("--no-update", action="store_true")
+    update_group = parser.add_mutually_exclusive_group()
+    update_group.add_argument("--update", action="store_true", help="Update configured vendors from their remotes.")
+    update_group.add_argument("--no-update", action="store_true", help="Use pinned or current vendor checkouts.")
     parser.add_argument(
         "--preserve-vendor-checkouts",
         action="store_true",
@@ -74,15 +73,7 @@ def git_available(report: Report) -> bool:
 
 
 def should_update(args: argparse.Namespace) -> bool:
-    return update_mode(args) == "remote"
-
-
-def update_mode(args: argparse.Namespace) -> str:
-    if args.update:
-        return "remote"
-    if args.no_update:
-        return "pinned"
-    return args.update_mode
+    return bool(args.update)
 
 
 def checkout_ref(path: Path, ref: str | None, report: Report, dry_run: bool, label: str) -> None:
@@ -299,10 +290,6 @@ def merge_marketplace_entries(
     return merged
 
 
-def marketplace_entries(include_rbs: bool, include_subagent_orchestrator: bool) -> list[dict[str, object]]:
-    return configured_marketplace_entries(include_rbs, include_subagent_orchestrator)
-
-
 def marketplace_text(
     include_rbs: bool = True,
     include_subagent_orchestrator: bool = True,
@@ -497,10 +484,6 @@ def install_subagent_orchestrator(args: argparse.Namespace, report: Report) -> b
 
 
 def install_external(args: argparse.Namespace, report: Report) -> None:
-    if args.update and args.no_update:
-        report.add("failed", "choose either --update or --no-update, not both")
-        return
-
     ars_wrappers: list[Path] = []
     plugin_exposed = False
     subagent_plugin_exposed = False

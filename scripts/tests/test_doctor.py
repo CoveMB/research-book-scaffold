@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 
 from scripts.tests.helpers import add_scripts_to_path
@@ -12,6 +13,18 @@ import doctor
 
 
 class DoctorTests(unittest.TestCase):
+    def test_required_command_warns_when_version_check_fails(self) -> None:
+        counts = {"pass": 0, "warn": 0, "fail": 0}
+
+        with (
+            mock.patch.object(doctor, "command_exists", return_value=True),
+            mock.patch.object(doctor, "command_runs", return_value=False),
+            mock.patch.object(doctor, "record") as record_mock,
+        ):
+            doctor.check_required_command("codex", counts)
+
+        record_mock.assert_called_once_with("warn", "codex found but version check failed", counts)
+
     def test_branch_without_upstream_reports_warning(self) -> None:
         self.assertEqual(
             doctor.branch_tracking_status("main", None, None),

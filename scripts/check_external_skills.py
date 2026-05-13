@@ -243,7 +243,7 @@ def check_marketplace(failures: list[str]) -> None:
         check_marketplace_entry(plugins, plugin_name, expected_path, failures)
 
 
-def check_old_repo_reference(failures: list[str], warnings: list[str]) -> None:
+def check_old_repo_reference(failures: list[str]) -> None:
     ignored_parts = {"__pycache__", ".git"}
     roots = [Path("README.md"), Path("AGENTS.md"), Path("docs"), Path("scripts"), Path("config"), Path(".agents")]
     matches: list[Path] = []
@@ -273,7 +273,7 @@ def main() -> int:
     check_rbs(failures, warnings)
     check_subagent_orchestrator(failures, warnings)
     check_marketplace(failures)
-    check_old_repo_reference(failures, warnings)
+    check_old_repo_reference(failures)
     print(f"\nSummary: {len(failures)} fail, {len(warnings)} warn")
     return 1 if failures else 0
 

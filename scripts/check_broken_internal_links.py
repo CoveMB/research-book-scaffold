@@ -85,10 +85,6 @@ def link_status(target: str, source: Path, target_index: dict[str, set[Path]]) -
     return LinkStatus("ok", tuple(sorted(matches)))
 
 
-def link_exists(target: str, source: Path, target_index: dict[str, set[Path]]) -> bool:
-    return link_status(target, source, target_index).kind == "ok"
-
-
 def scan_file(path: Path, target_index: dict[str, set[Path]]) -> list[tuple[int, str, LinkStatus]]:
     findings: list[tuple[int, str, LinkStatus]] = []
     for line_number, line in enumerate(read_text(path).splitlines(), start=1):

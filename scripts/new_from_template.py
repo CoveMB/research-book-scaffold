@@ -39,10 +39,6 @@ def parse_replacements(raw_values: list[str]) -> dict[str, str]:
     return replacements
 
 
-def apply_replacements(text: str, replacements: dict[str, str]) -> str:
-    return replace_placeholders(text, replacements)
-
-
 def main() -> int:
     change_to_project_root()
     args = parse_args()
@@ -65,7 +61,7 @@ def main() -> int:
         return 1
 
     text = template_path.read_text(encoding="utf-8")
-    text = apply_replacements(text, replacements)
+    text = replace_placeholders(text, replacements)
 
     write_text_file(destination_path, text)
     print(f"Created {destination_path}")

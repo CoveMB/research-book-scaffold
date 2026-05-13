@@ -18,6 +18,16 @@ from project_config import OBSIDIAN_CODEX_PLUGIN_ID
 
 
 class CheckObsidianCodexTests(unittest.TestCase):
+    def test_help_uses_argparse_usage(self) -> None:
+        output = io.StringIO()
+
+        with contextlib.redirect_stdout(output):
+            with self.assertRaises(SystemExit) as error:
+                check_obsidian_codex.main(["--help"])
+
+        self.assertEqual(error.exception.code, 0)
+        self.assertIn("usage: check_obsidian_codex.py", output.getvalue())
+
     def test_missing_vault_reports_single_failure(self) -> None:
         original_check_cli = check_obsidian_codex.check_cli
         check_obsidian_codex.check_cli = lambda: True
@@ -27,7 +37,7 @@ class CheckObsidianCodexTests(unittest.TestCase):
                 output = io.StringIO()
 
                 with contextlib.redirect_stdout(output):
-                    exit_code = check_obsidian_codex.main(["check", str(missing_vault)])
+                    exit_code = check_obsidian_codex.main([str(missing_vault)])
 
             text = output.getvalue()
         finally:

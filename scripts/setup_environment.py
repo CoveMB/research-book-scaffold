@@ -69,9 +69,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
     parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
-    parser.add_argument("--update-mode", choices=["pinned", "remote"], default="pinned")
-    parser.add_argument("--update", action="store_true")
-    parser.add_argument("--no-update", action="store_true")
+    update_group = parser.add_mutually_exclusive_group()
+    update_group.add_argument("--update", action="store_true", help="Update configured external skills from remotes.")
+    update_group.add_argument("--no-update", action="store_true", help="Use pinned or current external skill checkouts.")
     return parser.parse_args(argv)
 
 
@@ -121,7 +121,7 @@ def validate_local_skills(target_dir: Path, report: Report, dry_run: bool) -> No
             report.add("already_present", f"{skill_file} valid")
 
 
-def run_recommendations(args: argparse.Namespace, report: Report) -> None:
+def run_recommendations(report: Report) -> None:
     report.next_steps.extend(f"Run {check.shell_text()}" for check in SETUP_RECOMMENDED_CHECKS)
 
 
@@ -141,7 +141,6 @@ def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespac
         subagent_orchestrator_ref=args.subagent_orchestrator_ref,
         no_rbs_plugin=args.no_rbs_plugin,
         no_subagent_orchestrator_plugin=args.no_subagent_orchestrator_plugin,
-        update_mode=args.update_mode,
         update=args.update,
         no_update=args.no_update,
         preserve_vendor_checkouts=False,
@@ -175,7 +174,7 @@ def main(argv: list[str]) -> int:
     validate_local_skills(Path(".agents/skills"), report, args.dry_run)
     install_external_layer(args, report)
     install_obsidian_codex(args, report)
-    run_recommendations(args, report)
+    run_recommendations(report)
     report.print_summary()
     return 1 if report.failed else 0
 
