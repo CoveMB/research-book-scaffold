@@ -12,30 +12,22 @@ from pathlib import Path
 from git_utils import changed_paths_from_status, git_stdout, has_git_checkout
 from project_config import (
     ARS_SKILLS,
+    EXTERNAL_PLUGIN_SPECS,
     EXTERNAL_VENDOR_SPECS,
+    ExternalPluginSpec,
     GITMODULES_PATH,
     LEGACY_RBS_PLUGIN,
-    MARKETPLACE_PLUGIN_PATH,
     PLUGIN_MARKETPLACE,
-    RBS_MARKETPLACE_NAME,
-    RBS_PLUGIN_JSON_NAME,
-    RBS_SKILLS,
+    RBS_PLUGIN_SPEC,
     SKILLS_DIR,
-    SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
-    SUBAGENT_ORCHESTRATOR_SKILLS,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC,
     change_to_project_root,
 )
 from script_utils import read_text
 
 OLD_ARS_REPO = "CoveMB/" + "academic-research-skills"
 VENDOR_SPECS_BY_KEY = {spec.key: spec for spec in EXTERNAL_VENDOR_SPECS}
-MARKETPLACE_PATHS_BY_NAME = {
-    RBS_MARKETPLACE_NAME: MARKETPLACE_PLUGIN_PATH,
-    SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME: SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
-}
+MARKETPLACE_PATHS_BY_NAME = {spec.marketplace_name: spec.plugin_path for spec in EXTERNAL_PLUGIN_SPECS}
 
 
 def check(condition: bool, success: str, failure: str, failures: list[str]) -> None:
@@ -155,6 +147,22 @@ def check_plugin_json_name(plugin_json: Path, expected_name: str, label: str, fa
     )
 
 
+def check_plugin_vendor(plugin_spec: ExternalPluginSpec, failures: list[str]) -> None:
+    check_plugin_json_name(
+        plugin_spec.plugin_root / ".codex-plugin" / "plugin.json",
+        plugin_spec.plugin_json_name,
+        plugin_spec.label,
+        failures,
+    )
+    check(
+        plugin_spec.skills_root.exists(),
+        f"{plugin_spec.label} vendor skills folder exists",
+        f"{plugin_spec.label} vendor skills folder missing",
+        failures,
+    )
+    check_skills_exist(plugin_spec.label, plugin_spec.skills_root, list(plugin_spec.skill_names), failures)
+
+
 def check_rbs(failures: list[str], warnings: list[str]) -> None:
     spec = VENDOR_SPECS_BY_KEY["rbs"]
     check_submodule(spec.path, spec.default_repo, spec.label, failures)
@@ -164,9 +172,7 @@ def check_rbs(failures: list[str], warnings: list[str]) -> None:
         check("CoveMB/research-book-skills" in origin, f"RBS origin OK: {origin}", f"unexpected RBS origin: {origin}", failures)
     else:
         warn("RBS origin unavailable", warnings)
-    check_plugin_json_name(spec.path / ".codex-plugin" / "plugin.json", RBS_PLUGIN_JSON_NAME, "RBS", failures)
-    check((spec.path / "skills").exists(), "RBS vendor skills folder exists", "RBS vendor skills folder missing", failures)
-    check_skills_exist(spec.label, spec.path / "skills", RBS_SKILLS, failures)
+    check_plugin_vendor(RBS_PLUGIN_SPEC, failures)
     check(not LEGACY_RBS_PLUGIN.exists(), "legacy RBS plugin copy absent", f"legacy RBS plugin copy should be removed: {LEGACY_RBS_PLUGIN}", failures)
     check((SKILLS_DIR / "RBS_INSTALLED.md").exists(), "RBS install report exists", "RBS install report missing", failures)
 
@@ -185,13 +191,7 @@ def check_subagent_orchestrator(failures: list[str], warnings: list[str]) -> Non
         )
     else:
         warn("Subagent Orchestrator origin unavailable", warnings)
-    check_plugin_json_name(
-        SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / ".codex-plugin" / "plugin.json",
-        SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME,
-        "Subagent Orchestrator",
-        failures,
-    )
-    check_skills_exist(spec.label, SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / "skills", SUBAGENT_ORCHESTRATOR_SKILLS, failures)
+    check_plugin_vendor(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC, failures)
     check(
         (SKILLS_DIR / "SUBAGENT_ORCHESTRATOR_INSTALLED.md").exists(),
         "Subagent Orchestrator install report exists",

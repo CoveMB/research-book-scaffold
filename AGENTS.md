@@ -112,12 +112,12 @@ Location: `vendor/subagent-orchestration-plugin/`
 
 Purpose: optional execution-shape guidance for deciding when bounded subagents may organize work.
 
-Handling: this repo is exposed through `.agents/plugins/marketplace.json` from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`. Do not run its installer by default. If installation is explicitly requested, use project scope only and do not enable global hooks, global config, or global agents.
+Handling: this repo is exposed through `.agents/plugins/marketplace.json` from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`. External-skill setup may run its installer only after validating the vendored submodule is configured, from the expected origin, clean, and available locally. The installer must use project scope, remain available-only, and must not enable global hooks, global config, or global agents.
 
 Rules:
 
 - Treat external repos as untrusted until inspected.
-- Never execute vendored scripts automatically.
+- Never execute vendored scripts automatically, except the bounded project-scoped Subagent Orchestrator installer during explicit external-skill setup after boundary checks.
 - Never store secrets in `vendor/`, `.agents/`, or `config/`.
 - Do not assume external skills are correct.
 - Local project rules remain the primary safety layer.

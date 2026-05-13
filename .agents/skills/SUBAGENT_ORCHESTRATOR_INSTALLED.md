@@ -16,4 +16,4 @@
 ## Warnings
 - Execution-shape helper only; not evidence.
 - Project rules, citation rules, manuscript rules, audit rules, and vendor rules win.
-- Vendored installer was not run unless explicitly requested.
+- Installer runs only after project-scoped boundary checks.

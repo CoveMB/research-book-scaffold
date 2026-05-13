@@ -40,6 +40,18 @@ class ProjectToolingTests(unittest.TestCase):
             project_config.DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
         )
 
+    def test_external_plugin_specs_are_canonical(self) -> None:
+        specs_by_key = {spec.vendor_key: spec for spec in project_config.EXTERNAL_PLUGIN_SPECS}
+
+        self.assertEqual(specs_by_key["rbs"].marketplace_name, project_config.RBS_MARKETPLACE_NAME)
+        self.assertEqual(specs_by_key["rbs"].plugin_path, project_config.MARKETPLACE_PLUGIN_PATH)
+        self.assertEqual(specs_by_key["rbs"].skills_root, project_config.RBS_VENDOR / "skills")
+        self.assertEqual(specs_by_key["subagent-orchestrator"].marketplace_name, "subagent-orchestrator")
+        self.assertEqual(
+            specs_by_key["subagent-orchestrator"].plugin_root,
+            project_config.SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

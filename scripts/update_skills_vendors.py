@@ -72,7 +72,7 @@ def ensure_vendor_branch(vendor: ExternalVendorSpec) -> None:
         )
     try:
         run_checked(["git", "-C", path, "checkout", vendor.branch], f"checkout {vendor.label} branch {vendor.branch}")
-    except UpdateError:
+    except CommandError:
         run_checked(
             ["git", "-C", path, "checkout", "--track", f"origin/{vendor.branch}"],
             f"track {vendor.label} branch {vendor.branch}",

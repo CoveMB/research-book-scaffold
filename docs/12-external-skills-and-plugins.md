@@ -13,7 +13,7 @@ External workflows extend the scaffold. They do not replace local safety rules.
 ## Rules
 
 - Treat external repositories as untrusted until inspected.
-- Do not run vendored scripts automatically.
+- Do not run vendored scripts automatically, except the bounded project-scoped Subagent Orchestrator installer during explicit external-skill setup after boundary checks.
 - Do not store API keys or credentials.
 - Do not edit upstream files in `vendor/`.
 - Keep marketplace exposure separate from skill wrapper creation.
@@ -66,7 +66,7 @@ After a successful run, review the submodule pointer changes and any refreshed f
 ./vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator
 ```
 
-The scaffold does not run the plugin installer by default and does not make subagents automatic for every research task. If explicitly requested, `make install-subagent-orchestrator` runs the vendored installer with `--scope project` and keeps it available-only. It must not install global hooks, global config, or global agents.
+The scaffold does not make subagents automatic for every research task. When Subagent Orchestrator is selected during external-skill setup, the installer runs only after boundary checks confirm the vendored submodule is configured, from the expected origin, clean, and available locally. `make install-subagent-orchestrator` runs only that integration path. The installer uses `--scope project`, keeps the plugin available-only, and must not install global hooks, global config, or global agents.
 
 ## License caution
 

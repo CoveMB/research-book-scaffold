@@ -66,7 +66,7 @@ install-external-skills:
 	python3 scripts/install_external_skills.py --yes
 
 install-subagent-orchestrator:
-	python3 scripts/install_external_skills.py --yes --skip-ars --skip-rbs --install-subagent-orchestrator
+	python3 scripts/install_external_skills.py --yes --skip-ars --skip-rbs
 
 update-skills-vendors:
 	bash scripts/update-skills-vendors.sh

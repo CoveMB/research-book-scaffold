@@ -16,17 +16,15 @@ from project_config import (
     DEFAULT_ARS_REPO,
     DEFAULT_RBS_REPO,
     DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
+    ExternalPluginSpec,
     GITMODULES_PATH,
-    MARKETPLACE_PLUGIN_PATH,
     PLUGIN_MARKETPLACE,
     PROJECT_ROOT,
-    RBS_MARKETPLACE_NAME,
+    RBS_PLUGIN_SPEC,
     RBS_VENDOR,
     SKILLS_DIR,
-    SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
     SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
-    SUBAGENT_ORCHESTRATOR_SKILLS,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC,
     SUBAGENT_ORCHESTRATOR_VENDOR,
     change_to_project_root,
 )
@@ -53,11 +51,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
     parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
-    parser.add_argument(
-        "--install-subagent-orchestrator",
-        action="store_true",
-        help="Run the vendored Subagent Orchestrator installer in project scope.",
-    )
     parser.add_argument("--update-mode", choices=["pinned", "remote"], default="pinned")
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--no-update", action="store_true")
@@ -217,31 +210,34 @@ def create_ars_wrappers(args: argparse.Namespace, report: Report) -> list[Path]:
     return wrapper_paths
 
 
-def validate_rbs(report: Report) -> bool:
-    required = [RBS_VENDOR / ".codex-plugin" / "plugin.json", RBS_VENDOR / "skills"]
+def plugin_component_paths(plugin_spec: ExternalPluginSpec) -> list[Path]:
+    return [
+        plugin_spec.plugin_root / ".codex-plugin" / "plugin.json",
+        plugin_spec.skills_root,
+        *(plugin_spec.skills_root / skill_name / "SKILL.md" for skill_name in plugin_spec.skill_names),
+    ]
+
+
+def validate_plugin_components(plugin_spec: ExternalPluginSpec, report: Report) -> bool:
     ok = True
-    for path in required:
+    for path in plugin_component_paths(plugin_spec):
         if path.exists():
-            report.add("already_present", f"RBS component found: {path}")
+            report.add("already_present", f"{plugin_spec.label} component found: {path}")
+        elif path.name == "SKILL.md":
+            report.add("failed", f"{plugin_spec.label} skill missing: {path}")
+            ok = False
         else:
-            report.add("failed", f"RBS component missing: {path}")
+            report.add("failed", f"{plugin_spec.label} component missing: {path}")
             ok = False
     return ok
+
+
+def validate_rbs(report: Report) -> bool:
+    return validate_plugin_components(RBS_PLUGIN_SPEC, report)
 
 
 def validate_subagent_orchestrator(report: Report) -> bool:
-    required = [
-        SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / ".codex-plugin" / "plugin.json",
-        *(SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / "skills" / skill / "SKILL.md" for skill in SUBAGENT_ORCHESTRATOR_SKILLS),
-    ]
-    ok = True
-    for path in required:
-        if path.exists():
-            report.add("already_present", f"Subagent Orchestrator component found: {path}")
-        else:
-            report.add("failed", f"Subagent Orchestrator component missing: {path}")
-            ok = False
-    return ok
+    return validate_plugin_components(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC, report)
 
 
 def marketplace_entry(name: str, plugin_path: str) -> dict[str, object]:
@@ -253,25 +249,72 @@ def marketplace_entry(name: str, plugin_path: str) -> dict[str, object]:
     }
 
 
-def marketplace_entries(include_rbs: bool, include_subagent_orchestrator: bool) -> list[dict[str, object]]:
+def configured_marketplace_entries(
+    include_rbs: bool,
+    include_subagent_orchestrator: bool,
+) -> list[dict[str, object]]:
     entries: list[dict[str, object]] = []
     if include_rbs:
-        entries.append(marketplace_entry(RBS_MARKETPLACE_NAME, MARKETPLACE_PLUGIN_PATH))
+        entries.append(marketplace_entry(RBS_PLUGIN_SPEC.marketplace_name, RBS_PLUGIN_SPEC.plugin_path))
     if include_subagent_orchestrator:
         entries.append(
             marketplace_entry(
-                SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME,
-                SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
+                SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.marketplace_name,
+                SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.plugin_path,
             )
         )
     return entries
 
 
-def marketplace_text(include_rbs: bool = True, include_subagent_orchestrator: bool = True) -> str:
+def plugin_name(plugin: object) -> str | None:
+    if not isinstance(plugin, dict):
+        return None
+    name = plugin.get("name")
+    return name if isinstance(name, str) else None
+
+
+def existing_marketplace_plugins(path: Path) -> list[object]:
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(read_text(path))
+    except json.JSONDecodeError:
+        return []
+    plugins = payload.get("plugins", [])
+    return plugins if isinstance(plugins, list) else []
+
+
+def merge_marketplace_entries(
+    existing_plugins: list[object],
+    desired_plugins: list[dict[str, object]],
+    remove_plugin_names: set[str],
+) -> list[object]:
+    desired_names = {plugin["name"] for plugin in desired_plugins if isinstance(plugin.get("name"), str)}
+    merged = [
+        plugin
+        for plugin in existing_plugins
+        if plugin_name(plugin) not in desired_names and plugin_name(plugin) not in remove_plugin_names
+    ]
+    merged.extend(desired_plugins)
+    return merged
+
+
+def marketplace_entries(include_rbs: bool, include_subagent_orchestrator: bool) -> list[dict[str, object]]:
+    return configured_marketplace_entries(include_rbs, include_subagent_orchestrator)
+
+
+def marketplace_text(
+    include_rbs: bool = True,
+    include_subagent_orchestrator: bool = True,
+    existing_plugins: list[object] | None = None,
+    remove_plugin_names: set[str] | None = None,
+) -> str:
+    desired_plugins = configured_marketplace_entries(include_rbs, include_subagent_orchestrator)
+    plugins = merge_marketplace_entries(existing_plugins or [], desired_plugins, remove_plugin_names or set())
     payload = {
         "name": "local-research-workflow-plugins",
         "interface": {"displayName": "Local Research Workflow Plugins"},
-        "plugins": marketplace_entries(include_rbs, include_subagent_orchestrator),
+        "plugins": plugins,
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -281,10 +324,16 @@ def write_marketplace(
     report: Report,
     include_rbs: bool,
     include_subagent_orchestrator: bool,
+    remove_plugin_names: set[str] | None = None,
 ) -> bool:
     return write_if_changed(
         PLUGIN_MARKETPLACE,
-        marketplace_text(include_rbs, include_subagent_orchestrator),
+        marketplace_text(
+            include_rbs,
+            include_subagent_orchestrator,
+            existing_marketplace_plugins(PLUGIN_MARKETPLACE),
+            remove_plugin_names or set(),
+        ),
         args,
         report,
         "plugin marketplace",
@@ -382,7 +431,7 @@ def write_subagent_orchestrator_install_report(
         [
             "Execution-shape helper only; not evidence.",
             "Project rules, citation rules, manuscript rules, audit rules, and vendor rules win.",
-            "Vendored installer was not run unless explicitly requested.",
+            "Installer runs only after project-scoped boundary checks.",
         ],
     )
     write_if_changed(
@@ -410,11 +459,36 @@ def subagent_orchestrator_install_command() -> list[str]:
     ]
 
 
-def maybe_install_subagent_orchestrator(args: argparse.Namespace, report: Report) -> None:
-    if not args.install_subagent_orchestrator:
-        report.add("skipped", "Subagent Orchestrator project installer not run by default")
-        return
-    run(
+def status_summary(status_text: str) -> str:
+    return ", ".join(line.strip() for line in status_text.splitlines() if line.strip())
+
+
+def subagent_orchestrator_installer_boundary(report: Report) -> bool:
+    install_script = SUBAGENT_ORCHESTRATOR_VENDOR / "install.sh"
+    if not install_script.exists():
+        report.add("failed", f"Subagent Orchestrator installer missing: {install_script}")
+        return False
+    if not is_configured_submodule(SUBAGENT_ORCHESTRATOR_VENDOR):
+        report.add("failed", f"Subagent Orchestrator vendor is not a configured submodule: {SUBAGENT_ORCHESTRATOR_VENDOR}")
+        return False
+    if not has_git_checkout(SUBAGENT_ORCHESTRATOR_VENDOR):
+        report.add("failed", f"Subagent Orchestrator vendor is not a Git checkout: {SUBAGENT_ORCHESTRATOR_VENDOR}")
+        return False
+    origin = git_stdout(["git", "remote", "get-url", "origin"], cwd=SUBAGENT_ORCHESTRATOR_VENDOR) or ""
+    if "CoveMB/subagent-orchestration-plugin" not in origin:
+        report.add("failed", f"Subagent Orchestrator origin unexpected: {origin or 'unknown'}")
+        return False
+    status = git_stdout(["git", "status", "--short"], cwd=SUBAGENT_ORCHESTRATOR_VENDOR) or ""
+    if status:
+        report.add("failed", f"Subagent Orchestrator vendor has uncommitted changes: {status_summary(status)}")
+        return False
+    return True
+
+
+def install_subagent_orchestrator(args: argparse.Namespace, report: Report) -> bool:
+    if not subagent_orchestrator_installer_boundary(report):
+        return False
+    return run(
         subagent_orchestrator_install_command(),
         report,
         args.dry_run,
@@ -431,6 +505,7 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
     plugin_exposed = False
     subagent_plugin_exposed = False
     marketplace_written = False
+    remove_plugin_names: set[str] = set()
     ars_ready = False
     rbs_ready = False
     subagent_ready = False
@@ -451,6 +526,7 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
             rbs_ready = True
             if args.no_rbs_plugin:
                 report.add("skipped", "RBS marketplace exposure skipped by --no-rbs-plugin")
+                remove_plugin_names.add(RBS_PLUGIN_SPEC.marketplace_name)
             else:
                 plugin_exposed = True
 
@@ -466,18 +542,25 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
             "Subagent Orchestrator",
         )
         if SUBAGENT_ORCHESTRATOR_VENDOR.exists() and validate_subagent_orchestrator(report):
-            subagent_ready = True
             if args.no_subagent_orchestrator_plugin:
+                subagent_ready = True
                 report.add(
                     "skipped",
                     "Subagent Orchestrator marketplace exposure skipped by --no-subagent-orchestrator-plugin",
                 )
+                remove_plugin_names.add(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.marketplace_name)
             else:
-                subagent_plugin_exposed = True
-            maybe_install_subagent_orchestrator(args, report)
+                subagent_plugin_exposed = install_subagent_orchestrator(args, report)
+                subagent_ready = subagent_plugin_exposed
 
-    if plugin_exposed or subagent_plugin_exposed:
-        marketplace_written = write_marketplace(args, report, plugin_exposed, subagent_plugin_exposed)
+    if plugin_exposed or subagent_plugin_exposed or remove_plugin_names:
+        marketplace_written = write_marketplace(
+            args,
+            report,
+            plugin_exposed,
+            subagent_plugin_exposed,
+            remove_plugin_names,
+        )
 
     if ars_ready:
         write_ars_install_report(args, report, ars_wrappers)
@@ -487,10 +570,10 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
         write_subagent_orchestrator_install_report(args, report, subagent_plugin_exposed, marketplace_written)
 
     report.add("warnings", "External repositories are untrusted until inspected")
-    if args.install_subagent_orchestrator and args.dry_run:
-        report.add("warnings", "Dry run only; vendored scripts were not executed")
-    elif args.install_subagent_orchestrator:
-        report.add("warnings", "Only the explicitly requested Subagent Orchestrator project installer was executed")
+    if subagent_plugin_exposed and args.dry_run:
+        report.add("warnings", "Dry run only; Subagent Orchestrator installer was not executed")
+    elif subagent_plugin_exposed:
+        report.add("warnings", "Only the bounded Subagent Orchestrator project installer was executed")
     else:
         report.add("warnings", "Vendored scripts were not executed")
 

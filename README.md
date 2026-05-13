@@ -62,7 +62,7 @@ ARS wrappers live in `.agents/skills/`. Research Book Skills and the optional Su
 - Research Book Skills can be vendored from `CoveMB/research-book-skills` and exposed directly from `vendor/research-book-skills/`.
 - Subagent Orchestrator can be vendored from `CoveMB/subagent-orchestration-plugin` and exposed from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`.
 
-External repositories stay optional. Review upstream files before use and do not run vendored scripts automatically. The subagent plugin installer is not run by default; when explicitly requested, use `make install-subagent-orchestrator` so the installer receives `--scope project` and stays available-only. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. It installs the required Obsidian plugin by default when missing. `--force` only allows replacing an existing plugin folder. For reproducible plugin installation, pass a reviewed release URL and SHA-256 checksum.
+External repositories stay optional. Review upstream files before use. The subagent plugin installer runs only through external-skill setup after boundary checks confirm the vendored submodule is configured, clean, and from the expected origin; it receives `--scope project` and stays available-only. The Obsidian setup does not create a nested vault folder, write workspace files, or modify existing Obsidian settings. It installs the required Obsidian plugin by default when missing. `--force` only allows replacing an existing plugin folder. For reproducible plugin installation, pass a reviewed release URL and SHA-256 checksum.
 
 The external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
 

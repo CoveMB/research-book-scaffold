@@ -13,7 +13,13 @@ from scripts.tests.helpers import add_scripts_to_path
 add_scripts_to_path()
 
 import update_skills_vendors
-from project_config import ARS_VENDOR, RBS_VENDOR, SUBAGENT_ORCHESTRATOR_VENDOR, VENDOR_UPDATE_HEALTH_CHECKS
+from project_config import (
+    ARS_VENDOR,
+    ExternalVendorSpec,
+    RBS_VENDOR,
+    SUBAGENT_ORCHESTRATOR_VENDOR,
+    VENDOR_UPDATE_HEALTH_CHECKS,
+)
 
 
 class UpdateSkillsVendorsTests(unittest.TestCase):
@@ -101,6 +107,36 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
 
         with self.assertRaisesRegex(update_skills_vendors.UpdateError, "No vendors selected"):
             update_skills_vendors.vendor_specs(args)
+
+    def test_detached_vendor_tracks_origin_when_local_branch_missing(self) -> None:
+        vendor = ExternalVendorSpec("example", "Example", Path("vendor/example"), "https://example.invalid/repo.git")
+        calls: list[tuple[str, ...]] = []
+
+        def fake_git_stdout(command: list[str], cwd: Path | None = None) -> str:
+            del cwd
+            if command[-2:] == ["branch", "--show-current"]:
+                return ""
+            return "abc123"
+
+        def fake_run(command: list[str], action: str, cwd: Path | None = None) -> None:
+            del action, cwd
+            calls.append(tuple(command))
+            if command == ["git", "-C", "vendor/example", "checkout", "main"]:
+                raise update_skills_vendors.CommandError("missing local branch")
+
+        with (
+            mock.patch.object(update_skills_vendors, "git_stdout_required", side_effect=fake_git_stdout),
+            mock.patch.object(update_skills_vendors, "run_checked", side_effect=fake_run),
+        ):
+            update_skills_vendors.ensure_vendor_branch(vendor)
+
+        self.assertEqual(
+            calls,
+            [
+                ("git", "-C", "vendor/example", "checkout", "main"),
+                ("git", "-C", "vendor/example", "checkout", "--track", "origin/main"),
+            ],
+        )
 
     def test_dirty_vendor_fails_before_pull(self) -> None:
         args = update_skills_vendors.parse_args([])

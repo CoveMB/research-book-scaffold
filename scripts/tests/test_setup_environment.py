@@ -45,6 +45,19 @@ class SetupEnvironmentTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 setup_environment.parse_args(["--skip-obsidian-codex"])
 
+    def test_removed_subagent_install_flag_is_rejected(self) -> None:
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                setup_environment.parse_args(["--install-subagent-orchestrator"])
+
+    def test_missing_local_skills_directory_dry_run_does_not_crash(self) -> None:
+        report = SilentReport()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            setup_environment.validate_local_skills(Path(temp_dir) / "missing-skills", report, dry_run=True)
+
+        self.assertTrue(any("dry-run would create" in message for message in report.skipped))
+
     def test_recommendations_always_include_obsidian_agent_check(self) -> None:
         args = setup_environment.parse_args([])
         report = SilentReport()
@@ -97,7 +110,6 @@ class SetupEnvironmentTests(unittest.TestCase):
                 "main",
                 "--no-rbs-plugin",
                 "--no-subagent-orchestrator-plugin",
-                "--install-subagent-orchestrator",
                 "--no-update",
             ]
         )
@@ -113,7 +125,6 @@ class SetupEnvironmentTests(unittest.TestCase):
         self.assertEqual(external_args.subagent_orchestrator_ref, "main")
         self.assertTrue(external_args.no_rbs_plugin)
         self.assertTrue(external_args.no_subagent_orchestrator_plugin)
-        self.assertTrue(external_args.install_subagent_orchestrator)
         self.assertTrue(external_args.no_update)
         self.assertFalse(external_args.preserve_vendor_checkouts)
 

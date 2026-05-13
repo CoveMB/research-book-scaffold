@@ -69,7 +69,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
     parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
-    parser.add_argument("--install-subagent-orchestrator", action="store_true")
     parser.add_argument("--update-mode", choices=["pinned", "remote"], default="pinned")
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--no-update", action="store_true")
@@ -105,6 +104,7 @@ def validate_local_skills(target_dir: Path, report: Report, dry_run: bool) -> No
     else:
         if dry_run:
             report.add("skipped", f"dry-run would create {target_dir}")
+            return
         else:
             target_dir.mkdir(parents=True, exist_ok=True)
             report.add("installed", f"created {target_dir}")
@@ -141,7 +141,6 @@ def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespac
         subagent_orchestrator_ref=args.subagent_orchestrator_ref,
         no_rbs_plugin=args.no_rbs_plugin,
         no_subagent_orchestrator_plugin=args.no_subagent_orchestrator_plugin,
-        install_subagent_orchestrator=args.install_subagent_orchestrator,
         update_mode=args.update_mode,
         update=args.update,
         no_update=args.no_update,

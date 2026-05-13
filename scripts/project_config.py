@@ -38,6 +38,18 @@ class ExternalVendorSpec:
 
 
 @dataclass(frozen=True)
+class ExternalPluginSpec:
+    vendor_key: str
+    label: str
+    marketplace_name: str
+    plugin_path: str
+    plugin_root: Path
+    plugin_json_name: str
+    skills_root: Path
+    skill_names: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandSpec:
     command: tuple[str, ...]
     action: str
@@ -81,6 +93,31 @@ EXTERNAL_VENDOR_SPECS = (
         SUBAGENT_ORCHESTRATOR_VENDOR,
         DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
     ),
+)
+
+RBS_PLUGIN_SPEC = ExternalPluginSpec(
+    "rbs",
+    "RBS",
+    RBS_MARKETPLACE_NAME,
+    MARKETPLACE_PLUGIN_PATH,
+    RBS_VENDOR,
+    RBS_PLUGIN_JSON_NAME,
+    RBS_VENDOR / "skills",
+    tuple(RBS_SKILLS),
+)
+SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC = ExternalPluginSpec(
+    "subagent-orchestrator",
+    "Subagent Orchestrator",
+    SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / "skills",
+    tuple(SUBAGENT_ORCHESTRATOR_SKILLS),
+)
+EXTERNAL_PLUGIN_SPECS = (
+    RBS_PLUGIN_SPEC,
+    SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC,
 )
 
 SETUP_RECOMMENDED_CHECKS = (
