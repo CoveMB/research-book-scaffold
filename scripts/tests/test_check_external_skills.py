@@ -25,6 +25,39 @@ class CheckExternalSkillsTests(unittest.TestCase):
             "RBS submodule has uncommitted changes: .codex-plugin/plugin.json, scratch.txt",
         )
 
+    def test_submodule_pointer_drift_is_actionable(self) -> None:
+        self.assertEqual(
+            check_external_skills.submodule_status_message(
+                "RBS",
+                Path("vendor/research-book-skills"),
+                "+6289f6f vendor/research-book-skills (remotes/origin/HEAD)\n",
+                0,
+            ),
+            "RBS submodule pointer differs from parent index: vendor/research-book-skills",
+        )
+
+    def test_uninitialized_submodule_is_actionable(self) -> None:
+        self.assertEqual(
+            check_external_skills.submodule_status_message(
+                "ARS",
+                Path("vendor/academic-research-skills"),
+                "-153203d vendor/academic-research-skills\n",
+                0,
+            ),
+            "ARS submodule is not initialized: vendor/academic-research-skills",
+        )
+
+    def test_conflicted_submodule_is_actionable(self) -> None:
+        self.assertEqual(
+            check_external_skills.submodule_status_message(
+                "Subagent Orchestrator",
+                Path("vendor/subagent-orchestration-plugin"),
+                "Uf2185e5 vendor/subagent-orchestration-plugin\n",
+                0,
+            ),
+            "Subagent Orchestrator submodule has merge conflicts: vendor/subagent-orchestration-plugin",
+        )
+
     def test_expected_rbs_plugin_name_matches_upstream(self) -> None:
         self.assertEqual(RBS_PLUGIN_JSON_NAME, "scholarly-research-book")
 

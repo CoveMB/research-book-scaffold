@@ -1,0 +1,5 @@
+# QA Seed Manuscript
+
+This disposable manuscript index verifies that citation scanning can find a seeded citation [@qaSeed2026].
+
+The seeded chapter links to [[qa-seed-source]], [[qa-seed-claim]], [[qa-seed-brief]], [[qa-seed-concept]], and [[qa-seed-literature-map]] so internal-link checks have positive coverage.

@@ -63,14 +63,18 @@ def check_submodule(path: Path, expected_url: str, label: str, failures: list[st
         text = read_text(GITMODULES_PATH)
         check(expected_url in text, f"{label} URL registered in .gitmodules", f"{label} URL missing from .gitmodules", failures)
     result = subprocess.run(["git", "submodule", "status", "--", str(path)], text=True, capture_output=True, check=False)
-    status_ok = result.returncode == 0 and str(path) in result.stdout
+    status_message = submodule_status_message(label, path, result.stdout, result.returncode)
+    status_ok = result.returncode == 0 and str(path) in result.stdout and not status_message
     working_tree_checkout_ok = is_submodule_path(path) and has_git_checkout(path)
-    check(
-        status_ok or working_tree_checkout_ok,
-        f"{label} submodule status OK",
-        f"{label} submodule status failed",
-        failures,
-    )
+    if status_message:
+        check(False, f"{label} submodule status OK", status_message, failures)
+    else:
+        check(
+            status_ok or working_tree_checkout_ok,
+            f"{label} submodule status OK",
+            f"{label} submodule status failed",
+            failures,
+        )
     if path.exists():
         status_result = subprocess.run(["git", "status", "--short"], cwd=path, text=True, capture_output=True, check=False)
         if status_result.returncode == 0:
@@ -78,6 +82,24 @@ def check_submodule(path: Path, expected_url: str, label: str, failures: list[st
             check(not message, f"{label} submodule clean", message, failures)
         else:
             check(False, f"{label} submodule clean", f"{label} submodule status unavailable", failures)
+
+
+def submodule_status_message(label: str, path: Path, status_text: str, returncode: int) -> str:
+    if returncode != 0:
+        return ""
+    for raw_line in status_text.splitlines():
+        line = raw_line.strip()
+        if str(path) not in line:
+            continue
+        marker = line[0]
+        if marker == "+":
+            return f"{label} submodule pointer differs from parent index: {path}"
+        if marker == "-":
+            return f"{label} submodule is not initialized: {path}"
+        if marker == "U":
+            return f"{label} submodule has merge conflicts: {path}"
+        return ""
+    return ""
 
 
 def submodule_dirty_message(label: str, status_text: str) -> str:

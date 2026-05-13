@@ -1,0 +1,21 @@
+project:
+  type: book
+  output-dir: ../exports/html
+
+book:
+  title: "QA Seed Manuscript"
+  chapters:
+    - index.qmd
+    - chapters/00-front-matter.qmd
+    - chapters/qa-seed-chapter.qmd
+    - chapters/99-back-matter.qmd
+
+bibliography: ../bibliography/references.bib
+
+format:
+  html:
+    toc: true
+  pdf:
+    toc: true
+  docx:
+    toc: true

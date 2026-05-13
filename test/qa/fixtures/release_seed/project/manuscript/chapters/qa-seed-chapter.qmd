@@ -1,0 +1,7 @@
+# Seeded Chapter
+
+The seeded chapter uses one bibliography key [@qaSeed2026] and one internal source link [[qa-seed-source]].
+
+It also refers to the seeded claim note [[qa-seed-claim]], chapter brief [[qa-seed-brief]], concept note [[qa-seed-concept]], literature map [[qa-seed-literature-map]], source matrix [[qa-seed-source-matrix]], and release audit [[qa-seed-release-audit]].
+
+This page is intentionally short so render failures point to tooling or configuration rather than manuscript complexity.
