@@ -264,6 +264,7 @@ Expected result:
 | `make install-obsidian-panel` | Installs Codex Panel plugin | Use only in disposable QA or intentional local setup |
 | `make audit` | Runs normal scaffold health checks | Exits 0 |
 | `make release-audit` | Runs strict pre-release manuscript checks | Exits 0 and all blockers are resolved |
+| `make ci` | Runs hosted CI-safe lint and release-audit checks | Exits 0 on every supported Python version |
 
 Standard command sequence:
 
@@ -273,11 +274,12 @@ make lint
 make test
 make audit
 make release-audit
+make ci
 ```
 
 Expected result:
 
-- `make doctor`, `make lint`, `make test`, `make audit`, and `make release-audit` exit 0 for a fresh scaffold and for a production manuscript.
+- `make doctor`, `make lint`, `make test`, `make audit`, `make release-audit`, and `make ci` exit 0 for a fresh scaffold and for a production manuscript.
 - A production manuscript still needs real project material, verified source notes, and manual scholarly QA even when scaffold release gates pass.
 
 ## Seeded Content Fixture QA

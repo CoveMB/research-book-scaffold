@@ -1,4 +1,4 @@
-.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel install-obsidian-panel audit release-audit
+.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel install-obsidian-panel audit release-audit ci
 
 help:
 	@echo "Targets:"
@@ -22,6 +22,7 @@ help:
 	@echo "  install-obsidian-panel Install Codex Panel in the project root vault"
 	@echo "  audit                  Run repository checks"
 	@echo "  release-audit          Run strict manuscript readiness checks"
+	@echo "  ci                     Run checks suitable for hosted CI"
 
 doctor:
 	bash scripts/operations/health/doctor.sh
@@ -81,3 +82,5 @@ install-obsidian-panel:
 audit: test check-placeholders check-citations check-links check-external-skills
 
 release-audit: test check-placeholders check-citations-strict check-links check-manuscript-readiness check-external-skills
+
+ci: lint release-audit
