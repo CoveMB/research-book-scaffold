@@ -10,11 +10,11 @@
 | Missing `lualatex` after TinyTeX install | Run `quarto install tinytex --update-path`, open a new shell, then verify `lualatex --version`. On macOS, add `$HOME/Library/TinyTeX/bin/universal-darwin` to `PATH` if needed. |
 | Missing `bibtex` after TinyTeX install | Verify `bibtex --version`. On macOS, add `$HOME/Library/TinyTeX/bin/universal-darwin` to `PATH` if needed. |
 | Missing bibliography | Export from Zotero or create `bibliography/references.bib`. |
-| Zotero local API unavailable | Open Zotero, then enable `Allow other applications on this computer to communicate with Zotero` under `Zotero > Settings > Advanced` on macOS. The expected API base is `http://localhost:23119/api/`. A browser visit to the API root may show `Request not allowed`; use a Zotero-aware helper or targeted API route for API checks. |
 | Broken citekeys | Compare draft citations with BibTeX keys. |
 | Broken wiki links | Run `python3 scripts/check_broken_internal_links.py`. |
 | Placeholder markers remain | Run the placeholder checker and resolve each marker. |
-| Obsidian Codex not visible | Confirm `.obsidian/plugins/obsidian-codex/` exists, `.obsidian/community-plugins.json` includes `obsidian-codex`, then restart Obsidian. |
+| Codex Panel not visible | Confirm `.obsidian/plugins/codex-panel/` exists, `.obsidian/community-plugins.json` includes `codex-panel`, then open Settings -> Community plugins and click Reload plugins. |
+| Codex Panel cannot start Codex | Confirm `.obsidian/plugins/codex-panel/data.json` contains an absolute executable `codexPath`, then run `python3 scripts/check_obsidian_panel.py`. |
 | External skills not installed | Run `python3 scripts/install_external_skills.py --yes`, then review reports. |
 | Research Book Skills plugin not visible | Check `vendor/research-book-skills/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
 | Subagent Orchestrator plugin not visible | Check `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |

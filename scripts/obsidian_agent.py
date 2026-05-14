@@ -1,9 +1,8 @@
-"""Install and verify the required Obsidian agent plugin."""
+"""Install and verify the required Codex Panel Obsidian plugin."""
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import shutil
@@ -11,20 +10,23 @@ import sys
 import tempfile
 import urllib.error
 import urllib.request
-import zipfile
 from pathlib import Path
+from urllib.parse import urlparse
 
 from project_config import (
-    OBSIDIAN_CODEX_PLUGIN_ID,
+    CODEX_PANEL_PLUGIN_ID,
     OBSIDIAN_DIR,
+    OBSIDIAN_PLUGIN_SETTINGS_FILE,
     OBSIDIAN_PLUGINS_DIR,
     REQUIRED_OBSIDIAN_PLUGIN_FILES,
+    LEGACY_OBSIDIAN_PLUGIN_IDS,
     resolve_obsidian_vault_path,
 )
 from script_utils import StatusReport
 
 
-DEFAULT_OBSIDIAN_REPO = "https://github.com/AKin-lvyifang/obsidian-codex"
+DEFAULT_OBSIDIAN_REPO = "https://github.com/murashit/codex-panel"
+DEFAULT_OBSIDIAN_RELEASE_API_URL = "https://api.github.com/repos/murashit/codex-panel/releases/latest"
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -41,51 +43,95 @@ def vault_path_from_args(args: argparse.Namespace) -> Path:
     return resolve_obsidian_vault_path(args.obsidian_vault, os.environ.get("OBSIDIAN_VAULT"))
 
 
-def latest_obsidian_release_zip_url() -> str:
-    api_url = "https://api.github.com/repos/AKin-lvyifang/obsidian-codex/releases/latest"
-    request = urllib.request.Request(api_url, headers={"Accept": "application/vnd.github+json"})
+def is_zip_url(url: str) -> bool:
+    return urlparse(url).path.lower().endswith(".zip")
+
+
+def read_release_payload(release_url: str) -> dict[str, object]:
+    if is_zip_url(release_url):
+        raise RuntimeError("codex-panel installs from individual release assets, not zip archives")
+    request = urllib.request.Request(release_url, headers={"Accept": "application/vnd.github+json"})
     with urllib.request.urlopen(request, timeout=30) as response:
         payload = json.loads(response.read().decode("utf-8"))
-    for asset in payload.get("assets", []):
-        download_url = asset.get("browser_download_url", "")
-        file_name = download_url.rsplit("/", 1)[-1].lower()
-        if file_name.startswith("obsidian-codex-") and file_name.endswith(".zip"):
-            return download_url
-    raise RuntimeError("No obsidian-codex release zip asset found for latest Obsidian plugin release")
+    if not isinstance(payload, dict):
+        raise RuntimeError("release metadata must be a JSON object")
+    return payload
 
 
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as file_handle:
-        for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def verify_archive_checksum(path: Path, expected_sha256: str | None) -> None:
-    if not expected_sha256:
-        return
-    actual_sha256 = sha256_file(path)
-    if actual_sha256.lower() != expected_sha256.lower():
-        raise RuntimeError(f"archive checksum mismatch: expected {expected_sha256}, got {actual_sha256}")
-
-
-def safe_extract_zip(archive: zipfile.ZipFile, destination: Path) -> None:
-    destination_root = destination.resolve()
-    for member in archive.infolist():
-        target = (destination / member.filename).resolve()
-        if destination_root != target and destination_root not in target.parents:
-            raise ValueError(f"unsafe archive path: {member.filename}")
-    archive.extractall(destination)
-
-
-def find_obsidian_plugin_root(extracted_dir: Path) -> Path | None:
-    for path in extracted_dir.rglob("*"):
-        if not path.is_dir():
-            continue
-        if REQUIRED_OBSIDIAN_PLUGIN_FILES.issubset({child.name for child in path.iterdir() if child.is_file()}):
-            return path
+def release_asset_name(asset: object) -> str | None:
+    if not isinstance(asset, dict):
+        return None
+    name = asset.get("name")
+    if isinstance(name, str) and name:
+        return name
+    download_url = asset.get("browser_download_url")
+    if isinstance(download_url, str) and download_url:
+        return Path(urlparse(download_url).path).name
     return None
+
+
+def latest_obsidian_release_asset_urls(release_url: str | None = None) -> dict[str, str]:
+    payload = read_release_payload(release_url or DEFAULT_OBSIDIAN_RELEASE_API_URL)
+    assets = payload.get("assets", [])
+    if not isinstance(assets, list):
+        raise RuntimeError("release metadata assets must be a list")
+
+    asset_urls: dict[str, str] = {}
+    for asset in assets:
+        if not isinstance(asset, dict):
+            continue
+        name = release_asset_name(asset)
+        download_url = asset.get("browser_download_url")
+        if name in REQUIRED_OBSIDIAN_PLUGIN_FILES and isinstance(download_url, str) and download_url:
+            if is_zip_url(download_url):
+                raise RuntimeError(f"codex-panel release asset {name} points to a zip archive")
+            asset_urls[name] = download_url
+
+    missing_files = sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES - set(asset_urls))
+    if missing_files:
+        missing_text = ", ".join(missing_files)
+        raise RuntimeError(f"No codex-panel release assets found for: {missing_text}")
+    return asset_urls
+
+
+def download_url_to_file(download_url: str, destination_path: Path) -> None:
+    request = urllib.request.Request(download_url, headers={"Accept": "application/octet-stream"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        with destination_path.open("wb") as file_handle:
+            shutil.copyfileobj(response, file_handle)
+
+
+def download_release_assets(asset_urls: dict[str, str], destination_dir: Path) -> None:
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES):
+        download_url = asset_urls[file_name]
+        if is_zip_url(download_url):
+            raise RuntimeError(f"codex-panel release asset {file_name} points to a zip archive")
+        download_url_to_file(download_url, destination_dir / file_name)
+
+
+def read_json_object(path: Path) -> dict[str, object]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"invalid {path}: {error}") from error
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"invalid {path}: expected a JSON object")
+    return payload
+
+
+def validate_plugin_manifest(plugin_dir: Path) -> None:
+    manifest_path = plugin_dir / "manifest.json"
+    manifest = read_json_object(manifest_path)
+    manifest_id = manifest.get("id")
+    if manifest_id != CODEX_PANEL_PLUGIN_ID:
+        raise RuntimeError(f"manifest id is {manifest_id}; expected {CODEX_PANEL_PLUGIN_ID}")
+
+
+def ensure_required_plugin_files(plugin_dir: Path) -> None:
+    missing_files = sorted(file_name for file_name in REQUIRED_OBSIDIAN_PLUGIN_FILES if not (plugin_dir / file_name).is_file())
+    if missing_files:
+        raise RuntimeError(f"Downloaded Codex Panel release is missing: {', '.join(missing_files)}")
 
 
 def ensure_obsidian_plugin_parent(vault_path: Path, report: StatusReport, dry_run: bool) -> Path | None:
@@ -136,26 +182,49 @@ def write_enabled_community_plugins(obsidian_dir: Path, enabled_plugins: list[st
     )
 
 
-def ensure_obsidian_codex_enabled(
+def enabled_plugins_with_codex_panel(enabled_plugins: list[str]) -> list[str]:
+    updated_plugins: list[str] = []
+    panel_added = False
+    legacy_plugin_ids = set(LEGACY_OBSIDIAN_PLUGIN_IDS)
+
+    for plugin_id in enabled_plugins:
+        if plugin_id == CODEX_PANEL_PLUGIN_ID:
+            if not panel_added:
+                updated_plugins.append(plugin_id)
+                panel_added = True
+            continue
+        if plugin_id in legacy_plugin_ids:
+            if not panel_added:
+                updated_plugins.append(CODEX_PANEL_PLUGIN_ID)
+                panel_added = True
+            continue
+        updated_plugins.append(plugin_id)
+
+    if not panel_added:
+        updated_plugins.append(CODEX_PANEL_PLUGIN_ID)
+    return updated_plugins
+
+
+def ensure_codex_panel_enabled(
     obsidian_dir: Path,
     enabled_plugins: list[str],
     report: StatusReport,
     dry_run: bool,
 ) -> bool:
-    if OBSIDIAN_CODEX_PLUGIN_ID in enabled_plugins:
-        report.add("already_present", f"{OBSIDIAN_CODEX_PLUGIN_ID} listed in {community_plugins_path(obsidian_dir)}")
+    updated_plugins = enabled_plugins_with_codex_panel(enabled_plugins)
+    if updated_plugins == enabled_plugins:
+        report.add("already_present", f"{CODEX_PANEL_PLUGIN_ID} listed in {community_plugins_path(obsidian_dir)}")
         return True
 
-    updated_plugins = [*enabled_plugins, OBSIDIAN_CODEX_PLUGIN_ID]
     if dry_run:
-        report.add("skipped", f"dry-run would enable {OBSIDIAN_CODEX_PLUGIN_ID} in {community_plugins_path(obsidian_dir)}")
+        report.add("skipped", f"dry-run would enable {CODEX_PANEL_PLUGIN_ID} in {community_plugins_path(obsidian_dir)}")
         return True
     try:
         write_enabled_community_plugins(obsidian_dir, updated_plugins)
     except OSError as error:
-        report.add("failed", f"could not enable {OBSIDIAN_CODEX_PLUGIN_ID}: {error}")
+        report.add("failed", f"could not enable {CODEX_PANEL_PLUGIN_ID}: {error}")
         return False
-    report.add("installed", f"enabled {OBSIDIAN_CODEX_PLUGIN_ID} in {community_plugins_path(obsidian_dir)}")
+    report.add("installed", f"enabled {CODEX_PANEL_PLUGIN_ID} in {community_plugins_path(obsidian_dir)}")
     return True
 
 
@@ -177,19 +246,113 @@ def replace_directory_atomically(source_dir: Path, destination_dir: Path) -> Non
 
 def obsidian_next_steps(include_read_only_test: bool) -> list[str]:
     steps = [
-        "Restart Obsidian.",
+        "Open Obsidian.",
         "Confirm Community Plugins are enabled in Obsidian.",
-        "Confirm Codex for Obsidian is enabled.",
+        "If Codex Panel does not appear, open Settings -> Community plugins and click Reload plugins.",
+        "Confirm Codex Panel is enabled.",
+        "Run the command palette action Codex Panel: Open panel.",
     ]
     if include_read_only_test:
-        steps.append("Open the plugin sidebar and run a harmless read-only test first.")
+        steps.append("Run a harmless read-only prompt first.")
     return steps
 
 
-def install_obsidian_codex(args: argparse.Namespace, report: StatusReport) -> None:
+def codex_panel_settings_path(plugin_dir: Path) -> Path:
+    return plugin_dir / OBSIDIAN_PLUGIN_SETTINGS_FILE
+
+
+def read_codex_panel_settings(plugin_dir: Path) -> dict[str, object]:
+    settings_path = codex_panel_settings_path(plugin_dir)
+    if not settings_path.exists():
+        return {}
+    return read_json_object(settings_path)
+
+
+def is_valid_codex_path(path_text: object) -> bool:
+    if not isinstance(path_text, str) or not path_text:
+        return False
+    path = Path(path_text).expanduser()
+    return path.is_absolute() and path.exists() and path.is_file() and os.access(path, os.X_OK)
+
+
+def codex_path_candidates(existing_settings: dict[str, object]) -> list[Path]:
+    candidates: list[Path] = []
+    existing_path = existing_settings.get("codexPath")
+    if isinstance(existing_path, str):
+        candidates.append(Path(existing_path).expanduser())
+    path_codex = shutil.which("codex")
+    if path_codex:
+        candidates.append(Path(path_codex).expanduser())
+    candidates.extend(
+        [
+            Path.home() / ".volta" / "bin" / "codex",
+            Path("/Applications/Codex.app/Contents/Resources/codex"),
+        ]
+    )
+    return candidates
+
+
+def resolve_codex_path(existing_settings: dict[str, object]) -> str | None:
+    seen_paths: set[Path] = set()
+    for candidate in codex_path_candidates(existing_settings):
+        resolved_candidate = candidate.resolve(strict=False)
+        if resolved_candidate in seen_paths:
+            continue
+        seen_paths.add(resolved_candidate)
+        candidate_text = str(candidate)
+        if is_valid_codex_path(candidate_text):
+            return candidate_text
+    return None
+
+
+def write_codex_panel_settings(plugin_dir: Path, settings: dict[str, object]) -> None:
+    codex_panel_settings_path(plugin_dir).write_text(
+        json.dumps(settings, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def ensure_codex_panel_settings(
+    plugin_dir: Path,
+    existing_settings: dict[str, object],
+    report: StatusReport,
+    dry_run: bool,
+) -> bool:
+    codex_path = resolve_codex_path(existing_settings)
+    if codex_path is None:
+        report.add("warnings", "could not find an absolute executable codex path for Codex Panel settings")
+        return True
+
+    settings = dict(existing_settings)
+    settings["codexPath"] = codex_path
+    if dry_run:
+        report.add("skipped", f"dry-run would write {codex_panel_settings_path(plugin_dir)}")
+        return True
+    try:
+        write_codex_panel_settings(plugin_dir, settings)
+    except OSError as error:
+        report.add("failed", f"could not write Codex Panel settings: {error}")
+        return False
+    report.add("installed", f"configured Codex Panel codexPath at {codex_panel_settings_path(plugin_dir)}")
+    return True
+
+
+def load_existing_plugin_settings(destination_dir: Path, report: StatusReport) -> dict[str, object] | None:
+    try:
+        return read_codex_panel_settings(destination_dir)
+    except RuntimeError as error:
+        report.add("failed", str(error))
+        return None
+
+
+def install_codex_panel(args: argparse.Namespace, report: StatusReport) -> None:
     vault_path = vault_path_from_args(args)
     if not vault_path.exists():
         report.add("failed", f"Obsidian vault path missing: {vault_path}")
+        return
+
+    if args.obsidian_release_sha256:
+        report.add("failed", "--obsidian-release-sha256 is not supported because codex-panel installs individual release assets")
         return
 
     plugins_dir = ensure_obsidian_plugin_parent(vault_path, report, args.dry_run)
@@ -201,46 +364,45 @@ def install_obsidian_codex(args: argparse.Namespace, report: StatusReport) -> No
     except RuntimeError as error:
         report.add("failed", str(error))
         return
-    destination_dir = plugins_dir / OBSIDIAN_CODEX_PLUGIN_ID
+    destination_dir = plugins_dir / CODEX_PANEL_PLUGIN_ID
+    existing_settings = load_existing_plugin_settings(destination_dir, report)
+    if existing_settings is None:
+        return
+
     if destination_dir.exists() and not args.force:
         report.add("skipped", f"{destination_dir} exists; use --force to replace")
-        ensure_obsidian_codex_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
+        ensure_codex_panel_settings(destination_dir, existing_settings, report, args.dry_run)
+        ensure_codex_panel_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
         return
     if args.dry_run:
-        report.add("skipped", f"dry-run would download latest release from {DEFAULT_OBSIDIAN_REPO}/releases/latest")
+        report.add("skipped", f"dry-run would download latest release assets from {DEFAULT_OBSIDIAN_REPO}/releases/latest")
         report.add("skipped", f"dry-run would install plugin to {destination_dir}")
-        ensure_obsidian_codex_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
+        ensure_codex_panel_settings(destination_dir, existing_settings, report, args.dry_run)
+        ensure_codex_panel_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
         report.next_steps.extend(obsidian_next_steps(include_read_only_test=False))
         return
 
     try:
         with tempfile.TemporaryDirectory(prefix="obsidian-plugin-") as temp_dir:
             temp_path = Path(temp_dir)
-            zip_url = args.obsidian_release_url or latest_obsidian_release_zip_url()
-            archive_path = temp_path / "release.zip"
-            urllib.request.urlretrieve(zip_url, archive_path)
-            verify_archive_checksum(archive_path, args.obsidian_release_sha256)
-            extract_dir = temp_path / "extract"
-            extract_dir.mkdir()
-            with zipfile.ZipFile(archive_path) as archive:
-                safe_extract_zip(archive, extract_dir)
-            plugin_root = find_obsidian_plugin_root(extract_dir)
-            if plugin_root is None:
-                report.add("failed", "Downloaded Obsidian plugin release does not contain expected files")
-                return
+            plugin_root = temp_path / CODEX_PANEL_PLUGIN_ID
+            asset_urls = latest_obsidian_release_asset_urls(args.obsidian_release_url)
+            download_release_assets(asset_urls, plugin_root)
+            ensure_required_plugin_files(plugin_root)
+            validate_plugin_manifest(plugin_root)
             replace_directory_atomically(plugin_root, destination_dir)
     except (
         OSError,
         RuntimeError,
-        ValueError,
-        zipfile.BadZipFile,
         urllib.error.URLError,
         json.JSONDecodeError,
     ) as error:
         report.add("failed", f"Obsidian plugin install failed: {error}")
         return
     report.add("installed", f"installed Obsidian plugin to {destination_dir}")
-    if not ensure_obsidian_codex_enabled(obsidian_dir, enabled_plugins, report, args.dry_run):
+    if not ensure_codex_panel_settings(destination_dir, existing_settings, report, args.dry_run):
+        return
+    if not ensure_codex_panel_enabled(obsidian_dir, enabled_plugins, report, args.dry_run):
         return
     report.next_steps.extend(obsidian_next_steps(include_read_only_test=True))
 
@@ -269,7 +431,7 @@ def main(argv: list[str] | None = None) -> int:
     report = StatusReport()
     if args.dry_run:
         print("Dry run: no Obsidian plugin files will be changed.\n")
-    install_obsidian_codex(args, report)
+    install_codex_panel(args, report)
     print_summary(report)
     return 1 if report.failed else 0
 

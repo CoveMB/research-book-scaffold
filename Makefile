@@ -1,4 +1,4 @@
-.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-codex install-obsidian-codex audit release-audit
+.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel install-obsidian-panel audit release-audit
 
 help:
 	@echo "Targets:"
@@ -18,8 +18,8 @@ help:
 	@echo "  install-external-skills Vendor external skills and update marketplace"
 	@echo "  install-subagent-orchestrator Install optional subagent plugin in project scope"
 	@echo "  update-skills-vendors  Fast-forward skill vendors and refresh integrations"
-	@echo "  check-obsidian-codex   Check Obsidian plugin install in the project root vault"
-	@echo "  install-obsidian-codex Install Obsidian plugin in the project root vault"
+	@echo "  check-obsidian-panel   Check Codex Panel install in the project root vault"
+	@echo "  install-obsidian-panel Install Codex Panel in the project root vault"
 	@echo "  audit                  Run repository checks"
 	@echo "  release-audit          Run strict manuscript readiness checks"
 
@@ -72,11 +72,11 @@ install-subagent-orchestrator:
 update-skills-vendors:
 	bash scripts/update-skills-vendors.sh
 
-check-obsidian-codex:
-	python3 scripts/check_obsidian_codex.py
+check-obsidian-panel:
+	python3 scripts/check_obsidian_panel.py
 
-install-obsidian-codex:
-	bash scripts/install_obsidian_codex.sh
+install-obsidian-panel:
+	bash scripts/install_obsidian_panel.sh
 
 audit: test check-placeholders check-citations check-links check-external-skills
 

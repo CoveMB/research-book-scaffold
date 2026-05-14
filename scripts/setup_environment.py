@@ -10,10 +10,8 @@ from pathlib import Path
 import install_external_skills
 from environment_checks import check_packages
 from obsidian_agent import (
-    install_obsidian_codex,
+    install_codex_panel,
     obsidian_next_steps,
-    safe_extract_zip,
-    sha256_file,
     vault_path_from_args,
 )
 from project_config import (
@@ -173,7 +171,7 @@ def main(argv: list[str]) -> int:
     check_packages(args, report)
     validate_local_skills(Path(".agents/skills"), report, args.dry_run)
     install_external_layer(args, report)
-    install_obsidian_codex(args, report)
+    install_codex_panel(args, report)
     run_recommendations(report)
     report.print_summary()
     return 1 if report.failed else 0

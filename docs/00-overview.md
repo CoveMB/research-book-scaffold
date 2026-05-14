@@ -22,7 +22,7 @@ audits -----------------------> manuscript/ Quarto source
                                       v
                               Quarto + Pandoc -> exports/
 
-Codex CLI, Obsidian Codex, MCP, and repo-scoped skills operate around this flow.
+Codex CLI, Codex Panel for Obsidian, MCP, and repo-scoped skills operate around this flow.
 They help with small reads, focused edits, audits, and checks. Zotero, notes, BibTeX, audits, and user review remain the controlling record.
 ```
 
@@ -34,7 +34,7 @@ They help with small reads, focused edits, audits, and checks. Zotero, notes, Bi
 | Better BibTeX | Citekey and BibTeX export | Export stable citekeys from Zotero to `bibliography/references.bib`. |
 | `bibliography/references.bib` | Local citation file | Give Quarto, Pandoc, and citation checks the citekeys used in drafts. |
 | Obsidian or Markdown editor | Writing and navigation workspace | Work directly with `notes/`, `research/`, `manuscript/`, and audit files in the project root. |
-| Obsidian Codex plugin | Agent work inside Obsidian | Create notes, revise single sections, and run audits with command approval and file write approval enabled. |
+| Codex Panel Obsidian plugin | Agent work inside Obsidian | Create notes, revise single sections, and run audits with command approval and file write approval enabled. |
 | Codex CLI | Local agent runtime | Inspect repository files, follow `AGENTS.md`, make small edits, and run approved checks. |
 | Repo-scoped skills | Agent workflow rules | Give agents repeatable procedures for source discovery, chapter design, claim ledgers, citation audits, continuity checks, and safe wrappers. |
 | Research Book Skills | Research book workflows | Add optional support for book planning, source discovery, argument design, chapter design, drafting from notes, and manuscript checks. |

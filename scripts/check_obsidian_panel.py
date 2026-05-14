@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
-"""Check Obsidian plugin installation without modifying files."""
+"""Check Codex Panel Obsidian installation without modifying files."""
 
 from __future__ import annotations
 
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from obsidian_agent import community_plugins_path, read_enabled_community_plugins
+from obsidian_agent import (
+    codex_panel_settings_path,
+    community_plugins_path,
+    is_valid_codex_path,
+    read_codex_panel_settings,
+    read_enabled_community_plugins,
+    validate_plugin_manifest,
+)
 from project_config import (
-    OBSIDIAN_CODEX_PLUGIN_ID,
+    CODEX_PANEL_PLUGIN_ID,
     OBSIDIAN_DIR,
     OBSIDIAN_PLUGIN_DIR,
     REQUIRED_OBSIDIAN_PLUGIN_FILES,
@@ -23,7 +29,7 @@ from project_config import (
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog="check_obsidian_codex.py",
+        prog="check_obsidian_panel.py",
         description=__doc__,
     )
     parser.add_argument(
@@ -38,29 +44,66 @@ def vault_path_from_args(args: argparse.Namespace) -> Path:
     return resolve_obsidian_vault_path(args.vault, os.environ.get("OBSIDIAN_VAULT"))
 
 
-def check_cli() -> bool:
-    executable = shutil.which("codex")
-    if not executable:
-        print("WARN codex CLI missing")
-        return False
-    print(f"PASS codex CLI found: {executable}")
+def command_output(result: subprocess.CompletedProcess[str]) -> str:
+    return result.stdout.strip() or result.stderr.strip()
+
+
+def run_codex_command(command: list[str], label: str) -> bool:
     try:
         result = subprocess.run(
-            [executable, "--version"],
+            command,
             check=False,
             text=True,
             capture_output=True,
             timeout=10,
         )
     except (OSError, subprocess.SubprocessError) as error:
-        print(f"WARN codex --version failed: {error}")
+        print(f"FAIL {label} failed: {error}")
         return False
     if result.returncode == 0:
-        version = result.stdout.strip() or result.stderr.strip()
-        print(f"PASS codex --version: {version}")
+        output = command_output(result)
+        if output:
+            print(f"PASS {label}: {output}")
+        else:
+            print(f"PASS {label}")
         return True
-    print(f"WARN codex --version exited {result.returncode}: {result.stderr.strip()}")
+    output = command_output(result)
+    suffix = f": {output}" if output else ""
+    print(f"FAIL {label} exited {result.returncode}{suffix}")
     return False
+
+
+def configured_codex_path(plugin_dir: Path) -> Path | None:
+    settings_path = codex_panel_settings_path(plugin_dir)
+    if not settings_path.exists():
+        print(f"FAIL {settings_path} missing")
+        return None
+    try:
+        settings = read_codex_panel_settings(plugin_dir)
+    except RuntimeError as error:
+        print(f"FAIL {error}")
+        return None
+    codex_path = settings.get("codexPath")
+    if not isinstance(codex_path, str) or not codex_path:
+        print(f"FAIL {settings_path} missing codexPath")
+        return None
+    if not Path(codex_path).is_absolute():
+        print(f"FAIL configured codexPath is not absolute: {codex_path}")
+        return None
+    if not is_valid_codex_path(codex_path):
+        print(f"FAIL configured codexPath missing or not executable: {codex_path}")
+        return None
+    print(f"PASS configured codexPath exists: {codex_path}")
+    return Path(codex_path)
+
+
+def check_cli(plugin_dir: Path) -> bool:
+    codex_path = configured_codex_path(plugin_dir)
+    if codex_path is None:
+        return False
+    version_ok = run_codex_command([str(codex_path), "--version"], "codex --version")
+    app_server_ok = run_codex_command([str(codex_path), "app-server", "--help"], "codex app-server --help")
+    return version_ok and app_server_ok
 
 
 def check_community_plugins(obsidian_dir: Path) -> bool:
@@ -73,12 +116,21 @@ def check_community_plugins(obsidian_dir: Path) -> bool:
     except RuntimeError as error:
         print(f"FAIL {error}")
         return False
-    if OBSIDIAN_CODEX_PLUGIN_ID in enabled_plugins:
+    if CODEX_PANEL_PLUGIN_ID in enabled_plugins:
         print("PASS Obsidian plugin listed as enabled")
         return True
-    else:
-        print("FAIL Obsidian plugin is installed but not listed as enabled")
+    print("FAIL Obsidian plugin is installed but not listed as enabled")
+    return False
+
+
+def check_manifest(plugin_dir: Path) -> bool:
+    try:
+        validate_plugin_manifest(plugin_dir)
+    except RuntimeError as error:
+        print(f"FAIL {error}")
         return False
+    print(f"PASS manifest id is {CODEX_PANEL_PLUGIN_ID}")
+    return True
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -91,7 +143,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"PASS vault exists: {vault_path}")
     else:
         print(f"FAIL vault path missing: {vault_path}")
-        check_cli()
         return 1
 
     obsidian_dir = vault_path / OBSIDIAN_DIR
@@ -115,9 +166,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FAIL {file_name} missing")
             failures += 1
 
+    if plugin_dir.exists() and not check_manifest(plugin_dir):
+        failures += 1
     if obsidian_dir.exists() and not check_community_plugins(obsidian_dir):
         failures += 1
-    if not check_cli():
+    if plugin_dir.exists() and not check_cli(plugin_dir):
         failures += 1
 
     return 1 if failures else 0

@@ -123,7 +123,7 @@ EXTERNAL_PLUGIN_SPECS = (
 SETUP_RECOMMENDED_CHECKS = (
     CommandSpec(("bash", "scripts/doctor.sh"), "run repository doctor"),
     CommandSpec(("python3", "scripts/check_external_skills.py"), "check external skill integrations"),
-    CommandSpec(("python3", "scripts/check_obsidian_codex.py"), "check Obsidian plugin install"),
+    CommandSpec(("python3", "scripts/check_obsidian_panel.py"), "check Codex Panel install"),
     CommandSpec(("python3", "scripts/check_citations.py"), "check manuscript citations"),
     CommandSpec(("python3", "scripts/check_placeholders.py", "."), "check unresolved placeholders"),
 )
@@ -133,11 +133,13 @@ VENDOR_UPDATE_HEALTH_CHECKS = (
     CommandSpec(("bash", "scripts/doctor.sh"), "run repository doctor"),
 )
 
-OBSIDIAN_CODEX_PLUGIN_ID = "obsidian-codex"
+CODEX_PANEL_PLUGIN_ID = "codex-panel"
+LEGACY_OBSIDIAN_PLUGIN_IDS = ("obsidian-" + "codex",)
 OBSIDIAN_DIR = Path(".obsidian")
 OBSIDIAN_PLUGINS_DIR = OBSIDIAN_DIR / "plugins"
-OBSIDIAN_PLUGIN_DIR = OBSIDIAN_PLUGINS_DIR / OBSIDIAN_CODEX_PLUGIN_ID
+OBSIDIAN_PLUGIN_DIR = OBSIDIAN_PLUGINS_DIR / CODEX_PANEL_PLUGIN_ID
 REQUIRED_OBSIDIAN_PLUGIN_FILES = {"manifest.json", "main.js", "styles.css"}
+OBSIDIAN_PLUGIN_SETTINGS_FILE = "data.json"
 
 
 def resolve_obsidian_vault_path(

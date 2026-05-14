@@ -29,21 +29,11 @@ class SetupEnvironmentTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temp_dir:
             with working_directory(Path(temp_dir)):
-                setup_environment.install_obsidian_codex(args, report)
+                setup_environment.install_codex_panel(args, report)
 
         messages = report.skipped + report.installed + report.already_present
         self.assertTrue(any(str(OBSIDIAN_PLUGINS_DIR) in message for message in messages))
         self.assertFalse(any("obsidian-vault" in message for message in messages))
-
-    def test_removed_obsidian_install_flag_is_rejected(self) -> None:
-        with contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                setup_environment.parse_args(["--with-obsidian-codex"])
-
-    def test_skip_obsidian_agent_flag_is_rejected(self) -> None:
-        with contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                setup_environment.parse_args(["--skip-obsidian-codex"])
 
     def test_removed_subagent_install_flag_is_rejected(self) -> None:
         with contextlib.redirect_stderr(io.StringIO()):
@@ -68,7 +58,7 @@ class SetupEnvironmentTests(unittest.TestCase):
 
         setup_environment.run_recommendations(report)
 
-        self.assertIn("Run python3 scripts/check_obsidian_codex.py", report.next_steps)
+        self.assertIn("Run python3 scripts/check_obsidian_panel.py", report.next_steps)
 
     def test_recommendations_follow_configured_check_manifest(self) -> None:
         report = SilentReport()
@@ -84,8 +74,9 @@ class SetupEnvironmentTests(unittest.TestCase):
         dry_run_steps = setup_environment.obsidian_next_steps(include_read_only_test=False)
         installed_steps = setup_environment.obsidian_next_steps(include_read_only_test=True)
 
-        self.assertNotIn("Open the plugin sidebar and run a harmless read-only test first.", dry_run_steps)
-        self.assertIn("Open the plugin sidebar and run a harmless read-only test first.", installed_steps)
+        self.assertNotIn("Run a harmless read-only prompt first.", dry_run_steps)
+        self.assertIn("Run a harmless read-only prompt first.", installed_steps)
+        self.assertIn("Run the command palette action Codex Panel: Open panel.", installed_steps)
 
     def test_external_layer_is_skipped_by_default(self) -> None:
         args = setup_environment.parse_args(["--dry-run"])

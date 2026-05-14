@@ -19,6 +19,6 @@
 
 Do evidence edits before style edits when support is unclear.
 
-## Obsidian Codex
+## Codex Panel
 
-Use Obsidian Codex only for bounded edits: one note, one section, one audit, or one draft pass. Keep approval on for commands and file writes.
+Use Codex Panel only for bounded edits: one note, one section, one audit, or one draft pass. Keep approval on for commands and file writes.

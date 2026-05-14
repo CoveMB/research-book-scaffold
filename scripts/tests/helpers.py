@@ -4,7 +4,6 @@ import contextlib
 import json
 import os
 import sys
-import zipfile
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -30,7 +29,7 @@ def add_tests_to_path() -> None:
 add_scripts_to_path()
 
 import setup_environment
-from project_config import OBSIDIAN_CODEX_PLUGIN_ID, REQUIRED_OBSIDIAN_PLUGIN_FILES
+from project_config import CODEX_PANEL_PLUGIN_ID, REQUIRED_OBSIDIAN_PLUGIN_FILES
 
 
 class SilentReport(setup_environment.Report):
@@ -48,17 +47,22 @@ def working_directory(path: Path) -> Iterator[None]:
         os.chdir(original_cwd)
 
 
-def write_plugin_release(archive_path: Path) -> None:
+def write_plugin_release(release_path: Path, manifest_id: str = CODEX_PANEL_PLUGIN_ID) -> None:
+    assets_dir = release_path.parent / f"{release_path.stem}-assets"
+    assets_dir.mkdir()
     plugin_files = {
-        "manifest.json": json.dumps({"id": OBSIDIAN_CODEX_PLUGIN_ID}),
+        "manifest.json": json.dumps({"id": manifest_id}),
         "main.js": "module.exports = {};",
         "styles.css": "",
     }
-    with zipfile.ZipFile(archive_path, "w") as archive:
-        for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES):
-            archive.writestr(f"plugin/{file_name}", plugin_files[file_name])
+    assets = []
+    for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES):
+        asset_path = assets_dir / file_name
+        asset_path.write_text(plugin_files[file_name], encoding="utf-8")
+        assets.append({"name": file_name, "browser_download_url": asset_path.as_uri()})
+    release_path.write_text(json.dumps({"assets": assets}), encoding="utf-8")
 
 
 def install_in_directory(work_dir: Path, args: object, report: setup_environment.Report) -> None:
     with working_directory(work_dir):
-        setup_environment.install_obsidian_codex(args, report)
+        setup_environment.install_codex_panel(args, report)

@@ -131,9 +131,9 @@ Rules:
 - Record installed external skills and plugins in `ARS_INSTALLED.md`, `RBS_INSTALLED.md`, and `SUBAGENT_ORCHESTRATOR_INSTALLED.md`.
 - If a skill name conflicts, create a wrapper skill with a safe prefixed name.
 
-## Obsidian Codex
+## Codex Panel
 
-Use Obsidian Codex only for bounded reads, note creation, drafting, or audit tasks. Keep command approval and file-write approval enabled. Start with read-only prompts and inspect diffs after edits.
+Use Codex Panel only for bounded reads, note creation, drafting, or audit tasks. Keep command approval and file-write approval enabled. Start with read-only prompts and inspect diffs after edits.
 
 ## Checks
 

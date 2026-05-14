@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNBOOK = ROOT / "test" / "docs" / "end-to-end.md"
+QA_REQUIREMENTS = ROOT / "test" / "docs" / "qa-environment-requirements.md"
 
 sys.path.insert(0, str(ROOT / "scripts"))
 
@@ -31,10 +32,20 @@ def direct_script_paths() -> list[str]:
     )
 
 
+def previous_obsidian_agent_terms() -> list[str]:
+    return [
+        "obsidian-" + "codex",
+        "Obsidian " + "Codex",
+        "A" + "Kin-" + "lvy" + "ifang",
+    ]
+
+
 class ProductionReleaseQaDocTests(unittest.TestCase):
     def setUp(self) -> None:
         self.assertTrue(RUNBOOK.exists(), f"missing QA runbook: {RUNBOOK}")
+        self.assertTrue(QA_REQUIREMENTS.exists(), f"missing QA requirements: {QA_REQUIREMENTS}")
         self.runbook_text = RUNBOOK.read_text(encoding="utf-8")
+        self.qa_requirements_text = QA_REQUIREMENTS.read_text(encoding="utf-8")
 
     def test_runbook_lives_under_root_test_folder(self) -> None:
         legacy_runbook_name = "15-production-" + "release-qa.md"
@@ -52,6 +63,19 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
     def test_runbook_mentions_every_direct_script(self) -> None:
         for script_path in direct_script_paths():
             self.assertIn(f"`{script_path}`", self.runbook_text, script_path)
+
+    def test_docs_and_qa_do_not_mention_previous_obsidian_agent_plugin(self) -> None:
+        checked_paths = [
+            ROOT / "AGENTS.md",
+            ROOT / "README.md",
+            ROOT / "Makefile",
+            *sorted((ROOT / "docs").glob("*.md")),
+            *sorted((ROOT / "test" / "docs").glob("*.md")),
+        ]
+        checked_text = "\n".join(path.read_text(encoding="utf-8") for path in checked_paths)
+
+        for term in previous_obsidian_agent_terms():
+            self.assertNotIn(term, checked_text)
 
     def test_runbook_mentions_external_skill_surfaces(self) -> None:
         for skill_name in project_config.ARS_SKILLS:
@@ -71,7 +95,9 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         expected_phrases = [
             "## Scaffold App Usability QA",
             "Obsidian opens the scaffold project root as a vault",
-            "Obsidian Codex can run a bounded read-only prompt",
+            "Codex Panel can run a bounded read-only prompt",
+            "Reload plugins",
+            "Codex Panel: Open panel",
             "Codex CLI runs from the scaffold project root",
             "Zotero and Better BibTeX can be used with `bibliography/references.bib`",
             "Quarto, Pandoc, and the configured TeX engine can render from the scaffold",
@@ -115,6 +141,7 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             "`$HOME/Library/TinyTeX/bin/universal-darwin`",
             'PATH="$HOME/Library/TinyTeX/bin/universal-darwin:$PATH" make render-pdf',
             "Setup writes `.obsidian/community-plugins.json`",
+            "`codex-panel` is listed as enabled",
             "Download the latest Better BibTeX `.xpi`",
             "`python3 -m http.server --directory exports/html 4173`",
             "`http://127.0.0.1:4173/`",
@@ -124,9 +151,8 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
 
     def test_runbook_documents_zotero_api_quarto_warning_and_skill_smoke_tests(self) -> None:
         expected_phrases = [
-            "Zotero local API enabled when API-based citation-library checks are in scope",
-            "Allow other applications on this computer to communicate with Zotero",
-            "`http://localhost:23119/api/`",
+            "`test/docs/qa-environment-requirements.md` followed when API-based Zotero checks are in scope",
+            "When API-based citation-library checks are in scope, follow `test/docs/qa-environment-requirements.md`",
             "Skill smoke tests are part of full release QA",
             "No skill output is treated as scholarly evidence",
             "refusing to remove `site_libs` outside the project directory",
@@ -134,6 +160,32 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         ]
         for phrase in expected_phrases:
             self.assertIn(phrase, self.runbook_text)
+
+    def test_qa_requirements_document_zotero_api_activation(self) -> None:
+        expected_phrases = [
+            "Routine writing does not require the Zotero local API",
+            "Allow other applications on this computer to communicate with Zotero",
+            "`http://localhost:23119/api/`",
+            "A plain browser visit to the API root may show `Request not allowed`",
+            "`git status --short`",
+            "`git diff -- bibliography/references.bib`",
+        ]
+        for phrase in expected_phrases:
+            self.assertIn(phrase, self.qa_requirements_text)
+
+    def test_regular_docs_do_not_document_qa_only_zotero_api_activation(self) -> None:
+        regular_docs_text = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (ROOT / "docs").glob("*.md")
+        )
+
+        qa_only_phrases = [
+            "Allow other applications on this computer to communicate with Zotero",
+            "http://localhost:23119/api/",
+            "Zotero local API",
+        ]
+        for phrase in qa_only_phrases:
+            self.assertNotIn(phrase, regular_docs_text)
 
 
 if __name__ == "__main__":

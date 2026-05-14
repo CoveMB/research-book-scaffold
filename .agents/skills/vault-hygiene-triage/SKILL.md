@@ -37,7 +37,7 @@ If the user only asks for a hygiene review, stay read-only and propose changes. 
 - `research/*/README.md`
 - `templates/README.md`
 - `docs/05-security.md`
-- `docs/11-obsidian-codex.md`
+- `docs/11-obsidian-panel.md`
 - `docs/03-agent-orchestration.md`
 - `docs/07-citation-workflow.md`
 - `notes/`

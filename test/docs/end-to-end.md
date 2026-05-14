@@ -34,7 +34,7 @@ Optional until the matching workflow is tested:
 - Node and npm, used by setup only if Codex CLI needs installation through npm
 - Quarto, Pandoc, and a TeX engine such as `lualatex` for manuscript rendering
 - Zotero and Better BibTeX for citation-library verification
-- Zotero local API enabled when API-based citation-library checks are in scope
+- `test/docs/qa-environment-requirements.md` followed when API-based Zotero checks are in scope
 
 Install TinyTeX for PDF rendering when TeX is not already available by running `quarto install tinytex --update-path`:
 
@@ -119,7 +119,7 @@ Run setup in the disposable clone:
 
 ```sh
 bash setup.sh
-python3 scripts/check_obsidian_codex.py
+python3 scripts/check_obsidian_panel.py
 ```
 
 Expected result:
@@ -127,9 +127,10 @@ Expected result:
 - Required tools are found or reported with clear manual steps.
 - `.agents/skills/` exists and local skill front matter validates.
 - The project root is treated as the Obsidian vault root.
-- `.obsidian/plugins/obsidian-codex/` is installed or an existing plugin folder is reported as skipped unless `--force` was intentionally used.
-- Setup writes `.obsidian/community-plugins.json` so `obsidian-codex` is listed as enabled.
-- Existing Obsidian workspace files and plugin settings are not overwritten.
+- `.obsidian/plugins/codex-panel/` is installed or an existing plugin folder is reported as skipped unless `--force` was intentionally used.
+- Setup writes `.obsidian/community-plugins.json` so `codex-panel` is listed as enabled.
+- Setup writes `.obsidian/plugins/codex-panel/data.json` with an absolute executable `codexPath` when one is available.
+- Existing Obsidian workspace files are not overwritten.
 - Invalid `community-plugins.json` content fails setup instead of being overwritten.
 
 If system package installation is managed outside setup, use:
@@ -160,7 +161,14 @@ Expected result:
 - Obsidian does not require a nested vault folder.
 - Existing project files are readable without moving or copying them.
 
-Obsidian Codex can run a bounded read-only prompt:
+Codex Panel can run a bounded read-only prompt:
+
+1. Open Settings -> Community plugins.
+2. Click Reload plugins if Obsidian initially shows zero plugins or Codex Panel is not visible.
+3. Confirm Codex Panel is installed and enabled.
+4. Run the command palette action `Codex Panel: Open panel`.
+
+Safe smoke prompt:
 
 ```text
 Read AGENTS.md and summarize the project rules. Do not edit anything.
@@ -168,10 +176,13 @@ Read AGENTS.md and summarize the project rules. Do not edit anything.
 
 Expected result:
 
-- The Obsidian Codex plugin is enabled for the project-root vault.
-- `.obsidian/community-plugins.json` lists `obsidian-codex`.
+- The Codex Panel plugin is enabled for the project-root vault.
+- `.obsidian/community-plugins.json` lists `codex-panel` as enabled.
+- `.obsidian/plugins/codex-panel/data.json` points to an absolute Codex executable path.
+- Codex approval prompts remain governed by Codex CLI and `codex app-server`.
 - The read-only prompt can inspect scaffold files.
 - File writes and command execution remain approval-gated.
+- `git status --short` shows no unexpected source changes after the smoke prompt.
 
 Codex CLI runs from the scaffold project root:
 
@@ -193,19 +204,18 @@ Zotero and Better BibTeX can be used with `bibliography/references.bib`:
 2. Download the latest Better BibTeX `.xpi` when the add-on is not installed.
 3. In Zotero, use `Tools > Plugins`, select `Plugins`, open the gear menu, and choose `Install Plugin From File...`.
 4. Restart Zotero and confirm Better BibTeX is installed and enabled when citation-library QA is in scope.
-5. In Zotero, open `Zotero > Settings > Advanced` on macOS and enable `Allow other applications on this computer to communicate with Zotero`.
-6. Confirm the local Zotero API base is `http://localhost:23119/api/` when API-based checks are in scope. Use a Zotero-aware helper or targeted API route for API checks; a plain browser visit to the API root may show `Request not allowed`.
-7. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
-8. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
-9. Inspect `git diff -- bibliography/references.bib`.
-10. Run `python3 scripts/check_citations.py --include-notes --require-citations`.
+5. When API-based citation-library checks are in scope, follow `test/docs/qa-environment-requirements.md`.
+6. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
+7. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
+8. Inspect `git diff -- bibliography/references.bib`.
+9. Run `python3 scripts/check_citations.py --include-notes --require-citations`.
 
 Expected result:
 
 - Zotero opens the relevant library.
 - Better BibTeX can provide stable citekeys.
 - `bibliography/references.bib` remains the repository citation source of truth.
-- Zotero's built-in local API is used when API-based checks are claimed.
+- API-based Zotero checks are claimed only after `test/docs/qa-environment-requirements.md` passes.
 - `git diff -- bibliography/references.bib` shows only expected verified Zotero or Better BibTeX changes.
 - No generated or unverified bibliographic metadata is accepted as evidence.
 
@@ -250,8 +260,8 @@ Expected result:
 | `make install-external-skills` | Vendors external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
 | `make install-subagent-orchestrator` | Installs only the optional subagent plugin path | Uses project scope and keeps the plugin available-only |
 | `make update-skills-vendors` | Fast-forwards vendored skill repositories and refreshes integrations | Use only when the release includes vendor updates |
-| `make check-obsidian-codex` | Verifies Obsidian Codex plugin install and Codex CLI | Exits 0 after plugin files and Codex CLI are present |
-| `make install-obsidian-codex` | Installs Obsidian Codex plugin | Use only in disposable QA or intentional local setup |
+| `make check-obsidian-panel` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
+| `make install-obsidian-panel` | Installs Codex Panel plugin | Use only in disposable QA or intentional local setup |
 | `make audit` | Runs normal scaffold health checks | Exits 0 |
 | `make release-audit` | Runs strict pre-release manuscript checks | Exits 0 and all blockers are resolved |
 
@@ -355,14 +365,14 @@ Entry points and support modules:
 - `scripts/check_citations.py`
 - `scripts/check_external_skills.py`
 - `scripts/check_manuscript_readiness.py`
-- `scripts/check_obsidian_codex.py`
+- `scripts/check_obsidian_panel.py`
 - `scripts/check_placeholders.py`
 - `scripts/doctor.py`
 - `scripts/doctor.sh`
 - `scripts/environment_checks.py`
 - `scripts/git_utils.py`
 - `scripts/install_external_skills.py`
-- `scripts/install_obsidian_codex.sh`
+- `scripts/install_obsidian_panel.sh`
 - `scripts/new_from_template.py`
 - `scripts/obsidian_agent.py`
 - `scripts/project_config.py`
@@ -392,7 +402,7 @@ Targeted script checks:
 ```sh
 bash scripts/doctor.sh
 python3 scripts/doctor.py
-python3 scripts/check_obsidian_codex.py
+python3 scripts/check_obsidian_panel.py
 python3 scripts/install_external_skills.py --dry-run --yes
 python3 scripts/check_external_skills.py
 python3 scripts/check_placeholders.py .
@@ -481,33 +491,36 @@ Expected result:
 - Output identifies the failing file, marker, link, citekey, or argument.
 - Cleanup returns the disposable clone to an intentional state.
 
-## Obsidian Codex QA
+## Codex Panel QA
 
 Run dry and direct checks:
 
 ```sh
-bash scripts/install_obsidian_codex.sh --dry-run
+bash scripts/install_obsidian_panel.sh --dry-run
 python3 scripts/obsidian_agent.py --dry-run
-python3 scripts/check_obsidian_codex.py
+python3 scripts/check_obsidian_panel.py
 ```
 
-When testing a real plugin install, use a reviewed release archive and checksum:
+When testing a real plugin install, use the published Codex Panel release assets:
 
 ```sh
-python3 scripts/setup_environment.py --force --obsidian-release-url <reviewed-zip-url> --obsidian-release-sha256 <sha256>
-python3 scripts/check_obsidian_codex.py
+python3 scripts/setup_environment.py --force
+python3 scripts/check_obsidian_panel.py
 ```
 
 Expected result:
 
 - Dry run does not modify files.
-- The plugin folder contains `manifest.json`, `main.js`, and `styles.css`.
-- `.obsidian/community-plugins.json` is created or updated so `obsidian-codex` is enabled.
+- The plugin folder `.obsidian/plugins/codex-panel/` contains `manifest.json`, `main.js`, and `styles.css`.
+- The manifest ID is `codex-panel`.
+- `.obsidian/community-plugins.json` is created or updated so `codex-panel` is enabled.
+- Only `codex-panel` is listed for this Obsidian agent integration.
+- `.obsidian/plugins/codex-panel/data.json` contains an absolute executable `codexPath`.
+- `codex app-server --help` exits 0 through that configured path.
 - Invalid `community-plugins.json` content fails the install and is not overwritten.
-- Checksum mismatch fails the install.
-- Path traversal inside an archive is rejected by unit tests.
+- Missing release assets fail the install.
 - GitHub source zipballs are not accepted as plugin release packages.
-- Existing Obsidian workspace files and plugin settings are not overwritten.
+- Existing Obsidian workspace files are not overwritten.
 
 Safe usage prompt:
 
@@ -519,6 +532,7 @@ Expected result:
 
 - The plugin performs bounded read-only work.
 - Any file-write or command action still requires approval.
+- `git status --short` shows no unexpected source changes.
 
 ## External Skills And Plugin QA
 
@@ -740,7 +754,7 @@ Release is ready when:
 - `make release-audit` passes.
 - All required render targets pass and are manually inspected.
 - External integrations required by the release pass `make check-external-skills`.
-- Obsidian Codex setup required by the release passes `make check-obsidian-codex`.
+- Codex Panel setup required by the release passes `make check-obsidian-panel`.
 - Scholarly QA has no unresolved blockers.
 - The release evidence log records commands, versions, skipped checks, and remaining risks.
 

@@ -54,7 +54,7 @@ ARS wrappers live in `.agents/skills/`. Research Book Skills and the optional Su
 
 ## Required local agent integration
 
-- Obsidian Codex connects this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/`, installs the plugin in the repository root, and enables it in `.obsidian/community-plugins.json` by default; pass `--obsidian-vault PATH` only for a different vault.
+- Codex Panel connects this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/`, installs the plugin in the repository root, enables `codex-panel` in `.obsidian/community-plugins.json`, and writes an absolute Codex executable path in the plugin settings when one is available; pass `--obsidian-vault PATH` only for a different vault.
 
 ## Optional external integrations
 
@@ -62,7 +62,7 @@ ARS wrappers live in `.agents/skills/`. Research Book Skills and the optional Su
 - Research Book Skills can be vendored from `CoveMB/research-book-skills` and exposed directly from `vendor/research-book-skills/`.
 - Subagent Orchestrator can be vendored from `CoveMB/subagent-orchestration-plugin` and exposed from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`.
 
-External repositories stay optional. Review upstream files before use. The subagent plugin installer runs only through external-skill setup after boundary checks confirm the vendored submodule is configured, clean, and from the expected origin; it receives `--scope project` and stays available-only. The Obsidian setup does not create a nested vault folder, write workspace files, or modify Obsidian plugin settings. It installs the required Obsidian plugin and adds it to `.obsidian/community-plugins.json` by default when missing. `--force` only allows replacing an existing plugin folder. For reproducible plugin installation, pass a reviewed release URL and SHA-256 checksum.
+External repositories stay optional. Review upstream files before use. The subagent plugin installer runs only through external-skill setup after boundary checks confirm the vendored submodule is configured, clean, and from the expected origin; it receives `--scope project` and stays available-only. The Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel from published release assets only, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, and writes `.obsidian/plugins/codex-panel/data.json`. `--force` only allows replacing an existing plugin folder.
 
 The external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
 
