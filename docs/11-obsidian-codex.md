@@ -17,12 +17,13 @@ Use it carefully because vault notes can contain untrusted source text and perso
 
 ## Manual installation
 
-1. Download the latest release from `https://github.com/AKin-lvyifang/obsidian-codex/releases/latest`.
-2. Place the plugin folder at `<vault>/.obsidian/plugins/obsidian-codex/`.
-3. Confirm `main.js`, `manifest.json`, and `styles.css` exist.
-4. Restart Obsidian.
-5. Enable Community Plugins.
-6. Enable Codex for Obsidian.
+1. Install and log in to Codex CLI.
+2. Download the latest `obsidian-codex-*.zip` release from `https://github.com/AKin-lvyifang/obsidian-codex/releases/latest`.
+3. Unzip it and place the `obsidian-codex` folder at `<vault>/.obsidian/plugins/obsidian-codex/`.
+4. Confirm `main.js`, `manifest.json`, and `styles.css` exist.
+5. Restart Obsidian.
+6. Enable Community Plugins.
+7. Enable Codex for Obsidian.
 
 ## Scripted installation
 
@@ -32,7 +33,9 @@ Default setup treats the repository root as the vault root:
 python3 scripts/setup_environment.py
 ```
 
-This creates `.obsidian/` in the project root and installs the plugin at `.obsidian/plugins/obsidian-codex/`. It does not create a nested `obsidian-vault/` folder, write Obsidian workspace files, or modify existing Obsidian settings. `--force` only allows replacing an existing plugin folder.
+This creates `.obsidian/` in the project root, installs the plugin at `.obsidian/plugins/obsidian-codex/`, and adds `obsidian-codex` to `.obsidian/community-plugins.json`. It does not create a nested `obsidian-vault/` folder, write Obsidian workspace files, or modify Obsidian plugin settings. `--force` only allows replacing an existing plugin folder.
+
+If `.obsidian/community-plugins.json` exists but is not a JSON list, setup fails instead of overwriting it. Fix the file manually or let Obsidian regenerate it before rerunning setup.
 
 Use an explicit path only when installing into a different vault:
 
@@ -53,6 +56,12 @@ Health check:
 ```sh
 python3 scripts/check_obsidian_codex.py
 ```
+
+Expected result:
+
+- plugin files exist
+- `.obsidian/community-plugins.json` lists `obsidian-codex`
+- `codex --version` exits 0
 
 ## Recommended modes
 

@@ -35,6 +35,14 @@ Optional until the matching workflow is tested:
 - Quarto, Pandoc, and a TeX engine such as `lualatex` for manuscript rendering
 - Zotero and Better BibTeX for citation-library verification
 
+Install TinyTeX for PDF rendering when TeX is not already available by running `quarto install tinytex --update-path`:
+
+```sh
+quarto install tinytex --update-path
+```
+
+Open a new shell after installation. On macOS, if TinyTeX is installed but TeX commands such as `lualatex --version` and `bibtex --version` are still unavailable, add `$HOME/Library/TinyTeX/bin/universal-darwin` to `PATH`.
+
 Record versions before setup:
 
 ```sh
@@ -46,6 +54,7 @@ codex --version
 quarto --version
 pandoc --version
 lualatex --version
+bibtex --version
 ```
 
 Expected result:
@@ -110,7 +119,9 @@ Expected result:
 - `.agents/skills/` exists and local skill front matter validates.
 - The project root is treated as the Obsidian vault root.
 - `.obsidian/plugins/obsidian-codex/` is installed or an existing plugin folder is reported as skipped unless `--force` was intentionally used.
-- Existing Obsidian settings are not overwritten.
+- Setup writes `.obsidian/community-plugins.json` so `obsidian-codex` is listed as enabled.
+- Existing Obsidian workspace files and plugin settings are not overwritten.
+- Invalid `community-plugins.json` content fails setup instead of being overwritten.
 
 If system package installation is managed outside setup, use:
 
@@ -149,6 +160,7 @@ Read AGENTS.md and summarize the project rules. Do not edit anything.
 Expected result:
 
 - The Obsidian Codex plugin is enabled for the project-root vault.
+- `.obsidian/community-plugins.json` lists `obsidian-codex`.
 - The read-only prompt can inspect scaffold files.
 - File writes and command execution remain approval-gated.
 
@@ -169,11 +181,14 @@ Expected result:
 Zotero and Better BibTeX can be used with `bibliography/references.bib`:
 
 1. Open Zotero.
-2. Confirm Better BibTeX is installed and enabled when citation-library QA is in scope.
-3. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
-4. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
-5. Inspect `git diff -- bibliography/references.bib`.
-6. Run `python3 scripts/check_citations.py --include-notes --require-citations`.
+2. Download the latest Better BibTeX `.xpi` when the add-on is not installed.
+3. In Zotero, use `Tools > Plugins`, select `Plugins`, open the gear menu, and choose `Install Plugin From File...`.
+4. Restart Zotero and confirm Better BibTeX is installed and enabled when citation-library QA is in scope.
+5. Confirm the local Zotero API is reachable when API-based checks are in scope.
+6. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
+7. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
+8. Inspect `git diff -- bibliography/references.bib`.
+9. Run `python3 scripts/check_citations.py --include-notes --require-citations`.
 
 Expected result:
 
@@ -189,6 +204,7 @@ Quarto, Pandoc, and the configured TeX engine can render from the scaffold when 
 quarto --version
 pandoc --version
 lualatex --version
+bibtex --version
 make render-html
 make render-docx
 make render-pdf
@@ -200,6 +216,7 @@ Expected result:
 - The configured TeX engine is available before PDF QA.
 - Rendered outputs are generated from `manuscript/` into `exports/`.
 - Missing render tools are recorded as skipped or blocking according to the release target.
+- If `lualatex` or `bibtex` is missing after TinyTeX install, verify `$HOME/Library/TinyTeX/bin/universal-darwin` is on `PATH` on macOS.
 
 ## Make Target QA Matrix
 
@@ -239,8 +256,8 @@ make release-audit
 
 Expected result:
 
-- `make doctor`, `make lint`, `make test`, `make audit`, and `make release-audit` exit 0 for a production manuscript.
-- A generic scaffold may fail `make release-audit` until the title, sample chapter, sample appendix, and at least one verified citation are replaced by project material.
+- `make doctor`, `make lint`, `make test`, `make audit`, and `make release-audit` exit 0 for a fresh scaffold and for a production manuscript.
+- A production manuscript still needs real project material, verified source notes, and manual scholarly QA even when scaffold release gates pass.
 
 ## Seeded Content Fixture QA
 
@@ -474,9 +491,12 @@ Expected result:
 
 - Dry run does not modify files.
 - The plugin folder contains `manifest.json`, `main.js`, and `styles.css`.
+- `.obsidian/community-plugins.json` is created or updated so `obsidian-codex` is enabled.
+- Invalid `community-plugins.json` content fails the install and is not overwritten.
 - Checksum mismatch fails the install.
 - Path traversal inside an archive is rejected by unit tests.
-- Existing Obsidian settings are not overwritten.
+- GitHub source zipballs are not accepted as plugin release packages.
+- Existing Obsidian workspace files and plugin settings are not overwritten.
 
 Safe usage prompt:
 
@@ -596,6 +616,14 @@ make render-docx
 make render-pdf
 make render
 ```
+
+For browser inspection, serve generated HTML over local HTTP instead of using `file://` when Browser Use blocks local file URLs. Run `python3 -m http.server --directory exports/html 4173` from the project root:
+
+```sh
+python3 -m http.server --directory exports/html 4173
+```
+
+Inspect `http://127.0.0.1:4173/`, then stop the server after inspection.
 
 Expected result:
 

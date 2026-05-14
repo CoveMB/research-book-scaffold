@@ -3,16 +3,11 @@ project:
   output-dir: ../exports/html
 
 book:
-  title: "Untitled Scholarly Manuscript"
+  title: "Research Scaffold Verification Manuscript"
   chapters:
     - index.qmd
     - chapters/00-front-matter.qmd
-    # Sample scaffold chapter kept visible until replaced by a project chapter.
-    - chapters/01-chapter-template.qmd
     - chapters/99-back-matter.qmd
-  appendices:
-    # Sample scaffold appendix kept visible until replaced by project material.
-    - appendices/appendix-template.qmd
 
 bibliography: ../bibliography/references.bib
 

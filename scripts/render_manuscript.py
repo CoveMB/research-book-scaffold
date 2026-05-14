@@ -73,7 +73,15 @@ def check_preconditions(output_format: str | None) -> int:
         engine = configured_pdf_engine(config_text)
         if not shutil.which(engine):
             print(f"No TeX engine found for PDF rendering: {engine}.")
-            print("Install TinyTeX with 'quarto install tinytex' or install the configured TeX engine, then rerun:")
+            print(
+                "Install TinyTeX with 'quarto install tinytex --update-path' "
+                "or install the configured TeX engine."
+            )
+            print(
+                "On macOS, if TinyTeX is already installed, ensure "
+                "$HOME/Library/TinyTeX/bin/universal-darwin is on PATH."
+            )
+            print("Then rerun:")
             print("  bash scripts/render.sh")
             return 1
     return 0

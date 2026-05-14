@@ -12,6 +12,8 @@ add_scripts_to_path()
 
 import check_citations
 
+ROOT = Path(__file__).resolve().parents[2]
+
 
 class CheckCitationsTests(unittest.TestCase):
     def test_scan_roots_can_include_research_notes(self) -> None:
@@ -48,6 +50,19 @@ class CheckCitationsTests(unittest.TestCase):
         text = "@book{smith2024,\n}\n@article{smith2024,\n}\n@string{ignored = \"x\"}\n"
 
         self.assertEqual(check_citations.duplicate_bib_keys(text), ["smith2024"])
+
+    def test_default_scaffold_has_verified_citation_for_strict_release_audit(self) -> None:
+        bibliography_keys = check_citations.parse_bib_keys(ROOT / "bibliography" / "references.bib")
+        manuscript_files = check_citations.iter_supported_files(
+            [ROOT / "manuscript"],
+            check_citations.IGNORED_DIRS,
+            check_citations.SUPPORTED_SUFFIXES,
+        )
+        manuscript_keys = set().union(*(check_citations.parse_citations(path) for path in manuscript_files))
+
+        self.assertTrue(bibliography_keys)
+        self.assertTrue(manuscript_keys)
+        self.assertEqual(manuscript_keys - bibliography_keys, set())
 
 
 if __name__ == "__main__":

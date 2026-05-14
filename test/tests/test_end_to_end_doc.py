@@ -108,6 +108,19 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         for phrase in expected_phrases:
             self.assertIn(phrase, self.runbook_text)
 
+    def test_runbook_documents_tinytex_bibtex_obsidian_and_browser_qa_remediations(self) -> None:
+        expected_phrases = [
+            "`quarto install tinytex --update-path`",
+            "`bibtex --version`",
+            "`$HOME/Library/TinyTeX/bin/universal-darwin`",
+            "Setup writes `.obsidian/community-plugins.json`",
+            "Download the latest Better BibTeX `.xpi`",
+            "`python3 -m http.server --directory exports/html 4173`",
+            "`http://127.0.0.1:4173/`",
+        ]
+        for phrase in expected_phrases:
+            self.assertIn(phrase, self.runbook_text)
+
 
 if __name__ == "__main__":
     unittest.main()

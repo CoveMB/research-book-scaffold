@@ -10,20 +10,25 @@ Use Better BibTeX auto-export for normal Zotero sync. Zotero owns the source met
 
 One-time setup:
 
-1. Install Better BibTeX in Zotero from the official release.
-2. Restart Zotero.
-3. In Zotero settings, open Better BibTeX and leave automatic export on `On Change`. Use `When Idle` if exports slow Zotero down.
-4. In the Zotero sidebar, right-click the collection for this book project and choose `Export Collection...`. Use `Export Library...` only when the whole library belongs in this project.
-5. Set format to `Better BibTeX`.
-6. Check `Keep updated`.
-7. Save the export as `bibliography/references.bib`.
-8. Run `make check-citations` or `python3 scripts/check_citations.py --include-notes`.
+1. Download the latest Better BibTeX `.xpi` from the official release.
+2. In Zotero, open `Tools > Plugins`.
+3. Select `Plugins`, then use the gear menu and choose `Install Plugin From File...`.
+4. Choose the downloaded `.xpi`, click `Install`, and restart Zotero.
+5. Confirm Better BibTeX is listed as installed and enabled in Zotero.
+6. In Zotero settings, open Better BibTeX and leave automatic export on `On Change`. Use `When Idle` if exports slow Zotero down.
+7. In the Zotero sidebar, right-click the collection for this book project and choose `Export Collection...`. Use `Export Library...` only when the whole library belongs in this project.
+8. Set format to `Better BibTeX`.
+9. Check `Keep updated`.
+10. Save the export as `bibliography/references.bib`.
+11. Run `make check-citations` or `python3 scripts/check_citations.py --include-notes`.
 
 After this setup, Zotero updates `bibliography/references.bib` when exported items change. Avoid hand-editing `references.bib`; the next export can overwrite those edits. Fix metadata and citekeys in Zotero instead.
 
 Do not enable Better BibTeX git push from this working copy. It can commit or push unrelated files. Commit bibliography changes through the normal project workflow.
 
 If Zotero auto-export is not available, export manually from Zotero to `bibliography/references.bib`, then run the citation check.
+
+Before refreshing `bibliography/references.bib` during QA, verify Zotero is open, the local Zotero API is reachable when API-based checks are in scope, Better BibTeX is installed and enabled, and `git status --short` is clean. After export, inspect `git diff -- bibliography/references.bib` and accept only verified Zotero or Better BibTeX metadata.
 
 ## Citekeys
 

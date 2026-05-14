@@ -14,7 +14,7 @@ from scripts.tests.helpers import SilentReport, install_in_directory, write_plug
 
 import setup_environment
 import obsidian_agent
-from project_config import OBSIDIAN_PLUGIN_DIR
+from project_config import OBSIDIAN_CODEX_PLUGIN_ID, OBSIDIAN_PLUGIN_DIR
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -34,7 +34,7 @@ class ObsidianInstallerTests(unittest.TestCase):
         self.assertNotIn("package checks", result.stdout)
         self.assertNotIn("external skills skipped", result.stdout)
 
-    def test_default_install_uses_root_vault_and_preserves_settings(self) -> None:
+    def test_default_install_uses_root_vault_and_preserves_workspace_settings(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             archive_path = temp_path / "release.zip"
@@ -53,8 +53,78 @@ class ObsidianInstallerTests(unittest.TestCase):
 
             plugin_dir = temp_path / OBSIDIAN_PLUGIN_DIR
             self.assertTrue((plugin_dir / "manifest.json").is_file())
-            self.assertEqual(community_plugins_path.read_text(encoding="utf-8"), '["existing-plugin"]\n')
+            self.assertEqual(
+                json.loads(community_plugins_path.read_text(encoding="utf-8")),
+                ["existing-plugin", OBSIDIAN_CODEX_PLUGIN_ID],
+            )
             self.assertEqual(workspace_path.read_text(encoding="utf-8"), '{"existing": true}\n')
+
+    def test_install_auto_enables_plugin_and_preserves_existing_enabled_plugins(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            archive_path = temp_path / "release.zip"
+            write_plugin_release(archive_path)
+
+            obsidian_dir = temp_path / ".obsidian"
+            obsidian_dir.mkdir()
+            community_plugins_path = obsidian_dir / "community-plugins.json"
+            community_plugins_path.write_text('["existing-plugin"]\n', encoding="utf-8")
+
+            args = setup_environment.parse_args(["--obsidian-release-url", archive_path.as_uri()])
+            report = SilentReport()
+            install_in_directory(temp_path, args, report)
+
+            enabled_plugins = json.loads(community_plugins_path.read_text(encoding="utf-8"))
+            self.assertEqual(enabled_plugins, ["existing-plugin", OBSIDIAN_CODEX_PLUGIN_ID])
+
+    def test_install_creates_enabled_plugin_list_when_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            archive_path = temp_path / "release.zip"
+            write_plugin_release(archive_path)
+
+            args = setup_environment.parse_args(["--obsidian-release-url", archive_path.as_uri()])
+            report = SilentReport()
+            install_in_directory(temp_path, args, report)
+
+            community_plugins_path = temp_path / ".obsidian" / "community-plugins.json"
+            enabled_plugins = json.loads(community_plugins_path.read_text(encoding="utf-8"))
+            self.assertEqual(enabled_plugins, [OBSIDIAN_CODEX_PLUGIN_ID])
+
+    def test_install_rejects_invalid_enabled_plugin_list(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            archive_path = temp_path / "release.zip"
+            write_plugin_release(archive_path)
+
+            obsidian_dir = temp_path / ".obsidian"
+            obsidian_dir.mkdir()
+            community_plugins_path = obsidian_dir / "community-plugins.json"
+            community_plugins_path.write_text(json.dumps({OBSIDIAN_CODEX_PLUGIN_ID: True}), encoding="utf-8")
+
+            args = setup_environment.parse_args(["--obsidian-release-url", archive_path.as_uri()])
+            report = SilentReport()
+            install_in_directory(temp_path, args, report)
+
+            self.assertTrue(any("community-plugins.json" in message for message in report.failed))
+            self.assertFalse((temp_path / OBSIDIAN_PLUGIN_DIR / "manifest.json").exists())
+            self.assertEqual(
+                json.loads(community_plugins_path.read_text(encoding="utf-8")),
+                {OBSIDIAN_CODEX_PLUGIN_ID: True},
+            )
+
+    def test_latest_release_requires_named_obsidian_codex_zip_asset(self) -> None:
+        payload = {
+            "assets": [{"browser_download_url": "https://example.invalid/source.zip"}],
+            "zipball_url": "https://example.invalid/source-code.zip",
+        }
+
+        response = mock.MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(payload).encode("utf-8")
+
+        with mock.patch.object(obsidian_agent.urllib.request, "urlopen", return_value=response):
+            with self.assertRaisesRegex(RuntimeError, "obsidian-codex.*zip"):
+                obsidian_agent.latest_obsidian_release_zip_url()
 
     def test_install_reports_obsidian_path_conflict(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

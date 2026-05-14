@@ -4,13 +4,13 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+from obsidian_agent import community_plugins_path, read_enabled_community_plugins
 from project_config import (
     OBSIDIAN_CODEX_PLUGIN_ID,
     OBSIDIAN_DIR,
@@ -63,23 +63,22 @@ def check_cli() -> bool:
     return False
 
 
-def check_community_plugins(obsidian_dir: Path) -> None:
-    community_plugins_path = obsidian_dir / "community-plugins.json"
-    if not community_plugins_path.exists():
-        print("WARN .obsidian/community-plugins.json missing; cannot confirm enablement")
-        return
+def check_community_plugins(obsidian_dir: Path) -> bool:
+    plugins_path = community_plugins_path(obsidian_dir)
+    if not plugins_path.exists():
+        print("FAIL .obsidian/community-plugins.json missing; cannot confirm enablement")
+        return False
     try:
-        enabled_plugins = json.loads(community_plugins_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as error:
-        print(f"WARN invalid community-plugins.json: {error}")
-        return
-    if not isinstance(enabled_plugins, list):
-        print("WARN invalid community-plugins.json: expected a list")
-        return
+        enabled_plugins = read_enabled_community_plugins(obsidian_dir)
+    except RuntimeError as error:
+        print(f"FAIL {error}")
+        return False
     if OBSIDIAN_CODEX_PLUGIN_ID in enabled_plugins:
         print("PASS Obsidian plugin listed as enabled")
+        return True
     else:
-        print("WARN Obsidian plugin is installed but not listed as enabled")
+        print("FAIL Obsidian plugin is installed but not listed as enabled")
+        return False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -116,8 +115,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FAIL {file_name} missing")
             failures += 1
 
-    if obsidian_dir.exists():
-        check_community_plugins(obsidian_dir)
+    if obsidian_dir.exists() and not check_community_plugins(obsidian_dir):
+        failures += 1
     if not check_cli():
         failures += 1
 

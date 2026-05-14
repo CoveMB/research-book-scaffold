@@ -48,12 +48,10 @@ def latest_obsidian_release_zip_url() -> str:
         payload = json.loads(response.read().decode("utf-8"))
     for asset in payload.get("assets", []):
         download_url = asset.get("browser_download_url", "")
-        if download_url.endswith(".zip"):
+        file_name = download_url.rsplit("/", 1)[-1].lower()
+        if file_name.startswith("obsidian-codex-") and file_name.endswith(".zip"):
             return download_url
-    zipball_url = payload.get("zipball_url")
-    if zipball_url:
-        return zipball_url
-    raise RuntimeError("No zip asset found for latest Obsidian plugin release")
+    raise RuntimeError("No obsidian-codex release zip asset found for latest Obsidian plugin release")
 
 
 def sha256_file(path: Path) -> str:
@@ -112,6 +110,55 @@ def ensure_obsidian_plugin_parent(vault_path: Path, report: StatusReport, dry_ru
     return plugins_dir
 
 
+def community_plugins_path(obsidian_dir: Path) -> Path:
+    return obsidian_dir / "community-plugins.json"
+
+
+def read_enabled_community_plugins(obsidian_dir: Path) -> list[str]:
+    path = community_plugins_path(obsidian_dir)
+    if not path.exists():
+        return []
+    try:
+        enabled_plugins = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"invalid {path}: {error}") from error
+    if not isinstance(enabled_plugins, list):
+        raise RuntimeError(f"invalid {path}: expected a list")
+    if not all(isinstance(plugin_id, str) for plugin_id in enabled_plugins):
+        raise RuntimeError(f"invalid {path}: expected a list of plugin id strings")
+    return enabled_plugins
+
+
+def write_enabled_community_plugins(obsidian_dir: Path, enabled_plugins: list[str]) -> None:
+    community_plugins_path(obsidian_dir).write_text(
+        json.dumps(enabled_plugins, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def ensure_obsidian_codex_enabled(
+    obsidian_dir: Path,
+    enabled_plugins: list[str],
+    report: StatusReport,
+    dry_run: bool,
+) -> bool:
+    if OBSIDIAN_CODEX_PLUGIN_ID in enabled_plugins:
+        report.add("already_present", f"{OBSIDIAN_CODEX_PLUGIN_ID} listed in {community_plugins_path(obsidian_dir)}")
+        return True
+
+    updated_plugins = [*enabled_plugins, OBSIDIAN_CODEX_PLUGIN_ID]
+    if dry_run:
+        report.add("skipped", f"dry-run would enable {OBSIDIAN_CODEX_PLUGIN_ID} in {community_plugins_path(obsidian_dir)}")
+        return True
+    try:
+        write_enabled_community_plugins(obsidian_dir, updated_plugins)
+    except OSError as error:
+        report.add("failed", f"could not enable {OBSIDIAN_CODEX_PLUGIN_ID}: {error}")
+        return False
+    report.add("installed", f"enabled {OBSIDIAN_CODEX_PLUGIN_ID} in {community_plugins_path(obsidian_dir)}")
+    return True
+
+
 def replace_directory_atomically(source_dir: Path, destination_dir: Path) -> None:
     with tempfile.TemporaryDirectory(prefix=f".{destination_dir.name}-", dir=destination_dir.parent) as temp_dir:
         temp_path = Path(temp_dir)
@@ -131,8 +178,8 @@ def replace_directory_atomically(source_dir: Path, destination_dir: Path) -> Non
 def obsidian_next_steps(include_read_only_test: bool) -> list[str]:
     steps = [
         "Restart Obsidian.",
-        "Enable Community Plugins.",
-        "Enable Codex for Obsidian.",
+        "Confirm Community Plugins are enabled in Obsidian.",
+        "Confirm Codex for Obsidian is enabled.",
     ]
     if include_read_only_test:
         steps.append("Open the plugin sidebar and run a harmless read-only test first.")
@@ -148,13 +195,21 @@ def install_obsidian_codex(args: argparse.Namespace, report: StatusReport) -> No
     plugins_dir = ensure_obsidian_plugin_parent(vault_path, report, args.dry_run)
     if plugins_dir is None:
         return
+    obsidian_dir = vault_path / OBSIDIAN_DIR
+    try:
+        enabled_plugins = read_enabled_community_plugins(obsidian_dir)
+    except RuntimeError as error:
+        report.add("failed", str(error))
+        return
     destination_dir = plugins_dir / OBSIDIAN_CODEX_PLUGIN_ID
     if destination_dir.exists() and not args.force:
         report.add("skipped", f"{destination_dir} exists; use --force to replace")
+        ensure_obsidian_codex_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
         return
     if args.dry_run:
         report.add("skipped", f"dry-run would download latest release from {DEFAULT_OBSIDIAN_REPO}/releases/latest")
         report.add("skipped", f"dry-run would install plugin to {destination_dir}")
+        ensure_obsidian_codex_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
         report.next_steps.extend(obsidian_next_steps(include_read_only_test=False))
         return
 
@@ -185,6 +240,8 @@ def install_obsidian_codex(args: argparse.Namespace, report: StatusReport) -> No
         report.add("failed", f"Obsidian plugin install failed: {error}")
         return
     report.add("installed", f"installed Obsidian plugin to {destination_dir}")
+    if not ensure_obsidian_codex_enabled(obsidian_dir, enabled_plugins, report, args.dry_run):
+        return
     report.next_steps.extend(obsidian_next_steps(include_read_only_test=True))
 
 

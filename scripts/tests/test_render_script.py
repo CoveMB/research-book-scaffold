@@ -50,6 +50,7 @@ class RenderScriptTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 1)
         self.assertIn("No TeX engine found for PDF rendering: lualatex.", result.stdout)
+        self.assertIn("$HOME/Library/TinyTeX/bin/universal-darwin", result.stdout)
 
     def test_configured_pdf_engine_is_used(self) -> None:
         config = "format:\n  pdf:\n    pdf-engine: xelatex\n"

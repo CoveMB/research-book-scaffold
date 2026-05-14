@@ -22,3 +22,24 @@ Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help f
 Do not store API keys or credentials in this repository.
 
 External repositories live under `vendor/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the vendored Research Book Skills submodule and the nested optional Subagent Orchestrator plugin path.
+
+## Render tool verification
+
+Install TinyTeX for PDF rendering with Quarto:
+
+```sh
+quarto install tinytex --update-path
+```
+
+Then open a new shell and verify the commands used by render QA:
+
+```sh
+lualatex --version
+bibtex --version
+```
+
+On macOS, if TinyTeX is installed but those commands are not found, add the TinyTeX binary directory to `PATH`:
+
+```sh
+export PATH="$HOME/Library/TinyTeX/bin/universal-darwin:$PATH"
+```

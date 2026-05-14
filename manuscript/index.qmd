@@ -3,3 +3,5 @@
 This manuscript scaffold is generic. Replace this page with project-level front matter when the project has a defined scope.
 
 Use citations only after the citekey exists in `../bibliography/references.bib`.
+
+PDF output depends on a local TeX distribution; Quarto documents TinyTeX as the recommended lightweight TeX distribution for PDF rendering [@quartoPdfBasics].

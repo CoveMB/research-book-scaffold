@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 
 from scripts.tests.helpers import add_scripts_to_path
@@ -9,6 +10,8 @@ from scripts.tests.helpers import add_scripts_to_path
 add_scripts_to_path()
 
 import check_manuscript_readiness
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class CheckManuscriptReadinessTests(unittest.TestCase):
@@ -42,6 +45,11 @@ book:
     - index.qmd
     - chapters/01-introduction.qmd
 """
+
+        self.assertEqual(check_manuscript_readiness.readiness_findings(config_text), [])
+
+    def test_default_scaffold_release_configuration_is_ready(self) -> None:
+        config_text = (ROOT / "manuscript" / "_quarto.yml").read_text(encoding="utf-8")
 
         self.assertEqual(check_manuscript_readiness.readiness_findings(config_text), [])
 
