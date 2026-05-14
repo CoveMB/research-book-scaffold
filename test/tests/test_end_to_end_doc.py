@@ -113,10 +113,24 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             "`quarto install tinytex --update-path`",
             "`bibtex --version`",
             "`$HOME/Library/TinyTeX/bin/universal-darwin`",
+            'PATH="$HOME/Library/TinyTeX/bin/universal-darwin:$PATH" make render-pdf',
             "Setup writes `.obsidian/community-plugins.json`",
             "Download the latest Better BibTeX `.xpi`",
             "`python3 -m http.server --directory exports/html 4173`",
             "`http://127.0.0.1:4173/`",
+        ]
+        for phrase in expected_phrases:
+            self.assertIn(phrase, self.runbook_text)
+
+    def test_runbook_documents_zotero_api_quarto_warning_and_skill_smoke_tests(self) -> None:
+        expected_phrases = [
+            "Zotero local API enabled when API-based citation-library checks are in scope",
+            "Allow other applications on this computer to communicate with Zotero",
+            "`http://localhost:23119/api/`",
+            "Skill smoke tests are part of full release QA",
+            "No skill output is treated as scholarly evidence",
+            "refusing to remove `site_libs` outside the project directory",
+            "render internally, such as to `manuscript/_book`, then copy final artifacts into `exports/`",
         ]
         for phrase in expected_phrases:
             self.assertIn(phrase, self.runbook_text)

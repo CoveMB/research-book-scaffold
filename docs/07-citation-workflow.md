@@ -30,6 +30,22 @@ If Zotero auto-export is not available, export manually from Zotero to `bibliogr
 
 Before refreshing `bibliography/references.bib` during QA, verify Zotero is open, the local Zotero API is reachable when API-based checks are in scope, Better BibTeX is installed and enabled, and `git status --short` is clean. After export, inspect `git diff -- bibliography/references.bib` and accept only verified Zotero or Better BibTeX metadata.
 
+## Zotero local API
+
+Use Zotero's built-in local API for QA and local tooling. In Zotero, open `Zotero > Settings > Advanced` on macOS and enable:
+
+```text
+Allow other applications on this computer to communicate with Zotero
+```
+
+The default local API endpoint is:
+
+```text
+http://localhost:23119/api/
+```
+
+The local API does not use a zotero.org web API key. If the endpoint is unavailable, confirm Zotero is open, the Advanced setting is enabled, and the local HTTP server port is `23119`. A plain browser visit to the API root may show `Request not allowed`; use the Zotero helper status check or a targeted API route through a tool that sends Zotero's expected headers. `http://127.0.0.1:23119/connector/ping` only confirms the connector server is running.
+
 ## Citekeys
 
 - Use Better BibTeX citekeys when possible.

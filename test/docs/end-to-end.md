@@ -34,6 +34,7 @@ Optional until the matching workflow is tested:
 - Node and npm, used by setup only if Codex CLI needs installation through npm
 - Quarto, Pandoc, and a TeX engine such as `lualatex` for manuscript rendering
 - Zotero and Better BibTeX for citation-library verification
+- Zotero local API enabled when API-based citation-library checks are in scope
 
 Install TinyTeX for PDF rendering when TeX is not already available by running `quarto install tinytex --update-path`:
 
@@ -42,6 +43,14 @@ quarto install tinytex --update-path
 ```
 
 Open a new shell after installation. On macOS, if TinyTeX is installed but TeX commands such as `lualatex --version` and `bibtex --version` are still unavailable, add `$HOME/Library/TinyTeX/bin/universal-darwin` to `PATH`.
+
+For a persistent macOS setup, add the TinyTeX path to the shell startup file used by the terminal, then open a new shell before rerunning render checks.
+
+Non-interactive automation may not source interactive shell startup files. If render QA still cannot find TeX after the profile update, prefix render commands explicitly:
+
+```sh
+PATH="$HOME/Library/TinyTeX/bin/universal-darwin:$PATH" make render-pdf
+```
 
 Record versions before setup:
 
@@ -184,17 +193,19 @@ Zotero and Better BibTeX can be used with `bibliography/references.bib`:
 2. Download the latest Better BibTeX `.xpi` when the add-on is not installed.
 3. In Zotero, use `Tools > Plugins`, select `Plugins`, open the gear menu, and choose `Install Plugin From File...`.
 4. Restart Zotero and confirm Better BibTeX is installed and enabled when citation-library QA is in scope.
-5. Confirm the local Zotero API is reachable when API-based checks are in scope.
-6. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
-7. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
-8. Inspect `git diff -- bibliography/references.bib`.
-9. Run `python3 scripts/check_citations.py --include-notes --require-citations`.
+5. In Zotero, open `Zotero > Settings > Advanced` on macOS and enable `Allow other applications on this computer to communicate with Zotero`.
+6. Confirm the local Zotero API base is `http://localhost:23119/api/` when API-based checks are in scope. Use a Zotero-aware helper or targeted API route for API checks; a plain browser visit to the API root may show `Request not allowed`.
+7. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
+8. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
+9. Inspect `git diff -- bibliography/references.bib`.
+10. Run `python3 scripts/check_citations.py --include-notes --require-citations`.
 
 Expected result:
 
 - Zotero opens the relevant library.
 - Better BibTeX can provide stable citekeys.
 - `bibliography/references.bib` remains the repository citation source of truth.
+- Zotero's built-in local API is used when API-based checks are claimed.
 - `git diff -- bibliography/references.bib` shows only expected verified Zotero or Better BibTeX changes.
 - No generated or unverified bibliographic metadata is accepted as evidence.
 
@@ -531,6 +542,35 @@ Expected result:
 - `.agents/plugins/marketplace.json` points Research Book Skills and Subagent Orchestrator to vendored paths.
 - Vendored upstream files remain unchanged.
 
+Skill smoke tests are part of full release QA when the release claims ARS, Research Book Skills, or Subagent Orchestrator usability. Run smoke tests only against synthetic seed material or named read-only scaffold files, and record the result in the evidence log.
+
+For each listed ARS wrapper:
+
+1. Read the local wrapper `SKILL.md`.
+2. Read the referenced vendored upstream `SKILL.md`.
+3. Run only a bounded read-only prompt against synthetic seed files.
+4. Record whether the skill loaded, which files it read, what it would check, and what uncertainty remains.
+
+For each listed Research Book Skills plugin skill:
+
+1. Use the safe fixture prompt pattern below.
+2. Confirm the skill stays within the seed fixture or named files.
+3. Record whether it can be loaded and used without edits.
+
+For Subagent Orchestrator skills:
+
+1. Use the safe usage prompt below.
+2. Confirm it classifies execution shape only.
+3. Do not spawn agents as part of this smoke test.
+
+Expected skill smoke-test result:
+
+- Each claimed skill can be loaded.
+- Each prompt remains read-only.
+- The response identifies files read and uncertainty remaining.
+- No skill output is treated as scholarly evidence.
+- No vendored upstream command, Claude-specific command, hook, global config, or global agent is executed.
+
 ARS wrapper usage:
 
 - `ars-deep-research`
@@ -633,6 +673,7 @@ Expected result:
 - PDF and all-format render require the configured PDF engine, defaulting to `lualatex`.
 - Rendered outputs appear under the configured Quarto output location in `exports/`.
 - Generated files are manually inspected for title, table of contents, citations, bibliography, internal links, figures, tables, page breaks, headings, and absence of scaffold sample content.
+- If Quarto warns that it is refusing to remove `site_libs` outside the project directory, record it as non-blocking only when all expected outputs exist and manual inspection passes. The warning means the scaffold renders from the `manuscript/` Quarto project into `exports/html`, outside that Quarto project root. If warning-free logs become a release requirement, change the render workflow to render internally, such as to `manuscript/_book`, then copy final artifacts into `exports/`.
 
 ## Manual Scholarly QA
 
