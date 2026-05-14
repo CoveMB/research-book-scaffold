@@ -22,7 +22,7 @@ class RenderScriptTests(unittest.TestCase):
             python_link = Path(empty_path) / "python3"
             python_link.symlink_to(sys.executable)
             result = subprocess.run(
-                ["/bin/sh", "scripts/render.sh"],
+                ["/bin/sh", "scripts/research-writing/render.sh"],
                 check=False,
                 capture_output=True,
                 text=True,
@@ -41,7 +41,7 @@ class RenderScriptTests(unittest.TestCase):
             fake_quarto.chmod(0o755)
             path = os.pathsep.join([temp_path, "/usr/bin", "/bin"])
             result = subprocess.run(
-                ["/bin/sh", "scripts/render.sh"],
+                ["/bin/sh", "scripts/research-writing/render.sh"],
                 check=False,
                 capture_output=True,
                 text=True,

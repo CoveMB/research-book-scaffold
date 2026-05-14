@@ -19,7 +19,7 @@ Use Better BibTeX in Zotero to keep this file current:
 3. Use format `Better BibTeX`.
 4. Check `Keep updated`.
 5. Save the export as `bibliography/references.bib`.
-6. Run `python3 scripts/check_citations.py --include-notes`.
+6. Run `python3 scripts/research-writing/check_citations.py --include-notes`.
 
 After auto-export is active, edit source metadata in Zotero. Avoid hand-editing `references.bib`; Zotero may overwrite it on the next export.
 

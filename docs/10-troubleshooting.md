@@ -11,11 +11,11 @@
 | Missing `bibtex` after TinyTeX install | Verify `bibtex --version`. On macOS, add `$HOME/Library/TinyTeX/bin/universal-darwin` to `PATH` if needed. |
 | Missing bibliography | Export from Zotero or create `bibliography/references.bib`. |
 | Broken citekeys | Compare draft citations with BibTeX keys. |
-| Broken wiki links | Run `python3 scripts/check_broken_internal_links.py`. |
+| Broken wiki links | Run `python3 scripts/research-writing/check_broken_internal_links.py`. |
 | Placeholder markers remain | Run the placeholder checker and resolve each marker. |
 | Codex Panel not visible | Confirm `.obsidian/plugins/codex-panel/` exists, `.obsidian/community-plugins.json` includes `codex-panel`, then open Settings -> Community plugins and click Reload plugins. |
-| Codex Panel cannot start Codex | Confirm `.obsidian/plugins/codex-panel/data.json` contains an absolute executable `codexPath`, then run `python3 scripts/check_obsidian_panel.py`. |
-| External skills not installed | Run `python3 scripts/install_external_skills.py --yes`, then review reports. |
+| Codex Panel cannot start Codex | Confirm `.obsidian/plugins/codex-panel/data.json` contains an absolute executable `codexPath`, then run `python3 scripts/operations/obsidian/check_obsidian_panel.py`. |
+| External skills not installed | Run `python3 scripts/operations/vendors/install_external_skills.py --yes`, then review reports. |
 | Research Book Skills plugin not visible | Check `vendor/research-book-skills/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
 | Subagent Orchestrator plugin not visible | Check `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
 | Agent edited too much | Inspect diff, keep intended changes, revert only with user approval. |

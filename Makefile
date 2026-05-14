@@ -24,59 +24,59 @@ help:
 	@echo "  release-audit          Run strict manuscript readiness checks"
 
 doctor:
-	bash scripts/doctor.sh
+	bash scripts/operations/health/doctor.sh
 
 render:
-	bash scripts/render.sh
+	bash scripts/research-writing/render.sh
 
 render-html:
-	bash scripts/render.sh --to html
+	bash scripts/research-writing/render.sh --to html
 
 render-pdf:
-	bash scripts/render.sh --to pdf
+	bash scripts/research-writing/render.sh --to pdf
 
 render-docx:
-	bash scripts/render.sh --to docx
+	bash scripts/research-writing/render.sh --to docx
 
 test:
 	python3 -m unittest discover scripts/tests
-	python3 -m unittest discover test/tests
+	python3 -m unittest discover end-2-end-tests/tests
 
 lint:
-	python3 -m compileall -q scripts test/tools test/tests
+	python3 -m compileall -q scripts end-2-end-tests/tools end-2-end-tests/tests
 
 check-placeholders:
-	python3 scripts/check_placeholders.py .
+	python3 scripts/research-writing/check_placeholders.py .
 
 check-citations:
-	python3 scripts/check_citations.py
+	python3 scripts/research-writing/check_citations.py
 
 check-citations-strict:
-	python3 scripts/check_citations.py --include-notes --require-citations
+	python3 scripts/research-writing/check_citations.py --include-notes --require-citations
 
 check-links:
-	python3 scripts/check_broken_internal_links.py
+	python3 scripts/research-writing/check_broken_internal_links.py
 
 check-manuscript-readiness:
-	python3 scripts/check_manuscript_readiness.py
+	python3 scripts/research-writing/check_manuscript_readiness.py
 
 check-external-skills:
-	python3 scripts/check_external_skills.py
+	python3 scripts/operations/vendors/check_external_skills.py
 
 install-external-skills:
-	python3 scripts/install_external_skills.py --yes
+	python3 scripts/operations/vendors/install_external_skills.py --yes
 
 install-subagent-orchestrator:
-	python3 scripts/install_external_skills.py --yes --skip-ars --skip-rbs
+	python3 scripts/operations/vendors/install_external_skills.py --yes --skip-ars --skip-rbs
 
 update-skills-vendors:
-	bash scripts/update-skills-vendors.sh
+	bash scripts/operations/vendors/update-skills-vendors.sh
 
 check-obsidian-panel:
-	python3 scripts/check_obsidian_panel.py
+	python3 scripts/operations/obsidian/check_obsidian_panel.py
 
 install-obsidian-panel:
-	bash scripts/install_obsidian_panel.sh
+	bash scripts/operations/obsidian/install_obsidian_panel.sh
 
 audit: test check-placeholders check-citations check-links check-external-skills
 

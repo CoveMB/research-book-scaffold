@@ -10,6 +10,14 @@ from pathlib import Path
 
 TESTS_DIR = Path(__file__).resolve().parent
 SCRIPTS_DIR = TESTS_DIR.parent
+SCRIPT_IMPORT_DIRS = [
+    SCRIPTS_DIR / "lib",
+    SCRIPTS_DIR / "research-writing",
+    SCRIPTS_DIR / "operations" / "setup",
+    SCRIPTS_DIR / "operations" / "health",
+    SCRIPTS_DIR / "operations" / "vendors",
+    SCRIPTS_DIR / "operations" / "obsidian",
+]
 
 
 def add_path(path: Path) -> None:
@@ -20,6 +28,8 @@ def add_path(path: Path) -> None:
 
 def add_scripts_to_path() -> None:
     add_path(SCRIPTS_DIR)
+    for path in reversed(SCRIPT_IMPORT_DIRS):
+        add_path(path)
 
 
 def add_tests_to_path() -> None:

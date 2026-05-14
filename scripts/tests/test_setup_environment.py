@@ -58,7 +58,7 @@ class SetupEnvironmentTests(unittest.TestCase):
 
         setup_environment.run_recommendations(report)
 
-        self.assertIn("Run python3 scripts/check_obsidian_panel.py", report.next_steps)
+        self.assertIn("Run python3 scripts/operations/obsidian/check_obsidian_panel.py", report.next_steps)
 
     def test_recommendations_follow_configured_check_manifest(self) -> None:
         report = SilentReport()

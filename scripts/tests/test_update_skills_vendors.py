@@ -55,7 +55,7 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         self.assertIn(
             (
                 "python3",
-                "scripts/install_external_skills.py",
+                "scripts/operations/vendors/install_external_skills.py",
                 "--yes",
                 "--force",
                 "--no-update",
@@ -89,7 +89,7 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         self.assertIn(
             (
                 "python3",
-                "scripts/install_external_skills.py",
+                "scripts/operations/vendors/install_external_skills.py",
                 "--yes",
                 "--force",
                 "--no-update",

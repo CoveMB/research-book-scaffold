@@ -43,7 +43,7 @@ Initialize vendored repositories with `git submodule update --init --recursive` 
 Run this when an upstream skill repository has new commits:
 
 ```sh
-bash scripts/update-skills-vendors.sh
+bash scripts/operations/vendors/update-skills-vendors.sh
 ```
 
 The updater:
@@ -53,8 +53,8 @@ The updater:
 - refuses to continue if a vendor has uncommitted changes
 - fast-forwards each selected vendor with `git pull --ff-only`
 - refreshes local skill wrappers, marketplace metadata, and install reports through the local installer
-- runs `python3 scripts/check_external_skills.py`
-- runs `bash scripts/doctor.sh`
+- runs `python3 scripts/operations/vendors/check_external_skills.py`
+- runs `bash scripts/operations/health/doctor.sh`
 
 After a successful run, review the submodule pointer changes and any refreshed files before committing. Use `--skip-ars`, `--skip-rbs`, or `--skip-subagent-orchestrator` to leave a vendor pinned while updating others. Use `--skip-checks` only when another verification command will be run immediately afterward.
 

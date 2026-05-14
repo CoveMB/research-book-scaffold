@@ -140,11 +140,11 @@ Use Codex Panel only for bounded reads, note creation, drafting, or audit tasks.
 Run checks that match the work:
 
 ```sh
-bash scripts/doctor.sh
-python3 scripts/check_citations.py
-python3 scripts/check_placeholders.py .
-python3 scripts/check_broken_internal_links.py
-python3 scripts/check_external_skills.py
+bash scripts/operations/health/doctor.sh
+python3 scripts/research-writing/check_citations.py
+python3 scripts/research-writing/check_placeholders.py .
+python3 scripts/research-writing/check_broken_internal_links.py
+python3 scripts/operations/vendors/check_external_skills.py
 ```
 
 Before sharing or exporting a manuscript, run the strict release audit target:

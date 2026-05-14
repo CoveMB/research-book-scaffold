@@ -20,7 +20,7 @@ One-time setup:
 8. Set format to `Better BibTeX`.
 9. Check `Keep updated`.
 10. Save the export as `bibliography/references.bib`.
-11. Run `make check-citations` or `python3 scripts/check_citations.py --include-notes`.
+11. Run `make check-citations` or `python3 scripts/research-writing/check_citations.py --include-notes`.
 
 After this setup, Zotero updates `bibliography/references.bib` when exported items change. Avoid hand-editing `references.bib`; the next export can overwrite those edits. Fix metadata and citekeys in Zotero instead.
 
@@ -34,9 +34,9 @@ If Zotero auto-export is not available, export manually from Zotero to `bibliogr
 - Keep citekeys stable after notes or drafts reference them.
 - To pin a citekey in Zotero, add `Citation Key: your_key_here` on its own line in the item `Extra` field.
 - Check manuscript citekeys against `bibliography/references.bib`.
-- Use `python3 scripts/check_citations.py --include-notes` when notes and research logs may contain citekeys.
-- Use `python3 scripts/check_citations.py --require-citations` before treating a manuscript as citation-ready.
-- Use `python3 scripts/check_citations.py --show-unused` only when you want bibliography cleanup noise.
+- Use `python3 scripts/research-writing/check_citations.py --include-notes` when notes and research logs may contain citekeys.
+- Use `python3 scripts/research-writing/check_citations.py --require-citations` before treating a manuscript as citation-ready.
+- Use `python3 scripts/research-writing/check_citations.py --show-unused` only when you want bibliography cleanup noise.
 
 ## Syntax
 

@@ -24,7 +24,7 @@ def previous_agent_plugin_id() -> str:
 class ObsidianInstallerTests(unittest.TestCase):
     def test_obsidian_wrapper_runs_obsidian_only_dry_run(self) -> None:
         result = subprocess.run(
-            ["/bin/sh", "scripts/install_obsidian_panel.sh", "--dry-run"],
+            ["/bin/sh", "scripts/operations/obsidian/install_obsidian_panel.sh", "--dry-run"],
             cwd=ROOT,
             check=False,
             capture_output=True,

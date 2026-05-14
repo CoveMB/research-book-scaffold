@@ -37,7 +37,7 @@ If the user does not specify an output target, default to readiness only and run
 - `docs/08-writing-workflow.md`
 - `docs/09-audit-workflow.md`
 - `Makefile`
-- `scripts/render_manuscript.py`
+- `scripts/research-writing/render_manuscript.py`
 - `manuscript/_quarto.yml`
 - `manuscript/`
 - `bibliography/references.bib`

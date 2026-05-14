@@ -90,8 +90,8 @@ It must not edit bibliography files, vendor files, upstream skills, source PDFs,
 6. Run structure checks when relevant:
 
 ```sh
-python3 scripts/check_placeholders.py .
-python3 scripts/check_broken_internal_links.py
+python3 scripts/research-writing/check_placeholders.py .
+python3 scripts/research-writing/check_broken_internal_links.py
 ```
 
 7. Identify misplaced files, broken or ambiguous wiki links, stale placeholders, unresolved evidence gaps, and sensitive material risks.

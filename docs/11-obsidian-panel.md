@@ -41,7 +41,7 @@ GUI apps may not inherit the shell `PATH`, so the plugin settings should use an 
 Default setup treats the repository root as the vault root:
 
 ```sh
-python3 scripts/setup_environment.py
+python3 scripts/operations/setup/setup_environment.py
 ```
 
 This creates `.obsidian/` in the project root, installs the plugin at `.obsidian/plugins/codex-panel/`, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, and writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
@@ -51,8 +51,8 @@ If `.obsidian/community-plugins.json` exists but is not a JSON list, setup fails
 Use an explicit path only when installing into a different vault:
 
 ```sh
-OBSIDIAN_VAULT=/path/to/vault bash scripts/install_obsidian_panel.sh
-python3 scripts/setup_environment.py --obsidian-vault /path/to/vault
+OBSIDIAN_VAULT=/path/to/vault bash scripts/operations/obsidian/install_obsidian_panel.sh
+python3 scripts/operations/setup/setup_environment.py --obsidian-vault /path/to/vault
 ```
 
 The installer refuses to replace an existing plugin folder unless `--force` is passed. It installs from published release assets only and rejects zip archive inputs.
@@ -60,7 +60,7 @@ The installer refuses to replace an existing plugin folder unless `--force` is p
 Health check:
 
 ```sh
-python3 scripts/check_obsidian_panel.py
+python3 scripts/operations/obsidian/check_obsidian_panel.py
 ```
 
 Expected result:
