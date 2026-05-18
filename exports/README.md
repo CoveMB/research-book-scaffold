@@ -10,3 +10,7 @@ Folders:
 - `docx/`
 - `html/`
 - `epub/`
+
+The current Quarto configuration writes rendered outputs to `exports/html/`.
+The other folders are reserved for workflows that later sort or copy final
+artifacts by format.

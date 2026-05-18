@@ -8,7 +8,10 @@
 | Markdown editor | Direct file editing outside Obsidian | Optional |
 | Quarto | Book rendering | Optional until export |
 | Pandoc | Format conversion | Optional until export |
-| Git | Version history and checkpoints | Recommended |
+| Git | Version history, submodules, and checkpoints | Required for setup and vendor checks |
+| Python 3 | Local scripts, checks, setup, and tests | Required |
+| curl | Core command checked by setup and health checks for download workflows | Required by setup and doctor checks |
+| unzip | Core command checked by setup and health checks for archive workflows | Required by setup and doctor checks |
 | Codex CLI | Local agent workflows | Required |
 | Repo-scoped skills | Task-specific agent procedures | Optional |
 | MCP | Controlled access to tools and data | Optional |

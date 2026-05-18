@@ -2,4 +2,4 @@
 
 Chapter files live here.
 
-`01-chapter-template.qmd` is included in the sample manuscript so exports show the scaffold shape. Replace it when the project has a real chapter.
+`01-chapter-template.qmd` is a scaffold example. It is intentionally not included in the release manuscript configuration because sample chapters should be replaced with verified project material before export.

@@ -2,4 +2,4 @@
 
 Appendix files live here.
 
-`appendix-template.qmd` is included in the sample manuscript so exports show the scaffold shape. Replace it when the project has real appendix material.
+`appendix-template.qmd` is a scaffold example. It is intentionally not included in the release manuscript configuration because sample appendices should be replaced with real project material before export.

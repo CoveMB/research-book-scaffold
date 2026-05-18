@@ -18,4 +18,5 @@ After cloning this scaffold, initialize them with:
 git submodule update --init --recursive
 ```
 
-The setup script also initializes these submodules.
+`make install-external-skills` initializes these submodules. Default `bash setup.sh`
+does not change external repositories unless `--with-external-skills` is passed.

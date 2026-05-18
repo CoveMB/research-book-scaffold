@@ -2,7 +2,7 @@
 
 ## Short path
 
-1. Create a project charter in `templates/project-charter-template.md`.
+1. Create a project charter from `templates/project-charter-template.md`.
 2. Plan repeatable searches in `research/search-logs/`.
 3. Dedupe and screen candidate sources before adding them to the bibliography.
 4. Store verified sources in Zotero or `bibliography/references.bib`.
@@ -20,7 +20,7 @@
 
 | Step | Purpose | Inputs | Outputs | Tool | Workflow support | Gate |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1. Project charter | Set scope | User brief | Charter note | `templates/project-charter-template.md` | RBS research agenda workflow | Boundaries clear |
+| 1. Project charter | Set scope | User brief | Charter note | Create from `templates/project-charter-template.md` | RBS research agenda workflow | Boundaries clear |
 | 2. Research question refinement | Narrow inquiry | Charter | Questions | Notes | RBS or ARS planning workflow | Questions testable |
 | 3. Search planning | Plan discovery | Questions | Search plan | `vendor/research-book-skills/skills/systematic-source-discovery/assets/search-log-template.md` | RBS source discovery workflow | Query reproducible |
 | 4. Source discovery | Find candidates | Search plan | Candidate list | Zotero, indexes | RBS source discovery workflow | Criteria applied |
