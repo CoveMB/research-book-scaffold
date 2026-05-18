@@ -93,7 +93,7 @@ class ProjectToolingTests(unittest.TestCase):
 
         self.assertIn("[tool.ruff]", pyproject)
         self.assertIn('target-version = "py311"', pyproject)
-        self.assertIn("[tool.unittest]", pyproject)
+        self.assertNotIn("[tool.unittest]", pyproject)
 
     def test_external_vendor_specs_are_canonical(self) -> None:
         specs_by_key = {spec.key: spec for spec in project_config.EXTERNAL_VENDOR_SPECS}

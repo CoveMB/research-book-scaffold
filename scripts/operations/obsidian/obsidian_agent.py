@@ -417,22 +417,7 @@ def install_codex_panel(args: argparse.Namespace, report: StatusReport) -> None:
 
 
 def print_summary(report: StatusReport) -> None:
-    print("\nObsidian plugin install report")
-    sections = [
-        ("Installed", report.installed),
-        ("Already present", report.already_present),
-        ("Skipped", report.skipped),
-        ("Failed", report.failed),
-        ("Warnings", report.warnings),
-        ("Next manual steps", report.next_steps),
-    ]
-    for title, values in sections:
-        print(f"\n{title}:")
-        if not values:
-            print("- none")
-        else:
-            for value in values:
-                print(f"- {value}")
+    report.print_summary("Obsidian plugin install report")
 
 
 def main(argv: list[str] | None = None) -> int:

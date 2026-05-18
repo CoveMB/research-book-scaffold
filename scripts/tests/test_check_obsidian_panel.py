@@ -54,9 +54,7 @@ class CheckObsidianCodexTests(unittest.TestCase):
         self.assertIn("usage: check_obsidian_panel.py", output.getvalue())
 
     def test_missing_vault_reports_single_failure(self) -> None:
-        original_check_cli = check_obsidian_panel.check_cli
-        check_obsidian_panel.check_cli = lambda *_args: True
-        try:
+        with mock.patch.object(check_obsidian_panel, "check_cli", return_value=True):
             with tempfile.TemporaryDirectory() as temp_dir:
                 missing_vault = Path(temp_dir) / "missing"
                 output = io.StringIO()
@@ -65,8 +63,6 @@ class CheckObsidianCodexTests(unittest.TestCase):
                     exit_code = check_obsidian_panel.main([str(missing_vault)])
 
             text = output.getvalue()
-        finally:
-            check_obsidian_panel.check_cli = original_check_cli
 
         self.assertEqual(exit_code, 1)
         self.assertEqual(text.count("FAIL"), 1)
@@ -91,9 +87,7 @@ class CheckObsidianCodexTests(unittest.TestCase):
         self.assertNotIn("PASS Obsidian plugin listed as enabled", text)
 
     def test_disabled_community_plugin_is_a_failure(self) -> None:
-        original_check_cli = check_obsidian_panel.check_cli
-        check_obsidian_panel.check_cli = lambda *_args: True
-        try:
+        with mock.patch.object(check_obsidian_panel, "check_cli", return_value=True):
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_path = Path(temp_dir)
                 write_plugin(temp_path, enabled=False)
@@ -101,16 +95,12 @@ class CheckObsidianCodexTests(unittest.TestCase):
 
                 with contextlib.redirect_stdout(output):
                     exit_code = check_obsidian_panel.main([str(temp_path)])
-        finally:
-            check_obsidian_panel.check_cli = original_check_cli
 
         self.assertEqual(exit_code, 1)
         self.assertIn("FAIL Obsidian plugin is installed but not listed as enabled", output.getvalue())
 
     def test_manifest_id_mismatch_is_a_failure(self) -> None:
-        original_check_cli = check_obsidian_panel.check_cli
-        check_obsidian_panel.check_cli = lambda *_args: True
-        try:
+        with mock.patch.object(check_obsidian_panel, "check_cli", return_value=True):
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_path = Path(temp_dir)
                 write_plugin(temp_path, manifest_id="wrong-plugin")
@@ -118,16 +108,12 @@ class CheckObsidianCodexTests(unittest.TestCase):
 
                 with contextlib.redirect_stdout(output):
                     exit_code = check_obsidian_panel.main([str(temp_path)])
-        finally:
-            check_obsidian_panel.check_cli = original_check_cli
 
         self.assertEqual(exit_code, 1)
         self.assertIn("FAIL manifest id is wrong-plugin; expected codex-panel", output.getvalue())
 
     def test_enabled_community_plugin_passes_when_files_manifest_settings_and_cli_are_present(self) -> None:
-        original_check_cli = check_obsidian_panel.check_cli
-        check_obsidian_panel.check_cli = lambda *_args: True
-        try:
+        with mock.patch.object(check_obsidian_panel, "check_cli", return_value=True):
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_path = Path(temp_dir)
                 write_plugin(temp_path)
@@ -135,8 +121,6 @@ class CheckObsidianCodexTests(unittest.TestCase):
 
                 with contextlib.redirect_stdout(output):
                     exit_code = check_obsidian_panel.main([str(temp_path)])
-        finally:
-            check_obsidian_panel.check_cli = original_check_cli
 
         self.assertEqual(exit_code, 0)
         self.assertIn("PASS Obsidian plugin listed as enabled", output.getvalue())

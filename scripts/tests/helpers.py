@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import contextlib
+import io
 import json
 import os
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 
@@ -18,6 +19,7 @@ SCRIPT_IMPORT_DIRS = [
     SCRIPTS_DIR / "operations" / "vendors",
     SCRIPTS_DIR / "operations" / "obsidian",
 ]
+REMOVED_EXTERNAL_REPO_FLAGS = ("--ars-repo", "--rbs-repo", "--subagent-orchestrator-repo")
 
 
 def add_path(path: Path) -> None:
@@ -34,6 +36,16 @@ def add_scripts_to_path() -> None:
 
 def add_tests_to_path() -> None:
     add_path(TESTS_DIR)
+
+
+def assert_parse_args_rejects(
+    test_case: object,
+    parse_args: Callable[[list[str]], object],
+    argv: list[str],
+) -> None:
+    with contextlib.redirect_stderr(io.StringIO()):
+        with test_case.assertRaises(SystemExit):
+            parse_args(argv)
 
 
 add_scripts_to_path()

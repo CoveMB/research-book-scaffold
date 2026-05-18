@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 import tempfile
+import io
 from pathlib import Path
 from unittest import mock
 
@@ -15,6 +16,32 @@ import script_utils
 
 
 class ScriptUtilsTests(unittest.TestCase):
+    def test_status_report_print_summary_uses_standard_sections(self) -> None:
+        report = script_utils.StatusReport()
+        report.installed.append("created file")
+        report.warnings.append("manual check needed")
+
+        output = io.StringIO()
+        with mock.patch("sys.stdout", output):
+            report.print_summary("Example report")
+
+        self.assertEqual(
+            output.getvalue(),
+            "\nExample report\n"
+            "\nInstalled:\n"
+            "- created file\n"
+            "\nAlready present:\n"
+            "- none\n"
+            "\nSkipped:\n"
+            "- none\n"
+            "\nFailed:\n"
+            "- none\n"
+            "\nWarnings:\n"
+            "- manual check needed\n"
+            "\nNext manual steps:\n"
+            "- none\n",
+        )
+
     def test_run_command_required_prints_action_and_runs_command(self) -> None:
         result = mock.Mock(returncode=0)
 

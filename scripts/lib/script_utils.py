@@ -35,6 +35,26 @@ class StatusReport:
     def ok(self) -> bool:
         return not self.failed
 
+    def summary_sections(self) -> list[tuple[str, list[str]]]:
+        return [
+            ("Installed", self.installed),
+            ("Already present", self.already_present),
+            ("Skipped", self.skipped),
+            ("Failed", self.failed),
+            ("Warnings", self.warnings),
+            ("Next manual steps", self.next_steps),
+        ]
+
+    def print_summary(self, title: str) -> None:
+        print(f"\n{title}")
+        for section_title, values in self.summary_sections():
+            print(f"\n{section_title}:")
+            if not values:
+                print("- none")
+                continue
+            for value in values:
+                print(f"- {value}")
+
 
 def read_text(path: Path) -> str:
     try:

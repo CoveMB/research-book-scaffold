@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import contextlib
-import io
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
-from scripts.tests.helpers import SilentReport, working_directory
+from scripts.tests.helpers import REMOVED_EXTERNAL_REPO_FLAGS, SilentReport, assert_parse_args_rejects, working_directory
 
 import setup_environment
 from project_config import OBSIDIAN_PLUGINS_DIR, SETUP_RECOMMENDED_CHECKS
@@ -35,15 +34,35 @@ class SetupEnvironmentTests(unittest.TestCase):
         self.assertTrue(any(str(OBSIDIAN_PLUGINS_DIR) in message for message in messages))
         self.assertFalse(any("obsidian-vault" in message for message in messages))
 
+    def test_skip_obsidian_panel_arg_is_available(self) -> None:
+        args = setup_environment.parse_args(["--skip-obsidian-panel"])
+
+        self.assertTrue(args.skip_obsidian_panel)
+
+    def test_obsidian_panel_layer_skips_when_requested(self) -> None:
+        args = setup_environment.parse_args(["--skip-obsidian-panel"])
+        report = SilentReport()
+
+        with mock.patch.object(setup_environment, "install_codex_panel") as install_mock:
+            setup_environment.install_obsidian_panel_layer(args, report)
+
+        install_mock.assert_not_called()
+        self.assertIn("Codex Panel setup skipped by --skip-obsidian-panel", report.skipped)
+
     def test_removed_subagent_install_flag_is_rejected(self) -> None:
-        with contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                setup_environment.parse_args(["--install-subagent-orchestrator"])
+        assert_parse_args_rejects(self, setup_environment.parse_args, ["--install-subagent-orchestrator"])
 
     def test_update_conflict_is_rejected_during_argparse(self) -> None:
-        with contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                setup_environment.parse_args(["--update", "--no-update"])
+        assert_parse_args_rejects(self, setup_environment.parse_args, ["--update", "--no-update"])
+
+    def test_removed_external_repo_override_flags_are_rejected(self) -> None:
+        for flag in REMOVED_EXTERNAL_REPO_FLAGS:
+            with self.subTest(flag=flag):
+                assert_parse_args_rejects(
+                    self,
+                    setup_environment.parse_args,
+                    [flag, "https://example.invalid/repo.git"],
+                )
 
     def test_missing_local_skills_directory_dry_run_does_not_crash(self) -> None:
         report = SilentReport()
@@ -53,17 +72,31 @@ class SetupEnvironmentTests(unittest.TestCase):
 
         self.assertTrue(any("dry-run would create" in message for message in report.skipped))
 
-    def test_recommendations_always_include_obsidian_agent_check(self) -> None:
+    def test_recommendations_include_obsidian_agent_check_by_default(self) -> None:
+        args = setup_environment.parse_args([])
         report = SilentReport()
 
-        setup_environment.run_recommendations(report)
+        setup_environment.run_recommendations(args, report)
 
         self.assertIn("Run python3 scripts/operations/obsidian/check_obsidian_panel.py", report.next_steps)
 
-    def test_recommendations_follow_configured_check_manifest(self) -> None:
+    def test_recommendations_skip_obsidian_agent_check_when_panel_is_skipped(self) -> None:
+        args = setup_environment.parse_args(["--skip-obsidian-panel"])
         report = SilentReport()
 
-        setup_environment.run_recommendations(report)
+        setup_environment.run_recommendations(args, report)
+
+        self.assertNotIn("Run python3 scripts/operations/obsidian/check_obsidian_panel.py", report.next_steps)
+        self.assertIn(
+            "Run make install-obsidian-panel when Obsidian/Codex Panel coverage is needed",
+            report.next_steps,
+        )
+
+    def test_recommendations_follow_configured_check_manifest(self) -> None:
+        args = setup_environment.parse_args([])
+        report = SilentReport()
+
+        setup_environment.run_recommendations(args, report)
 
         self.assertEqual(
             report.next_steps,

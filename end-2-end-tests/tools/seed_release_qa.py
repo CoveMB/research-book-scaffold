@@ -24,7 +24,6 @@ class OperationResult(NamedTuple):
     target: Path
     status: str
     changed: bool
-    message: str
 
 
 def seed_targets(fixture_root: Path = DEFAULT_FIXTURE_ROOT) -> tuple[Path, ...]:
@@ -38,7 +37,10 @@ def seed_targets(fixture_root: Path = DEFAULT_FIXTURE_ROOT) -> tuple[Path, ...]:
 
 
 SEED_TARGETS = seed_targets()
-SEED_ONLY_TARGETS = tuple(target for target in SEED_TARGETS if target not in RESTORE_TARGETS)
+
+
+def seed_only_targets(fixture_root: Path = DEFAULT_FIXTURE_ROOT) -> tuple[Path, ...]:
+    return tuple(target for target in seed_targets(fixture_root) if target not in RESTORE_TARGETS)
 
 
 def read_text(path: Path) -> str:
@@ -66,14 +68,14 @@ def apply_seed(
         target_path = project_root / target
         source_text = read_text(source_path)
         if target_path.is_file() and read_text(target_path) == source_text:
-            results.append(OperationResult(target, "already-current", False, f"already current: {target}"))
+            results.append(OperationResult(target, "already-current", False))
             continue
         if dry_run:
-            results.append(OperationResult(target, "would-write", False, f"would write: {target}"))
+            results.append(OperationResult(target, "would-write", False))
             continue
         target_path.parent.mkdir(parents=True, exist_ok=True)
         target_path.write_text(source_text, encoding="utf-8")
-        results.append(OperationResult(target, "written", True, f"wrote: {target}"))
+        results.append(OperationResult(target, "written", True))
     return results
 
 
@@ -86,12 +88,12 @@ def seed_status(
     for target in seed_targets(fixture_root):
         target_path = project_root / target
         if not target_path.exists():
-            results.append(OperationResult(target, "missing", False, f"missing: {target}"))
+            results.append(OperationResult(target, "missing", False))
             continue
         if target_matches_fixture(project_root, target, fixture_root):
-            results.append(OperationResult(target, "applied", False, f"applied: {target}"))
+            results.append(OperationResult(target, "applied", False))
             continue
-        results.append(OperationResult(target, "different", False, f"different: {target}"))
+        results.append(OperationResult(target, "different", False))
     return results
 
 
@@ -116,13 +118,13 @@ def remove_seed_only_target(
 ) -> OperationResult:
     target_path = project_root / target
     if not target_path.exists():
-        return OperationResult(target, "already-absent", False, f"already absent: {target}")
+        return OperationResult(target, "already-absent", False)
     if not target_matches_fixture(project_root, target, fixture_root):
-        return OperationResult(target, "manual-review", False, f"not removing changed file: {target}")
+        return OperationResult(target, "manual-review", False)
     if dry_run:
-        return OperationResult(target, "would-remove", False, f"would remove: {target}")
+        return OperationResult(target, "would-remove", False)
     target_path.unlink()
-    return OperationResult(target, "removed", True, f"removed: {target}")
+    return OperationResult(target, "removed", True)
 
 
 def restore_tracked_target(
@@ -133,14 +135,14 @@ def restore_tracked_target(
 ) -> OperationResult:
     target_path = project_root / target
     if not target_path.exists():
-        return OperationResult(target, "missing", False, f"tracked target missing: {target}")
+        return OperationResult(target, "missing", False)
     if not target_matches_fixture(project_root, target, fixture_root):
-        return OperationResult(target, "manual-review", False, f"not restoring changed file: {target}")
+        return OperationResult(target, "manual-review", False)
     if dry_run:
-        return OperationResult(target, "would-restore", False, f"would restore: {target}")
+        return OperationResult(target, "would-restore", False)
     if restore_from_head(project_root, target):
-        return OperationResult(target, "restored", True, f"restored: {target}")
-    return OperationResult(target, "restore-failed", False, f"restore from HEAD failed: {target}")
+        return OperationResult(target, "restored", True)
+    return OperationResult(target, "restore-failed", False)
 
 
 def clean_seed(
@@ -151,7 +153,7 @@ def clean_seed(
 ) -> list[OperationResult]:
     results = [
         remove_seed_only_target(project_root, target, fixture_root, dry_run)
-        for target in SEED_ONLY_TARGETS
+        for target in seed_only_targets(fixture_root)
     ]
     results.extend(
         restore_tracked_target(project_root, target, fixture_root, dry_run)

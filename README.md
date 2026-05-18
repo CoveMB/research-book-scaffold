@@ -28,7 +28,7 @@ If the repository was cloned without submodules, run:
 git submodule update --init --recursive
 ```
 
-After setup, read `AGENTS.md`, add verified sources to Zotero or `bibliography/references.bib`, create notes from `templates/`, and draft in `manuscript/`. Obsidian is the required vault interface for local agent workflows; Markdown editors remain useful for direct file edits.
+After setup, read `AGENTS.md`, add verified sources to Zotero or `bibliography/references.bib`, create notes from `templates/`, and draft in `manuscript/`. Obsidian is the recommended vault interface for local agent workflows and is installed by default setup; pass `--skip-obsidian-panel` for CLI or Markdown-editor-only work.
 
 ## Common commands
 
@@ -52,9 +52,9 @@ Use `templates/` for local source notes, concept notes, claim notes, audits, sou
 
 ARS wrappers live in `.agents/skills/`. Research Book Skills and the optional Subagent Orchestrator plugin are exposed through `.agents/plugins/marketplace.json`, which points directly at reviewed vendored paths. Use them for bounded tasks such as search planning, candidate dedupe, source-note conversion, evidence extraction, claim traceability, claim audits, release/privacy review, proposal comps, drafting from notes, final manuscript checks, and orchestration planning when subagents would materially help.
 
-## Required local agent integration
+## Default local agent integration
 
-- Codex Panel connects this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/`, installs the plugin in the repository root, enables `codex-panel` in `.obsidian/community-plugins.json`, and writes an absolute Codex executable path in the plugin settings when one is available; pass `--obsidian-vault PATH` only for a different vault.
+- Codex Panel connects this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/`, installs the plugin in the repository root, enables `codex-panel` in `.obsidian/community-plugins.json`, and writes an absolute Codex executable path in the plugin settings when one is available. Pass `--skip-obsidian-panel` to leave Obsidian/Codex Panel setup for later, or pass `--obsidian-vault PATH` only for a different vault.
 
 ## Optional external integrations
 
@@ -70,7 +70,7 @@ The external repositories under `vendor/` are Git submodules. After cloning, ini
 git submodule update --init --recursive
 ```
 
-`make install-external-skills` also initializes them. `bash setup.sh` checks local tools, scaffold files, and the required Obsidian integration without changing external repositories unless `--with-external-skills` is passed.
+`make install-external-skills` also initializes them. `bash setup.sh` checks local tools, scaffold files, and the default Obsidian integration without changing external repositories unless `--with-external-skills` is passed. Use `bash setup.sh --skip-obsidian-panel` when Obsidian/Codex Panel coverage is out of scope.
 
 ## Do not automate
 

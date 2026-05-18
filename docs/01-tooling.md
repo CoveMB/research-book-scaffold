@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | Zotero | Source library, PDFs, metadata | Recommended |
 | Better BibTeX | Stable citekeys and BibTeX export | Recommended |
-| Obsidian project-root vault | Project-root notes and local navigation | Required |
+| Obsidian project-root vault | Project-root notes and local navigation | Recommended; setup default unless skipped |
 | Markdown editor | Direct file editing outside Obsidian | Optional |
 | Quarto | Book rendering | Optional until export |
 | Pandoc | Format conversion | Optional until export |
@@ -12,7 +12,7 @@
 | Codex CLI | Local agent workflows | Required |
 | Repo-scoped skills | Task-specific agent procedures | Optional |
 | MCP | Controlled access to tools and data | Optional |
-| Codex Panel Obsidian plugin | Agent work inside Obsidian | Required |
+| Codex Panel Obsidian plugin | Agent work inside Obsidian | Recommended; setup default unless skipped |
 | Academic Research Skills vendor repo | External academic paper and pipeline workflows | Optional |
 | Research Book Skills plugin | External research book workflows | Optional |
 | Subagent Orchestrator plugin | Optional execution-shape guidance for bounded subagents | Optional |

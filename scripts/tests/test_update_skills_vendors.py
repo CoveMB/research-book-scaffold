@@ -29,8 +29,21 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
             return "main"
         return "abc123"
 
-    def test_default_flow_updates_vendors_refreshes_integrations_and_runs_checks(self) -> None:
-        args = update_skills_vendors.parse_args([])
+    def expected_install_external_command(self, *extra_flags: str) -> tuple[str, ...]:
+        return (
+            "python3",
+            "scripts/operations/vendors/install_external_skills.py",
+            "--yes",
+            "--force",
+            "--no-update",
+            "--preserve-vendor-checkouts",
+            *extra_flags,
+        )
+
+    def run_update_and_capture_commands(
+        self,
+        args: object,
+    ) -> tuple[list[update_skills_vendors.VendorUpdate], list[tuple[str, ...]]]:
         calls: list[tuple[str, ...]] = []
 
         def fake_run(command: list[str], action: str, cwd: Path | None = None) -> None:
@@ -44,6 +57,13 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         ):
             with contextlib.redirect_stdout(io.StringIO()):
                 summaries = update_skills_vendors.update_skills_vendors(args)
+
+        return summaries, calls
+
+    def test_default_flow_updates_vendors_refreshes_integrations_and_runs_checks(self) -> None:
+        args = update_skills_vendors.parse_args([])
+
+        summaries, calls = self.run_update_and_capture_commands(args)
 
         self.assertIn(("git", "fetch", "--all", "--prune"), calls)
         self.assertIn(("git", "submodule", "sync", "--", ARS_VENDOR.as_posix()), calls)
@@ -52,52 +72,20 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         self.assertIn(("git", "-C", RBS_VENDOR.as_posix(), "pull", "--ff-only"), calls)
         self.assertIn(("git", "submodule", "sync", "--", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix()), calls)
         self.assertIn(("git", "-C", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix(), "pull", "--ff-only"), calls)
-        self.assertIn(
-            (
-                "python3",
-                "scripts/operations/vendors/install_external_skills.py",
-                "--yes",
-                "--force",
-                "--no-update",
-                "--preserve-vendor-checkouts",
-            ),
-            calls,
-        )
+        self.assertIn(self.expected_install_external_command(), calls)
         for check in VENDOR_UPDATE_HEALTH_CHECKS:
             self.assertIn(tuple(check.command), calls)
         self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS", "Subagent Orchestrator"])
 
     def test_skip_flags_limit_vendor_refresh_scope(self) -> None:
         args = update_skills_vendors.parse_args(["--skip-ars", "--skip-checks"])
-        calls: list[tuple[str, ...]] = []
 
-        def fake_run(command: list[str], action: str, cwd: Path | None = None) -> None:
-            del action, cwd
-            calls.append(tuple(command))
-
-        with (
-            mock.patch.object(update_skills_vendors, "run_checked", side_effect=fake_run),
-            mock.patch.object(update_skills_vendors, "git_stdout_required", side_effect=self.fake_git_stdout),
-            mock.patch.object(update_skills_vendors, "submodule_status", return_value=""),
-        ):
-            with contextlib.redirect_stdout(io.StringIO()):
-                summaries = update_skills_vendors.update_skills_vendors(args)
+        summaries, calls = self.run_update_and_capture_commands(args)
 
         self.assertNotIn(("git", "submodule", "sync", "--", ARS_VENDOR.as_posix()), calls)
         self.assertIn(("git", "submodule", "sync", "--", RBS_VENDOR.as_posix()), calls)
         self.assertIn(("git", "submodule", "sync", "--", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix()), calls)
-        self.assertIn(
-            (
-                "python3",
-                "scripts/operations/vendors/install_external_skills.py",
-                "--yes",
-                "--force",
-                "--no-update",
-                "--preserve-vendor-checkouts",
-                "--skip-ars",
-            ),
-            calls,
-        )
+        self.assertIn(self.expected_install_external_command("--skip-ars"), calls)
         for check in VENDOR_UPDATE_HEALTH_CHECKS:
             self.assertNotIn(tuple(check.command), calls)
         self.assertEqual([summary.label for summary in summaries], ["RBS", "Subagent Orchestrator"])

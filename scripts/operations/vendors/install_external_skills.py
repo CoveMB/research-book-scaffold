@@ -51,11 +51,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--skip-ars", action="store_true")
     parser.add_argument("--skip-rbs", action="store_true")
     parser.add_argument("--skip-subagent-orchestrator", action="store_true")
-    parser.add_argument("--ars-repo", default=DEFAULT_ARS_REPO)
     parser.add_argument("--ars-ref")
-    parser.add_argument("--rbs-repo", default=DEFAULT_RBS_REPO)
     parser.add_argument("--rbs-ref")
-    parser.add_argument("--subagent-orchestrator-repo", default=DEFAULT_SUBAGENT_ORCHESTRATOR_REPO)
     parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
     parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
@@ -109,7 +106,7 @@ def sync_or_init_submodule(path: Path, ref: str | None, args: argparse.Namespace
     checkout_ref(path, ref, report, args.dry_run, label)
 
 
-def clone_or_update(repo_url: str, path: Path, ref: str | None, args: argparse.Namespace, report: Report, label: str) -> None:
+def clone_or_update(path: Path, ref: str | None, args: argparse.Namespace, report: Report, label: str) -> None:
     if not git_available(report):
         return
     if is_configured_submodule(path):
@@ -119,22 +116,7 @@ def clone_or_update(repo_url: str, path: Path, ref: str | None, args: argparse.N
             return
         sync_or_init_submodule(path, ref, args, report, label)
         return
-    if not path.exists():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        ok = run(["git", "clone", repo_url, str(path)], report, args.dry_run, f"cloned {label}")
-        if ok:
-            checkout_ref(path, ref, report, args.dry_run, label)
-        return
-    report.add("already_present", f"{label} vendor exists: {path}")
-    if not (path / ".git").exists():
-        report.add("warnings", f"{path} exists but is not a Git checkout; update skipped")
-        return
-    if should_update(args):
-        run(["git", "fetch", "--all", "--prune"], report, args.dry_run, f"fetched {label}", cwd=path)
-        run(["git", "pull", "--ff-only"], report, args.dry_run, f"updated {label}", cwd=path)
-    else:
-        report.add("skipped", f"{label} update skipped")
-    checkout_ref(path, ref, report, args.dry_run, label)
+    report.add("failed", f"{label} vendor path is not configured as a Git submodule: {path}")
 
 
 def commit_hash(path: Path) -> str:
@@ -379,7 +361,7 @@ def report_text(
 def write_ars_install_report(args: argparse.Namespace, report: Report, ars_wrappers: list[Path]) -> None:
     ars_report = report_text(
         "Installed Academic Research Skills",
-        args.ars_repo,
+        DEFAULT_ARS_REPO,
         args.ars_ref,
         commit_hash(ARS_VENDOR),
         ARS_VENDOR,
@@ -395,7 +377,7 @@ def write_ars_install_report(args: argparse.Namespace, report: Report, ars_wrapp
 def write_rbs_install_report(args: argparse.Namespace, report: Report, plugin_exposed: bool, marketplace_written: bool) -> None:
     rbs_report = report_text(
         "Installed Research Book Skills",
-        args.rbs_repo,
+        DEFAULT_RBS_REPO,
         args.rbs_ref,
         commit_hash(RBS_VENDOR),
         RBS_VENDOR,
@@ -416,7 +398,7 @@ def write_subagent_orchestrator_install_report(
 ) -> None:
     install_report = report_text(
         "Installed Subagent Orchestrator",
-        args.subagent_orchestrator_repo,
+        DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
         args.subagent_orchestrator_ref,
         commit_hash(SUBAGENT_ORCHESTRATOR_VENDOR),
         SUBAGENT_ORCHESTRATOR_VENDOR,
@@ -505,7 +487,7 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
     if args.skip_ars:
         report.add("skipped", "ARS skipped")
     else:
-        clone_or_update(args.ars_repo, ARS_VENDOR, args.ars_ref, args, report, "ARS")
+        clone_or_update(ARS_VENDOR, args.ars_ref, args, report, "ARS")
         if ARS_VENDOR.exists() and validate_ars(report):
             ars_wrappers = create_ars_wrappers(args, report)
             ars_ready = bool(ars_wrappers)
@@ -513,7 +495,7 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
     if args.skip_rbs:
         report.add("skipped", "RBS skipped")
     else:
-        clone_or_update(args.rbs_repo, RBS_VENDOR, args.rbs_ref, args, report, "RBS")
+        clone_or_update(RBS_VENDOR, args.rbs_ref, args, report, "RBS")
         if RBS_VENDOR.exists() and validate_rbs(report):
             rbs_ready = True
             if args.no_rbs_plugin:
@@ -526,7 +508,6 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
         report.add("skipped", "Subagent Orchestrator skipped")
     else:
         clone_or_update(
-            args.subagent_orchestrator_repo,
             SUBAGENT_ORCHESTRATOR_VENDOR,
             args.subagent_orchestrator_ref,
             args,

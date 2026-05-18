@@ -99,6 +99,7 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
     def test_runbook_covers_scaffold_app_usability(self) -> None:
         expected_phrases = [
             "## Scaffold App Usability QA",
+            "Codex Panel is installed by default setup unless `--skip-obsidian-panel` is used",
             "Obsidian opens the scaffold project root as a vault",
             "Codex Panel can run a bounded read-only prompt",
             "Reload plugins",
@@ -138,6 +139,18 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         ]
         for phrase in expected_phrases:
             self.assertIn(phrase, self.runbook_text)
+
+    def test_standard_command_sequence_does_not_repeat_ci_aggregate(self) -> None:
+        sequence_start = self.runbook_text.index("Standard command sequence:")
+        sequence_end = self.runbook_text.index("Expected result:")
+        sequence_section = self.runbook_text[sequence_start:sequence_end]
+
+        self.assertNotIn("make ci", sequence_section)
+        self.assertIn("`make ci` is the hosted-CI aggregate", self.runbook_text)
+        self.assertNotIn(
+            "`make doctor`, `make lint`, `make test`, `make audit`, `make release-audit`, and `make ci`",
+            self.runbook_text,
+        )
 
     def test_runbook_documents_tinytex_bibtex_obsidian_and_browser_qa_remediations(self) -> None:
         expected_phrases = [

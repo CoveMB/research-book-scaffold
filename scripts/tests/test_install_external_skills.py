@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import contextlib
-import io
 import json
 import tempfile
 import unittest
@@ -9,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 
-from scripts.tests.helpers import add_scripts_to_path
+from scripts.tests.helpers import REMOVED_EXTERNAL_REPO_FLAGS, add_scripts_to_path, assert_parse_args_rejects
 
 
 add_scripts_to_path()
@@ -24,19 +22,22 @@ class SilentReport(install_external_skills.Report):
 
 class InstallExternalSkillsTests(unittest.TestCase):
     def test_removed_subagent_install_flag_is_rejected(self) -> None:
-        with contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                install_external_skills.parse_args(["--install-subagent-orchestrator"])
+        assert_parse_args_rejects(self, install_external_skills.parse_args, ["--install-subagent-orchestrator"])
 
     def test_update_conflict_is_rejected_during_argparse(self) -> None:
-        with contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                install_external_skills.parse_args(["--update", "--no-update"])
+        assert_parse_args_rejects(self, install_external_skills.parse_args, ["--update", "--no-update"])
 
     def test_removed_update_mode_flag_is_rejected(self) -> None:
-        with contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                install_external_skills.parse_args(["--update-mode", "remote"])
+        assert_parse_args_rejects(self, install_external_skills.parse_args, ["--update-mode", "remote"])
+
+    def test_removed_repo_override_flags_are_rejected(self) -> None:
+        for flag in REMOVED_EXTERNAL_REPO_FLAGS:
+            with self.subTest(flag=flag):
+                assert_parse_args_rejects(
+                    self,
+                    install_external_skills.parse_args,
+                    [flag, "https://example.invalid/repo.git"],
+                )
 
     def test_preserve_vendor_checkouts_does_not_reset_configured_submodule(self) -> None:
         args = install_external_skills.parse_args(["--preserve-vendor-checkouts"])
@@ -48,7 +49,6 @@ class InstallExternalSkillsTests(unittest.TestCase):
             mock.patch.object(install_external_skills, "run") as run_mock,
         ):
             install_external_skills.clone_or_update(
-                "https://example.invalid/repo.git",
                 Path("vendor/example"),
                 None,
                 args,
@@ -59,6 +59,29 @@ class InstallExternalSkillsTests(unittest.TestCase):
         run_mock.assert_not_called()
         self.assertEqual(report.already_present, ["Example configured as Git submodule: vendor/example"])
         self.assertEqual(report.skipped, ["Example submodule checkout preserved"])
+
+    def test_vendor_path_must_be_configured_submodule(self) -> None:
+        args = install_external_skills.parse_args([])
+        report = SilentReport()
+
+        with (
+            mock.patch.object(install_external_skills, "git_available", return_value=True),
+            mock.patch.object(install_external_skills, "is_configured_submodule", return_value=False),
+            mock.patch.object(install_external_skills, "run") as run_mock,
+        ):
+            install_external_skills.clone_or_update(
+                Path("vendor/example"),
+                None,
+                args,
+                report,
+                "Example",
+            )
+
+        run_mock.assert_not_called()
+        self.assertEqual(
+            report.failed,
+            ["Example vendor path is not configured as a Git submodule: vendor/example"],
+        )
 
     def test_subagent_orchestrator_installer_is_project_scoped_and_available_only(self) -> None:
         command = install_external_skills.subagent_orchestrator_install_command()

@@ -8,7 +8,3 @@ requires-python = ">=3.11"
 target-version = "py311"
 line-length = 120
 src = ["scripts"]
-
-[tool.unittest]
-start-directory = "scripts/tests"
-pattern = "test*.py"

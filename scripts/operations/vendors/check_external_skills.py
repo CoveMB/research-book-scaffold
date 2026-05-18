@@ -74,12 +74,11 @@ def check_submodule(path: Path, expected_url: str, label: str, failures: list[st
     result = subprocess.run(["git", "submodule", "status", "--", str(path)], text=True, capture_output=True, check=False)
     status_message = submodule_status_message(label, path, result.stdout, result.returncode)
     status_ok = result.returncode == 0 and str(path) in result.stdout and not status_message
-    working_tree_checkout_ok = is_submodule_path(path) and has_git_checkout(path)
     if status_message:
         check(False, f"{label} submodule status OK", status_message, failures)
     else:
         check(
-            status_ok or working_tree_checkout_ok,
+            status_ok,
             f"{label} submodule status OK",
             f"{label} submodule status failed",
             failures,

@@ -120,6 +120,24 @@ class SeedReleaseQaTests(unittest.TestCase):
         )
         self.assertFalse((project_root / "manuscript/chapters/qa-seed-chapter.qmd").exists())
 
+    def test_clean_uses_the_configured_fixture_root_for_seed_only_files(self) -> None:
+        project_root = create_disposable_project()
+        with tempfile.TemporaryDirectory() as fixture_dir:
+            fixture_root = Path(fixture_dir)
+            for target in self.seed_tool.RESTORE_TARGETS:
+                fixture_path = fixture_root / target
+                fixture_path.parent.mkdir(parents=True, exist_ok=True)
+                fixture_path.write_text(f"seeded {target}\n", encoding="utf-8")
+            seed_only_target = Path("notes/01-source-notes/custom-seed.md")
+            seed_only_path = fixture_root / seed_only_target
+            seed_only_path.parent.mkdir(parents=True, exist_ok=True)
+            seed_only_path.write_text("custom seed\n", encoding="utf-8")
+
+            self.seed_tool.apply_seed(project_root, fixture_root=fixture_root)
+            self.seed_tool.clean_seed(project_root, fixture_root=fixture_root)
+
+        self.assertFalse((project_root / seed_only_target).exists())
+
     def test_apply_is_idempotent(self) -> None:
         project_root = create_disposable_project()
         self.seed_tool.apply_seed(project_root)

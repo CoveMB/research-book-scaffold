@@ -24,9 +24,6 @@ from obsidian_agent import (
     vault_path_from_args,
 )
 from project_config import (
-    DEFAULT_ARS_REPO,
-    DEFAULT_RBS_REPO,
-    DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
     SETUP_RECOMMENDED_CHECKS,
     change_to_project_root,
 )
@@ -35,22 +32,7 @@ from script_utils import StatusReport, read_text
 
 class Report(StatusReport):
     def print_summary(self) -> None:
-        print("\nFinal setup report")
-        sections = [
-            ("Installed", self.installed),
-            ("Already present", self.already_present),
-            ("Skipped", self.skipped),
-            ("Failed", self.failed),
-            ("Warnings", self.warnings),
-            ("Next manual steps", self.next_steps),
-        ]
-        for title, values in sections:
-            print(f"\n{title}:")
-            if not values:
-                print("- none")
-            else:
-                for value in values:
-                    print(f"- {value}")
+        super().print_summary("Final setup report")
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -62,17 +44,15 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--skip-ars", action="store_true")
     parser.add_argument("--skip-rbs", action="store_true")
     parser.add_argument("--skip-subagent-orchestrator", action="store_true")
+    parser.add_argument("--skip-obsidian-panel", action="store_true")
     parser.add_argument("--with-external-skills", action="store_true")
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
     parser.add_argument("--obsidian-release-sha256")
     parser.add_argument("--install-optional", action="store_true")
     parser.add_argument("--install-system", action="store_true")
-    parser.add_argument("--ars-repo", default=DEFAULT_ARS_REPO)
     parser.add_argument("--ars-ref")
-    parser.add_argument("--rbs-repo", default=DEFAULT_RBS_REPO)
     parser.add_argument("--rbs-ref")
-    parser.add_argument("--subagent-orchestrator-repo", default=DEFAULT_SUBAGENT_ORCHESTRATOR_REPO)
     parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
     parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
@@ -128,8 +108,17 @@ def validate_local_skills(target_dir: Path, report: Report, dry_run: bool) -> No
             report.add("already_present", f"{skill_file} valid")
 
 
-def run_recommendations(report: Report) -> None:
-    report.next_steps.extend(f"Run {check.shell_text()}" for check in SETUP_RECOMMENDED_CHECKS)
+def recommended_checks(args: argparse.Namespace) -> list[str]:
+    checks = [check.shell_text() for check in SETUP_RECOMMENDED_CHECKS]
+    if args.skip_obsidian_panel:
+        checks = [check for check in checks if check != "python3 scripts/operations/obsidian/check_obsidian_panel.py"]
+    return checks
+
+
+def run_recommendations(args: argparse.Namespace, report: Report) -> None:
+    report.next_steps.extend(f"Run {check}" for check in recommended_checks(args))
+    if args.skip_obsidian_panel:
+        report.next_steps.append("Run make install-obsidian-panel when Obsidian/Codex Panel coverage is needed")
 
 
 def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespace:
@@ -140,11 +129,8 @@ def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespac
         skip_ars=args.skip_ars,
         skip_rbs=args.skip_rbs,
         skip_subagent_orchestrator=args.skip_subagent_orchestrator,
-        ars_repo=args.ars_repo,
         ars_ref=args.ars_ref,
-        rbs_repo=args.rbs_repo,
         rbs_ref=args.rbs_ref,
-        subagent_orchestrator_repo=args.subagent_orchestrator_repo,
         subagent_orchestrator_ref=args.subagent_orchestrator_ref,
         no_rbs_plugin=args.no_rbs_plugin,
         no_subagent_orchestrator_plugin=args.no_subagent_orchestrator_plugin,
@@ -169,6 +155,13 @@ def install_external_layer(args: argparse.Namespace, report: Report) -> None:
     report.warnings.extend(external_report.warnings)
 
 
+def install_obsidian_panel_layer(args: argparse.Namespace, report: Report) -> None:
+    if args.skip_obsidian_panel:
+        report.add("skipped", "Codex Panel setup skipped by --skip-obsidian-panel")
+        return
+    install_codex_panel(args, report)
+
+
 def main(argv: list[str]) -> int:
     change_to_project_root()
     args = parse_args(argv)
@@ -180,8 +173,8 @@ def main(argv: list[str]) -> int:
     check_packages(args, report)
     validate_local_skills(Path(".agents/skills"), report, args.dry_run)
     install_external_layer(args, report)
-    install_codex_panel(args, report)
-    run_recommendations(report)
+    install_obsidian_panel_layer(args, report)
+    run_recommendations(args, report)
     report.print_summary()
     return 1 if report.failed else 0
 

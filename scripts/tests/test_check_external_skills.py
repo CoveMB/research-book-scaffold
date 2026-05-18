@@ -64,7 +64,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
     def test_expected_subagent_orchestrator_plugin_name_matches_upstream(self) -> None:
         self.assertEqual(SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME, "subagent-orchestrator")
 
-    def test_submodule_status_allows_new_working_tree_checkout(self) -> None:
+    def test_submodule_status_failure_is_actionable(self) -> None:
         failures: list[str] = []
         failed_status = mock.Mock(returncode=1, stdout="")
         gitmodules_path = mock.Mock()
@@ -85,7 +85,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
                     failures,
                 )
 
-        self.assertEqual(failures, [])
+        self.assertEqual(failures, ["Example submodule status failed"])
 
 
 if __name__ == "__main__":

@@ -27,10 +27,11 @@ Required for core scaffold QA:
 - `curl`
 - `unzip`
 - Codex CLI installed and logged in for local agent workflows
-- Obsidian for the required project-root vault workflow
 
 Optional until the matching workflow is tested:
 
+- Obsidian for the recommended project-root vault workflow
+- Codex Panel, installed by default setup unless `--skip-obsidian-panel` is used
 - Node and npm, used by setup only if Codex CLI needs installation through npm
 - Quarto, Pandoc, and a TeX engine such as `lualatex` for manuscript rendering
 - Zotero and Better BibTeX for citation-library verification
@@ -106,6 +107,7 @@ Run setup dry first:
 bash setup.sh --dry-run
 python3 scripts/operations/setup/setup_environment.py --dry-run
 python3 scripts/operations/setup/setup_environment.py --dry-run --with-external-skills
+python3 scripts/operations/setup/setup_environment.py --dry-run --skip-obsidian-panel
 ```
 
 Expected result:
@@ -113,6 +115,7 @@ Expected result:
 - Dry runs exit 0.
 - No files, packages, repositories, plugins, or vendor pointers are changed.
 - Recommended checks include `bash scripts/operations/health/doctor.sh`, external skill check, Obsidian check, citation check, and placeholder check.
+- When `--skip-obsidian-panel` is used, setup reports Codex Panel setup as skipped and does not require the Obsidian check until Codex Panel coverage is in scope.
 - External skills are skipped unless `--with-external-skills` is passed.
 
 Run setup in the disposable clone:
@@ -147,6 +150,8 @@ Expected result:
 ## Scaffold App Usability QA
 
 Confirm that every required or recommended app can open and be used against the scaffolded project, not only that command-line checks pass.
+
+Codex Panel is installed by default setup unless `--skip-obsidian-panel` is used. If the flag was used, skip the Obsidian and Codex Panel checks below and record that Codex Panel coverage is not claimed for the run.
 
 Obsidian opens the scaffold project root as a vault:
 
@@ -274,12 +279,12 @@ make lint
 make test
 make audit
 make release-audit
-make ci
 ```
 
 Expected result:
 
-- `make doctor`, `make lint`, `make test`, `make audit`, `make release-audit`, and `make ci` exit 0 for a fresh scaffold and for a production manuscript.
+- `make doctor`, `make lint`, `make test`, `make audit`, and `make release-audit` exit 0 for a fresh scaffold and for a production manuscript.
+- `make ci` is the hosted-CI aggregate and can be used as the local one-command equivalent of lint plus release-audit.
 - A production manuscript still needs real project material, verified source notes, and manual scholarly QA even when scaffold release gates pass.
 
 ## Seeded Content Fixture QA

@@ -1,6 +1,6 @@
 # Codex Panel For Obsidian
 
-Codex Panel is the required Obsidian plugin that connects a vault to local Codex workflows.
+Codex Panel is the recommended Obsidian plugin that connects a vault to local Codex workflows. Default setup installs it unless `--skip-obsidian-panel` is passed.
 
 ## Access and value
 
@@ -47,6 +47,14 @@ python3 scripts/operations/setup/setup_environment.py
 This creates `.obsidian/` in the project root, installs the plugin at `.obsidian/plugins/codex-panel/`, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, and writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
 
 If `.obsidian/community-plugins.json` exists but is not a JSON list, setup fails instead of overwriting it. Fix the file manually or let Obsidian regenerate it before rerunning setup.
+
+Skip Obsidian/Codex Panel setup when local agent work will stay in the CLI or another Markdown editor:
+
+```sh
+python3 scripts/operations/setup/setup_environment.py --skip-obsidian-panel
+```
+
+After a skipped setup, do not claim Codex Panel coverage until `make install-obsidian-panel` and `make check-obsidian-panel` pass.
 
 Use an explicit path only when installing into a different vault:
 
