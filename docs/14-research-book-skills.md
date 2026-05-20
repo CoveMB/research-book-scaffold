@@ -53,6 +53,7 @@ This repository is structured as a local plugin with:
 
 ## Use
 
+- Project-level examples for every skill: `docs/SKILLS_WORKFLOW.md`.
 - Research-book planning.
 - Book-level workflow orchestration.
 - Argument and chapter architecture.
