@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -45,6 +47,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
     parser.add_argument("--obsidian-release-sha256")
+    parser.add_argument(
+        "--register-obsidian-vault",
+        action="store_true",
+        help="Register the vault path in Obsidian's app-level vault registry.",
+    )
+    parser.add_argument("--obsidian-registry-path", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
 
 
@@ -188,6 +196,139 @@ def write_enabled_community_plugins(obsidian_dir: Path, enabled_plugins: list[st
     community_plugins_path(obsidian_dir).write_text(
         json.dumps(enabled_plugins, indent=2) + "\n",
         encoding="utf-8",
+    )
+
+
+def default_obsidian_registry_path() -> Path:
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "obsidian" / "obsidian.json"
+    if os.name == "nt":
+        appdata = os.environ.get("APPDATA")
+        base_path = Path(appdata) if appdata else Path.home() / "AppData" / "Roaming"
+        return base_path / "obsidian" / "obsidian.json"
+    config_home = os.environ.get("XDG_CONFIG_HOME")
+    base_path = Path(config_home) if config_home else Path.home() / ".config"
+    return base_path / "obsidian" / "obsidian.json"
+
+
+def obsidian_registry_path_from_args(args: argparse.Namespace) -> Path:
+    requested_path = getattr(args, "obsidian_registry_path", None)
+    if requested_path:
+        return Path(requested_path).expanduser().resolve(strict=False)
+    return default_obsidian_registry_path()
+
+
+def read_obsidian_registry(registry_path: Path) -> dict[str, object]:
+    if not registry_path.exists():
+        return {}
+    return read_json_object(registry_path)
+
+
+def normalized_vault_path_text(vault_path: Path) -> str:
+    return str(vault_path.expanduser().resolve(strict=False))
+
+
+def obsidian_vault_id(path_text: str, salt: str = "") -> str:
+    return hashlib.sha256(f"{path_text}{salt}".encode("utf-8")).hexdigest()[:16]
+
+
+def unique_obsidian_vault_id(vaults: dict[str, object], path_text: str) -> str:
+    candidate = obsidian_vault_id(path_text)
+    if candidate not in vaults:
+        return candidate
+    suffix = 2
+    while True:
+        candidate = obsidian_vault_id(path_text, f":{suffix}")
+        if candidate not in vaults:
+            return candidate
+        suffix += 1
+
+
+def vault_entry_matches_path(vault_entry: object, path_text: str) -> bool:
+    if not isinstance(vault_entry, dict):
+        return False
+    entry_path = vault_entry.get("path")
+    if not isinstance(entry_path, str):
+        return False
+    try:
+        return normalized_vault_path_text(Path(entry_path)) == path_text
+    except (OSError, RuntimeError, ValueError):
+        return False
+
+
+def registry_with_registered_vault(
+    registry: dict[str, object],
+    vault_path: Path,
+    timestamp_ms: int | None = None,
+) -> tuple[dict[str, object], bool]:
+    vaults = registry.get("vaults", {})
+    if not isinstance(vaults, dict):
+        raise RuntimeError("invalid Obsidian registry: expected vaults to be a JSON object")
+
+    path_text = normalized_vault_path_text(vault_path)
+    if any(vault_entry_matches_path(vault_entry, path_text) for vault_entry in vaults.values()):
+        return dict(registry), False
+
+    updated_vaults = dict(vaults)
+    updated_vaults[unique_obsidian_vault_id(updated_vaults, path_text)] = {
+        "path": path_text,
+        "ts": timestamp_ms if timestamp_ms is not None else int(time.time() * 1000),
+    }
+    updated_registry = dict(registry)
+    updated_registry["vaults"] = updated_vaults
+    return updated_registry, True
+
+
+def write_obsidian_registry(registry_path: Path, registry: dict[str, object]) -> None:
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = registry_path.with_name(f".{registry_path.name}.tmp")
+    temporary_path.write_text(json.dumps(registry, indent=2) + "\n", encoding="utf-8")
+    temporary_path.replace(registry_path)
+
+
+def ensure_obsidian_vault_registered(
+    vault_path: Path,
+    registry_path: Path,
+    report: StatusReport,
+    dry_run: bool,
+) -> bool:
+    path_text = normalized_vault_path_text(vault_path)
+    try:
+        registry = read_obsidian_registry(registry_path)
+        updated_registry, changed = registry_with_registered_vault(registry, vault_path)
+    except (OSError, RuntimeError) as error:
+        report.add("failed", f"Obsidian vault registration failed: {error}")
+        return False
+
+    if not changed:
+        report.add("already_present", f"Obsidian vault already registered in {registry_path}")
+        return True
+
+    if dry_run:
+        report.add("skipped", f"dry-run would register Obsidian vault {path_text} in {registry_path}")
+        return True
+
+    try:
+        write_obsidian_registry(registry_path, updated_registry)
+    except OSError as error:
+        report.add("failed", f"Obsidian vault registration failed: {error}")
+        return False
+    report.add("installed", f"registered Obsidian vault {path_text} in {registry_path}")
+    return True
+
+
+def ensure_requested_obsidian_vault_registration(
+    args: argparse.Namespace,
+    vault_path: Path,
+    report: StatusReport,
+) -> bool:
+    if not getattr(args, "register_obsidian_vault", False):
+        return True
+    return ensure_obsidian_vault_registered(
+        vault_path,
+        obsidian_registry_path_from_args(args),
+        report,
+        args.dry_run,
     )
 
 
@@ -380,14 +521,20 @@ def install_codex_panel(args: argparse.Namespace, report: StatusReport) -> None:
 
     if destination_dir.exists() and not args.force:
         report.add("skipped", f"{destination_dir} exists; use --force to replace")
-        ensure_codex_panel_settings(destination_dir, existing_settings, report, args.dry_run)
-        ensure_codex_panel_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
+        if not ensure_codex_panel_settings(destination_dir, existing_settings, report, args.dry_run):
+            return
+        if not ensure_codex_panel_enabled(obsidian_dir, enabled_plugins, report, args.dry_run):
+            return
+        if not ensure_requested_obsidian_vault_registration(args, vault_path, report):
+            return
         return
     if args.dry_run:
         report.add("skipped", f"dry-run would download latest release assets from {DEFAULT_OBSIDIAN_REPO}/releases/latest")
         report.add("skipped", f"dry-run would install plugin to {destination_dir}")
         ensure_codex_panel_settings(destination_dir, existing_settings, report, args.dry_run)
         ensure_codex_panel_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
+        if not ensure_requested_obsidian_vault_registration(args, vault_path, report):
+            return
         report.next_steps.extend(obsidian_next_steps(include_read_only_test=False))
         return
 
@@ -412,6 +559,8 @@ def install_codex_panel(args: argparse.Namespace, report: StatusReport) -> None:
     if not ensure_codex_panel_settings(destination_dir, existing_settings, report, args.dry_run):
         return
     if not ensure_codex_panel_enabled(obsidian_dir, enabled_plugins, report, args.dry_run):
+        return
+    if not ensure_requested_obsidian_vault_registration(args, vault_path, report):
         return
     report.next_steps.extend(obsidian_next_steps(include_read_only_test=True))
 

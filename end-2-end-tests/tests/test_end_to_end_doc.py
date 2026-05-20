@@ -159,6 +159,8 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             "`$HOME/Library/TinyTeX/bin/universal-darwin`",
             'PATH="$HOME/Library/TinyTeX/bin/universal-darwin:$PATH" make render-pdf',
             "Setup writes `.obsidian/community-plugins.json`",
+            "`--register-obsidian-vault`",
+            "Obsidian's app-level vault registry",
             "`codex-panel` is listed as enabled",
             "Download the latest Better BibTeX `.xpi`",
             "`python3 -m http.server --directory exports/html 4173`",
@@ -171,10 +173,24 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         expected_phrases = [
             "`end-2-end-tests/docs/qa-environment-requirements.md` followed when API-based Zotero checks are in scope",
             "When API-based citation-library checks are in scope, follow `end-2-end-tests/docs/qa-environment-requirements.md`",
+            "Identify at least one verified Zotero record or collection before claiming export QA",
+            "Export QA is not skipped in normal citation-library QA",
+            "record Better BibTeX availability and skip bibliography refresh",
             "Skill smoke tests are part of full release QA",
+            "Loadability checks are not the same as live behavioral smoke tests",
             "No skill output is treated as scholarly evidence",
             "refusing to remove `site_libs` outside the project directory",
             "render internally, such as to `manuscript/_book`, then copy final artifacts into `exports/`",
+            "unable to open database file",
+        ]
+        for phrase in expected_phrases:
+            self.assertIn(phrase, self.runbook_text)
+
+    def test_runbook_documents_template_placeholder_diagnostic(self) -> None:
+        expected_phrases = [
+            "Template placeholder diagnostic:",
+            "`python3 scripts/research-writing/check_placeholders.py --include-templates templates` is expected to exit nonzero",
+            "intentional template placeholders",
         ]
         for phrase in expected_phrases:
             self.assertIn(phrase, self.runbook_text)

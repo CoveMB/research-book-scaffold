@@ -46,6 +46,16 @@ python3 scripts/operations/setup/setup_environment.py
 
 This creates `.obsidian/` in the project root, installs the plugin at `.obsidian/plugins/codex-panel/`, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, and writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
 
+By default, setup does not modify Obsidian's app-level vault registry. If Obsidian has never opened this project root as a vault, a direct `obsidian://open?path=...` launch can report that the vault is not found even though the vault-local `.obsidian/` files exist.
+
+For GUI QA or first-time local setup where direct Obsidian URLs should work immediately, opt in to app-level registration:
+
+```sh
+python3 scripts/operations/setup/setup_environment.py --register-obsidian-vault
+```
+
+This writes the project path into the platform Obsidian app registry, such as `~/Library/Application Support/obsidian/obsidian.json` on macOS. It preserves existing vault entries, does not duplicate an already registered vault path, and does not bypass Obsidian trust or plugin approval prompts. Use the normal Obsidian `Open folder as vault` flow instead when you do not want setup to write user app state outside the repository.
+
 If `.obsidian/community-plugins.json` exists but is not a JSON list, setup fails instead of overwriting it. Fix the file manually or let Obsidian regenerate it before rerunning setup.
 
 Skip Obsidian/Codex Panel setup when local agent work will stay in the CLI or another Markdown editor:

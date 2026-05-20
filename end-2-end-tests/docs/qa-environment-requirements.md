@@ -19,6 +19,8 @@ The expected local API base is `http://localhost:23119/api/`.
 
 The local API does not use a zotero.org web API key. A plain browser visit to the API root may show `Request not allowed`; use a Zotero-aware helper or a targeted API route that sends Zotero's expected headers. `http://127.0.0.1:23119/connector/ping` confirms the connector server is running, but it does not prove API-based library routes are reachable.
 
+Normal citation-library export QA needs at least one verified Zotero record selected before the run starts. If no verified record is available, reduce the claim to Zotero and Better BibTeX availability only; do not call it end-to-end export coverage.
+
 Before any QA refresh of `bibliography/references.bib`:
 
 1. Confirm Zotero is open.
@@ -27,3 +29,5 @@ Before any QA refresh of `bibliography/references.bib`:
 4. Refresh or export only verified Zotero or Better BibTeX records.
 5. Inspect `git diff -- bibliography/references.bib`.
 6. Reject generated or unverified bibliography metadata.
+
+If the local library has no verified records for the QA fixture, record Zotero and Better BibTeX availability as checked, skip bibliography refresh, and state that end-to-end export coverage was not claimed. Do not create placeholder Zotero records solely to make QA pass.

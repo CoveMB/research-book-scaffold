@@ -145,6 +145,115 @@ class ObsidianInstallerTests(unittest.TestCase):
             enabled_plugins = json.loads(community_plugins_path.read_text(encoding="utf-8"))
             self.assertEqual(enabled_plugins, [CODEX_PANEL_PLUGIN_ID])
 
+    def test_register_obsidian_vault_is_opt_in_and_writes_app_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            registry_path = temp_path / "app-support" / "obsidian.json"
+
+            report = install_with_plugin_release(
+                temp_path,
+                "--register-obsidian-vault",
+                "--obsidian-registry-path",
+                str(registry_path),
+            )
+
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            registered_paths = [entry["path"] for entry in registry["vaults"].values()]
+            self.assertEqual(registered_paths, [str(temp_path.resolve())])
+            self.assertTrue(any("registered Obsidian vault" in message for message in report.installed))
+
+    def test_register_obsidian_vault_preserves_existing_registry_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            registry_path = temp_path / "app-support" / "obsidian.json"
+            registry_path.parent.mkdir(parents=True)
+            registry_path.write_text(
+                json.dumps(
+                    {
+                        "vaults": {
+                            "existing": {
+                                "path": str((temp_path / "other-vault").resolve()),
+                                "ts": 1,
+                            }
+                        },
+                        "user-setting": True,
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            install_with_plugin_release(
+                temp_path,
+                "--register-obsidian-vault",
+                "--obsidian-registry-path",
+                str(registry_path),
+            )
+
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            registered_paths = sorted(entry["path"] for entry in registry["vaults"].values())
+            self.assertEqual(
+                registered_paths,
+                sorted([str((temp_path / "other-vault").resolve()), str(temp_path.resolve())]),
+            )
+            self.assertTrue(registry["user-setting"])
+
+    def test_register_obsidian_vault_does_not_duplicate_existing_vault_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            registry_path = temp_path / "app-support" / "obsidian.json"
+            registry_path.parent.mkdir(parents=True)
+            registry_path.write_text(
+                json.dumps({"vaults": {"existing": {"path": str(temp_path.resolve()), "ts": 1}}}),
+                encoding="utf-8",
+            )
+
+            report = install_with_plugin_release(
+                temp_path,
+                "--register-obsidian-vault",
+                "--obsidian-registry-path",
+                str(registry_path),
+            )
+
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            self.assertEqual(list(registry["vaults"]), ["existing"])
+            self.assertTrue(any("Obsidian vault already registered" in message for message in report.already_present))
+
+    def test_register_obsidian_vault_dry_run_does_not_write_app_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            registry_path = temp_path / "app-support" / "obsidian.json"
+            args = setup_environment.parse_args(
+                [
+                    "--dry-run",
+                    "--register-obsidian-vault",
+                    "--obsidian-registry-path",
+                    str(registry_path),
+                ]
+            )
+            report = SilentReport()
+
+            install_in_directory(temp_path, args, report)
+
+            self.assertFalse(registry_path.exists())
+            self.assertTrue(any("dry-run would register Obsidian vault" in message for message in report.skipped))
+
+    def test_register_obsidian_vault_rejects_invalid_registry_shape(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            registry_path = temp_path / "app-support" / "obsidian.json"
+            registry_path.parent.mkdir(parents=True)
+            registry_path.write_text(json.dumps({"vaults": []}), encoding="utf-8")
+
+            report = install_with_plugin_release(
+                temp_path,
+                "--register-obsidian-vault",
+                "--obsidian-registry-path",
+                str(registry_path),
+            )
+
+            self.assertTrue(any("expected vaults to be a JSON object" in message for message in report.failed))
+            self.assertEqual(json.loads(registry_path.read_text(encoding="utf-8")), {"vaults": []})
+
     def test_install_rejects_invalid_enabled_plugin_list(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)

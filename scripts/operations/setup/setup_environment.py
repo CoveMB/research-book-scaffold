@@ -49,6 +49,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
     parser.add_argument("--obsidian-release-sha256")
+    parser.add_argument(
+        "--register-obsidian-vault",
+        action="store_true",
+        help="Register the vault path in Obsidian's app-level vault registry.",
+    )
+    parser.add_argument("--obsidian-registry-path", help=argparse.SUPPRESS)
     parser.add_argument("--install-optional", action="store_true")
     parser.add_argument("--install-system", action="store_true")
     parser.add_argument("--ars-ref")

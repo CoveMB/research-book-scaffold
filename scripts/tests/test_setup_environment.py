@@ -39,6 +39,11 @@ class SetupEnvironmentTests(unittest.TestCase):
 
         self.assertTrue(args.skip_obsidian_panel)
 
+    def test_register_obsidian_vault_arg_is_available(self) -> None:
+        args = setup_environment.parse_args(["--register-obsidian-vault"])
+
+        self.assertTrue(args.register_obsidian_vault)
+
     def test_obsidian_panel_layer_skips_when_requested(self) -> None:
         args = setup_environment.parse_args(["--skip-obsidian-panel"])
         report = SilentReport()

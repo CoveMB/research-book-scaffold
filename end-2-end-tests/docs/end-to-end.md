@@ -108,6 +108,7 @@ bash setup.sh --dry-run
 python3 scripts/operations/setup/setup_environment.py --dry-run
 python3 scripts/operations/setup/setup_environment.py --dry-run --with-external-skills
 python3 scripts/operations/setup/setup_environment.py --dry-run --skip-obsidian-panel
+python3 scripts/operations/setup/setup_environment.py --dry-run --register-obsidian-vault
 ```
 
 Expected result:
@@ -116,6 +117,7 @@ Expected result:
 - No files, packages, repositories, plugins, or vendor pointers are changed.
 - Recommended checks include `bash scripts/operations/health/doctor.sh`, external skill check, Obsidian check, citation check, and placeholder check.
 - When `--skip-obsidian-panel` is used, setup reports Codex Panel setup as skipped and does not require the Obsidian check until Codex Panel coverage is in scope.
+- When `--register-obsidian-vault` is used with `--dry-run`, setup reports that it would update Obsidian's app-level vault registry without writing user app state.
 - External skills are skipped unless `--with-external-skills` is passed.
 
 Run setup in the disposable clone:
@@ -123,6 +125,12 @@ Run setup in the disposable clone:
 ```sh
 bash setup.sh
 python3 scripts/operations/obsidian/check_obsidian_panel.py
+```
+
+When GUI app checks include direct `obsidian://open?path=...` launches, opt in to vault registration during setup:
+
+```sh
+bash setup.sh --register-obsidian-vault
 ```
 
 Expected result:
@@ -133,6 +141,8 @@ Expected result:
 - `.obsidian/plugins/codex-panel/` is installed or an existing plugin folder is reported as skipped unless `--force` was intentionally used.
 - Setup writes `.obsidian/community-plugins.json` so `codex-panel` is listed as enabled.
 - Setup writes `.obsidian/plugins/codex-panel/data.json` with an absolute executable `codexPath` when one is available.
+- With `--register-obsidian-vault`, setup preserves existing Obsidian vault entries and adds the project root to Obsidian's app-level vault registry if it is not already present.
+- Without `--register-obsidian-vault`, a first-time Obsidian GUI check may need the manual `Open folder as vault` flow before direct Obsidian URLs work.
 - Existing Obsidian workspace files are not overwritten.
 - Invalid `community-plugins.json` content fails setup instead of being overwritten.
 
@@ -155,14 +165,15 @@ Codex Panel is installed by default setup unless `--skip-obsidian-panel` is used
 
 Obsidian opens the scaffold project root as a vault:
 
-1. Open Obsidian.
-2. Choose the release QA clone root as the vault folder.
+1. If setup used `--register-obsidian-vault`, open the project with `obsidian://open?path=<release-qa-clone-root>` or from Obsidian's vault list.
+2. If setup did not use `--register-obsidian-vault`, open Obsidian and choose the release QA clone root with `Open folder as vault`.
 3. Confirm `AGENTS.md`, `notes/`, `research/`, `manuscript/`, and `end-2-end-tests/docs/end-to-end.md` are visible.
 4. Open a note from `notes/` and a manuscript file from `manuscript/`.
 
 Expected result:
 
 - The scaffold project root opens directly as the vault.
+- The direct URL path does not report "vault not found" when the registry flag was used.
 - Obsidian does not require a nested vault folder.
 - Existing project files are readable without moving or copying them.
 
@@ -209,19 +220,23 @@ Zotero and Better BibTeX can be used with `bibliography/references.bib`:
 2. Download the latest Better BibTeX `.xpi` when the add-on is not installed.
 3. In Zotero, use `Tools > Plugins`, select `Plugins`, open the gear menu, and choose `Install Plugin From File...`.
 4. Restart Zotero and confirm Better BibTeX is installed and enabled when citation-library QA is in scope.
-5. When API-based citation-library checks are in scope, follow `end-2-end-tests/docs/qa-environment-requirements.md`.
-6. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
-7. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
-8. Inspect `git diff -- bibliography/references.bib`.
-9. Run `python3 scripts/research-writing/check_citations.py --include-notes --require-citations`.
+5. Identify at least one verified Zotero record or collection before claiming export QA.
+6. When API-based citation-library checks are in scope, follow `end-2-end-tests/docs/qa-environment-requirements.md`.
+7. Before refreshing `bibliography/references.bib`, confirm the disposable QA clone is clean with `git status --short`.
+8. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
+9. If no verified library records are available in the QA environment, record Better BibTeX availability and skip bibliography refresh with release impact instead of creating or exporting unverified records.
+10. Inspect `git diff -- bibliography/references.bib`.
+11. Run `python3 scripts/research-writing/check_citations.py --include-notes --require-citations`.
 
 Expected result:
 
 - Zotero opens the relevant library.
 - Better BibTeX can provide stable citekeys.
 - `bibliography/references.bib` remains the repository citation source of truth.
+- Export QA is not skipped in normal citation-library QA; it is skipped only when no verified Zotero record is available and export coverage is explicitly not claimed.
 - API-based Zotero checks are claimed only after `end-2-end-tests/docs/qa-environment-requirements.md` passes.
 - `git diff -- bibliography/references.bib` shows only expected verified Zotero or Better BibTeX changes.
+- A skipped bibliography refresh means only Zotero/Better BibTeX availability was checked, not end-to-end library export.
 - No generated or unverified bibliographic metadata is accepted as evidence.
 
 Quarto, Pandoc, and the configured TeX engine can render from the scaffold when export or render QA is in scope:
@@ -414,7 +429,6 @@ python3 scripts/operations/obsidian/check_obsidian_panel.py
 python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes
 python3 scripts/operations/vendors/check_external_skills.py
 python3 scripts/research-writing/check_placeholders.py .
-python3 scripts/research-writing/check_placeholders.py --include-templates templates
 python3 scripts/research-writing/check_citations.py
 python3 scripts/research-writing/check_citations.py --include-notes --require-citations
 python3 scripts/research-writing/check_citations.py --show-unused
@@ -430,6 +444,17 @@ Expected result:
 - Non-mutating checks exit 0 where prerequisites exist.
 - Missing optional render tooling is reported as a tooling blocker, not a manuscript failure.
 - Vendor checks fail if submodule pointers differ from the parent index, are uninitialized, conflicted, dirty, or from an unexpected origin.
+
+Template placeholder diagnostic:
+
+```sh
+python3 scripts/research-writing/check_placeholders.py --include-templates templates
+```
+
+Expected result:
+
+- `python3 scripts/research-writing/check_placeholders.py --include-templates templates` is expected to exit nonzero while templates contain intentional template placeholders.
+- Record the count as template fixture coverage, not a release blocker, unless placeholders appear outside `templates/` or inside generated project content.
 
 ## Vendor Update QA
 
@@ -506,6 +531,7 @@ Run dry and direct checks:
 ```sh
 bash scripts/operations/obsidian/install_obsidian_panel.sh --dry-run
 python3 scripts/operations/obsidian/obsidian_agent.py --dry-run
+python3 scripts/operations/obsidian/obsidian_agent.py --dry-run --register-obsidian-vault
 python3 scripts/operations/obsidian/check_obsidian_panel.py
 ```
 
@@ -519,6 +545,7 @@ python3 scripts/operations/obsidian/check_obsidian_panel.py
 Expected result:
 
 - Dry run does not modify files.
+- `--register-obsidian-vault` is opt-in and dry-run safe because it reports the app registry write without making it.
 - The plugin folder `.obsidian/plugins/codex-panel/` contains `manifest.json`, `main.js`, and `styles.css`.
 - The manifest ID is `codex-panel`.
 - `.obsidian/community-plugins.json` is created or updated so `codex-panel` is enabled.
@@ -529,6 +556,7 @@ Expected result:
 - Missing release assets fail the install.
 - GitHub source zipballs are not accepted as plugin release packages.
 - Existing Obsidian workspace files are not overwritten.
+- Obsidian's app-level vault registry is modified only when `--register-obsidian-vault` is explicitly passed.
 
 Safe usage prompt:
 
@@ -565,6 +593,8 @@ Expected result:
 - Vendored upstream files remain unchanged.
 
 Skill smoke tests are part of full release QA when the release claims ARS, Research Book Skills, or Subagent Orchestrator usability. Run smoke tests only against synthetic seed material or named read-only scaffold files, and record the result in the evidence log.
+
+Loadability checks are not the same as live behavioral smoke tests. If QA only reads wrapper files, upstream `SKILL.md` files, plugin manifests, and marketplace paths, record the result as loadability coverage and do not claim full skill smoke-test coverage.
 
 For each listed ARS wrapper:
 
@@ -695,6 +725,7 @@ Expected result:
 - PDF and all-format render require the configured PDF engine, defaulting to `lualatex`.
 - Rendered outputs appear under the configured Quarto output location in `exports/`.
 - Generated files are manually inspected for title, table of contents, citations, bibliography, internal links, figures, tables, page breaks, headings, and absence of scaffold sample content.
+- If sandboxed automation fails with `unable to open database file` but the same render passes with normal user permissions or a writable Quarto cache, record the sandbox failure as an environment constraint and keep the normal render log as evidence.
 - If Quarto warns that it is refusing to remove `site_libs` outside the project directory, record it as non-blocking only when all expected outputs exist and manual inspection passes. The warning means the scaffold renders from the `manuscript/` Quarto project into `exports/html`, outside that Quarto project root. If warning-free logs become a release requirement, change the render workflow to render internally, such as to `manuscript/_book`, then copy final artifacts into `exports/`.
 
 ## Manual Scholarly QA
@@ -732,6 +763,12 @@ Commands run:
   exit code:
   result:
   notes:
+
+GUI evidence:
+- check:
+  screenshot or artifact:
+  fallback observation:
+  impact:
 
 Skipped checks:
 - check:
