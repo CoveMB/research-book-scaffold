@@ -116,17 +116,24 @@ class SetupEnvironmentTests(unittest.TestCase):
         self.assertIn("Run a harmless read-only prompt first.", installed_steps)
         self.assertIn("Run the command palette action Codex Panel: Open panel.", installed_steps)
 
-    def test_external_layer_is_skipped_by_default(self) -> None:
+    def test_external_layer_runs_by_default(self) -> None:
         args = setup_environment.parse_args(["--dry-run"])
-        args.with_external_skills = False
         report = SilentReport()
 
-        setup_environment.install_external_layer(args, report)
+        with mock.patch.object(setup_environment.install_external_skills, "install_external") as install_mock:
+            setup_environment.install_external_layer(args, report)
 
-        self.assertIn(
-            "external skills skipped; run install script or pass --with-external-skills",
-            report.skipped,
-        )
+        install_mock.assert_called_once()
+
+    def test_external_layer_can_be_skipped_explicitly(self) -> None:
+        args = setup_environment.parse_args(["--skip-external-skills"])
+        report = SilentReport()
+
+        with mock.patch.object(setup_environment.install_external_skills, "install_external") as install_mock:
+            setup_environment.install_external_layer(args, report)
+
+        install_mock.assert_not_called()
+        self.assertIn("external skills skipped by --skip-external-skills", report.skipped)
 
     def test_external_args_are_mapped_from_setup_args(self) -> None:
         args = setup_environment.parse_args(

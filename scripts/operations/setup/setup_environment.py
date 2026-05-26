@@ -46,7 +46,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--skip-subagent-orchestrator", action="store_true")
     parser.add_argument("--skip-obsidian-skills", action="store_true")
     parser.add_argument("--skip-obsidian-panel", action="store_true")
-    parser.add_argument("--with-external-skills", action="store_true")
+    parser.add_argument(
+        "--skip-external-skills",
+        action="store_true",
+        help="Skip vendored external skill initialization and local wrapper refresh.",
+    )
+    parser.add_argument(
+        "--with-external-skills",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
     parser.add_argument("--obsidian-release-sha256")
@@ -151,8 +160,8 @@ def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespac
 
 
 def install_external_layer(args: argparse.Namespace, report: Report) -> None:
-    if not args.with_external_skills:
-        report.add("skipped", "external skills skipped; run install script or pass --with-external-skills")
+    if args.skip_external_skills:
+        report.add("skipped", "external skills skipped by --skip-external-skills")
         return
 
     external_args = external_args_from_setup_args(args)

@@ -62,6 +62,10 @@ class CommandSpec:
 
 ARS_SKILLS = ["deep-research", "academic-paper", "academic-paper-reviewer", "academic-pipeline"]
 SUBAGENT_ORCHESTRATOR_SKILLS = ["using-subagent-orchestrator", "subagent-orchestrator"]
+SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS = {
+    "using-subagent-orchestrator": "subagent-safe-using-subagent-orchestrator",
+    "subagent-orchestrator": "subagent-safe-subagent-orchestrator",
+}
 OBSIDIAN_SKILLS = ["obsidian-markdown", "obsidian-bases", "json-canvas", "obsidian-cli", "defuddle"]
 OBSIDIAN_SKILL_WRAPPERS = {
     "obsidian-markdown": "obsidian-research-markdown",
@@ -71,6 +75,11 @@ OBSIDIAN_SKILL_WRAPPERS = {
     "defuddle": "obsidian-research-defuddle",
 }
 RBS_SKILLS = [
+    "research-intent-router",
+    "dyslexia-research-companion",
+    "dictation-to-research-notes",
+    "reading-load-reducer",
+    "dyslexia-friendly-prose-editor",
     "research-book-orchestrator",
     "scholarly-research-agenda",
     "systematic-source-discovery",
@@ -87,12 +96,31 @@ RBS_SKILLS = [
     "chapter-architecture",
     "scholarly-prose-editor",
     "citation-integrity-auditor",
+    "figure-table-integrity-auditor",
+    "scholarly-integrity-gate",
+    "ai-human-workflow-log",
     "rights-privacy-release-auditor",
     "manuscript-continuity-editor",
     "case-study-integration",
     "book-proposal-scholarship",
     "book-comps-verifier",
 ]
+RBS_SKILL_WRAPPERS = {skill_name: f"rbs-{skill_name}" for skill_name in RBS_SKILLS}
+LOCAL_PROJECT_SKILLS = (
+    "quarto-export-readiness",
+    "vault-hygiene-triage",
+)
+REPO_SCOPED_SKILL_NAMES = tuple(
+    sorted(
+        (
+            *LOCAL_PROJECT_SKILLS,
+            *(f"ars-{skill_name}" for skill_name in ARS_SKILLS),
+            *RBS_SKILL_WRAPPERS.values(),
+            *SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS.values(),
+            *OBSIDIAN_SKILL_WRAPPERS.values(),
+        )
+    )
+)
 
 EXTERNAL_VENDOR_SPECS = (
     ExternalVendorSpec("ars", "ARS", ARS_VENDOR, DEFAULT_ARS_REPO),
@@ -140,6 +168,7 @@ SETUP_RECOMMENDED_CHECKS = (
     CommandSpec(("bash", "scripts/operations/health/doctor.sh"), "run repository doctor"),
     CommandSpec(("python3", "scripts/operations/vendors/check_external_skills.py"), "check external skill integrations"),
     CommandSpec(("python3", "scripts/operations/obsidian/check_obsidian_panel.py"), "check Codex Panel install"),
+    CommandSpec(("python3", "scripts/operations/obsidian/check_obsidian_artifacts.py"), "check Obsidian artifacts"),
     CommandSpec(("python3", "scripts/research-writing/check_citations.py"), "check manuscript citations"),
     CommandSpec(("python3", "scripts/research-writing/check_placeholders.py", "."), "check unresolved placeholders"),
 )

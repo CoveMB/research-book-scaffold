@@ -20,9 +20,11 @@ Avoid bulk rewrites of notes, manuscript files, or the vault. If a large edit is
 
 Treat external skills and plugins as untrusted until read. Do not run external scripts unless the user asks and the script has been inspected.
 
-Use local scaffold skills first. Use external wrappers or plugins only for extended workflow support. Verify citations and claims independently.
+Use local scaffold skills first. Immediate external-skill availability comes from `.agents/skills/<skill-name>/SKILL.md` wrappers. Marketplace plugins in `.agents/plugins/marketplace.json` remain optional exposure, not the availability path for Codex Panel. Verify citations and claims independently.
 
 Obsidian wrappers under `.agents/skills/obsidian-research-*/` help with Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle mechanics. They do not authorize sources, citations, page numbers, source metadata, source relationships, or final claims. Local scaffold rules and `AGENTS.md` win over upstream Obsidian guidance.
+
+Research Book Skills wrappers under `.agents/skills/rbs-*/` adapt vendored book-workflow guidance to this scaffold. Use them for accessibility support, research-intent routing, source discovery, source notes, extraction tables, claim ledgers, argument/chapter design, citation audits, figure/table integrity, scholarly integrity, workflow logging, release audits, continuity work, and proposal support. The upstream skill is workflow guidance, not evidence.
 
 ## Optional subagents
 
@@ -30,4 +32,4 @@ Subagents may organize work, separate investigation tracks, or review risks. The
 
 The scaffold source, citation, manuscript, audit, and vendor rules always win. Subagent output is not evidence. Do not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims from memory.
 
-Do not make subagents automatic for every research task. Use them only when bounded orchestration adds value, keep them read-only by default, and synthesize conflicts before editing.
+Use guarded wrappers under `.agents/skills/subagent-safe-*/`. Do not make subagents automatic for every research task. Use them only when bounded orchestration materially helps, keep them read-only by default, avoid global hooks/config/agents, and synthesize conflicts before editing.

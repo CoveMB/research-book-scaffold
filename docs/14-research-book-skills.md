@@ -6,7 +6,7 @@ Repository:
 https://github.com/CoveMB/research-book-skills.git
 ```
 
-Purpose: research nonfiction and research book workflows for planning, source discovery, source-note conversion, evidence extraction, argument structure, chapter design, claim traceability, citation audit, release-risk review, continuity review, and proposal work.
+Purpose: research nonfiction and research book workflows for accessibility support, research-intent routing, planning, source discovery, source-note conversion, evidence extraction, argument structure, chapter design, claim traceability, citation audit, figure/table integrity, scholarly integrity, AI/human workflow logging, release-risk review, continuity review, and proposal work.
 
 ## Upstream orientation
 
@@ -22,6 +22,11 @@ This repository is structured as a local plugin with:
 
 ## Core skills
 
+- `research-intent-router`
+- `dyslexia-research-companion`
+- `dictation-to-research-notes`
+- `reading-load-reducer`
+- `dyslexia-friendly-prose-editor`
 - `research-book-orchestrator`
 - `scholarly-research-agenda`
 - `systematic-source-discovery`
@@ -38,6 +43,9 @@ This repository is structured as a local plugin with:
 - `chapter-architecture`
 - `scholarly-prose-editor`
 - `citation-integrity-auditor`
+- `figure-table-integrity-auditor`
+- `scholarly-integrity-gate`
+- `ai-human-workflow-log`
 - `rights-privacy-release-auditor`
 - `manuscript-continuity-editor`
 - `case-study-integration`
@@ -54,6 +62,7 @@ This repository is structured as a local plugin with:
 ## Use
 
 - Project-level examples for every skill: `docs/SKILLS_WORKFLOW.md`.
+- Research-intent routing and accessibility support for rough notes, dictation, reading load, and prose repair.
 - Research-book planning.
 - Book-level workflow orchestration.
 - Argument and chapter architecture.
@@ -64,6 +73,9 @@ This repository is structured as a local plugin with:
 - Claim-evidence ledgers.
 - Claim-to-source traceability checks.
 - Citation integrity audits.
+- Figure/table integrity audits.
+- Scholarly integrity gates.
+- AI/human workflow logs.
 - Rights, privacy, quotation, and release-risk audits.
 - Manuscript continuity review.
 - Book proposal drafting.

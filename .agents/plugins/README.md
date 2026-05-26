@@ -7,6 +7,6 @@ registry tracked; external-skill setup refreshes the vendored submodules and
 rewrites the marketplace entry when needed.
 
 The optional Subagent Orchestrator entry exposes only the nested plugin path.
-Its installer is run only by the external-skill setup path after boundary checks,
-and subagents do not authorize evidence or override scaffold source, citation,
-manuscript, audit, or vendor rules.
+Default setup refreshes the guarded wrappers and optional marketplace metadata
+without running the vendored installer. Subagents do not authorize evidence or
+override scaffold source, citation, manuscript, audit, or vendor rules.

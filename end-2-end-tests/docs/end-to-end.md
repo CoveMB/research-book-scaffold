@@ -106,7 +106,7 @@ Run setup dry first:
 ```sh
 bash setup.sh --dry-run
 python3 scripts/operations/setup/setup_environment.py --dry-run
-python3 scripts/operations/setup/setup_environment.py --dry-run --with-external-skills
+python3 scripts/operations/setup/setup_environment.py --dry-run --skip-external-skills
 python3 scripts/operations/setup/setup_environment.py --dry-run --skip-obsidian-panel
 python3 scripts/operations/setup/setup_environment.py --dry-run --register-obsidian-vault
 ```
@@ -115,16 +115,17 @@ Expected result:
 
 - Dry runs exit 0.
 - No files, packages, repositories, plugins, or vendor pointers are changed.
-- Recommended checks include `bash scripts/operations/health/doctor.sh`, external skill check, Obsidian check, citation check, and placeholder check.
+- Recommended checks include `bash scripts/operations/health/doctor.sh`, external skill check, Obsidian check, Obsidian artifact check, citation check, and placeholder check.
 - When `--skip-obsidian-panel` is used, setup reports Codex Panel setup as skipped and does not require the Obsidian check until Codex Panel coverage is in scope.
 - When `--register-obsidian-vault` is used with `--dry-run`, setup reports that it would update Obsidian's app-level vault registry without writing user app state.
-- External skills are skipped unless `--with-external-skills` is passed.
+- External skills are initialized and local wrappers are refreshed unless `--skip-external-skills` is passed.
 
 Run setup in the disposable clone:
 
 ```sh
 bash setup.sh
 python3 scripts/operations/obsidian/check_obsidian_panel.py
+python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 ```
 
 When GUI app checks include direct `obsidian://open?path=...` launches, opt in to vault registration during setup:
@@ -137,6 +138,7 @@ Expected result:
 
 - Required tools are found or reported with clear manual steps.
 - `.agents/skills/` exists and local skill front matter validates.
+- ARS, RBS, guarded Subagent Orchestrator, and Obsidian Skills wrappers are present under `.agents/skills/`.
 - The project root is treated as the Obsidian vault root.
 - `.obsidian/plugins/codex-panel/` is installed or an existing plugin folder is reported as skipped unless `--force` was intentionally used.
 - Setup writes `.obsidian/community-plugins.json` so `codex-panel` is listed as enabled.
@@ -190,6 +192,12 @@ Safe smoke prompt:
 Read AGENTS.md and summarize the project rules. Do not edit anything.
 ```
 
+Skill discovery smoke prompt:
+
+```text
+Read AGENTS.md and list the repo-scoped skills available from .agents/skills. Then use $obsidian-research-markdown to inspect notes/README.md and explain which Obsidian Markdown rules apply. Do not edit files.
+```
+
 Expected result:
 
 - The Codex Panel plugin is enabled for the project-root vault.
@@ -197,6 +205,8 @@ Expected result:
 - `.obsidian/plugins/codex-panel/data.json` points to an absolute Codex executable path.
 - Codex approval prompts remain governed by Codex CLI and `codex app-server`.
 - The read-only prompt can inspect scaffold files.
+- Codex Panel can discover repo-scoped skills from `.agents/skills` without manual repo marketplace plugin installation.
+- The `$obsidian-research-markdown` wrapper can be invoked from Codex Panel.
 - File writes and command execution remain approval-gated.
 - `git status --short` shows no unexpected source changes after the smoke prompt.
 
@@ -278,9 +288,10 @@ Expected result:
 | `make check-manuscript-readiness` | Detects remaining scaffold manuscript entries | Exits 0 for production release |
 | `make check-external-skills` | Validates vendor submodules, wrappers, plugins, marketplace, and old repo references | Exits 0 with zero failures |
 | `make install-external-skills` | Vendors external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
-| `make install-subagent-orchestrator` | Installs only the optional subagent plugin path | Uses project scope and keeps the plugin available-only |
+| `make install-subagent-orchestrator` | Refreshes only the optional guarded subagent wrappers and marketplace path | Keeps plugin exposure optional and does not activate global hooks, global config, or global agents |
 | `make update-skills-vendors` | Fast-forwards vendored skill repositories and refreshes integrations | Use only when the release includes vendor updates |
 | `make check-obsidian-panel` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
+| `make check-obsidian-artifacts` | Validates project-local `.base` and `.canvas` artifacts | Exits 0 |
 | `make install-obsidian-panel` | Installs Codex Panel plugin | Use only in disposable QA or intentional local setup |
 | `make audit` | Runs normal scaffold health checks | Exits 0 |
 | `make release-audit` | Runs strict pre-release manuscript checks | Exits 0 and all blockers are resolved |
@@ -387,6 +398,7 @@ Entry points and support modules:
 - `scripts/research-writing/check_citations.py`
 - `scripts/operations/vendors/check_external_skills.py`
 - `scripts/research-writing/check_manuscript_readiness.py`
+- `scripts/operations/obsidian/check_obsidian_artifacts.py`
 - `scripts/operations/obsidian/check_obsidian_panel.py`
 - `scripts/research-writing/check_placeholders.py`
 - `scripts/operations/health/doctor.py`
@@ -425,6 +437,7 @@ Targeted script checks:
 ```sh
 bash scripts/operations/health/doctor.sh
 python3 scripts/operations/health/doctor.py
+python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 python3 scripts/operations/obsidian/check_obsidian_panel.py
 python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes
 python3 scripts/operations/vendors/check_external_skills.py
@@ -603,7 +616,7 @@ For each listed ARS wrapper:
 3. Run only a bounded read-only prompt against synthetic seed files.
 4. Record whether the skill loaded, which files it read, what it would check, and what uncertainty remains.
 
-For each listed Research Book Skills plugin skill:
+For each listed Research Book Skills wrapper:
 
 1. Use the safe fixture prompt pattern below.
 2. Confirm the skill stays within the seed fixture or named files.
@@ -637,8 +650,45 @@ Expected usage behavior:
 - Do not run Claude-specific commands, vendored scripts, hooks, or provider-specific commands.
 - Verify citations, claims, page numbers, and source metadata independently.
 
-Research Book Skills plugin usage:
+Research Book Skills wrapper usage:
 
+- `rbs-research-intent-router`
+- `rbs-dyslexia-research-companion`
+- `rbs-dictation-to-research-notes`
+- `rbs-reading-load-reducer`
+- `rbs-dyslexia-friendly-prose-editor`
+- `rbs-research-book-orchestrator`
+- `rbs-scholarly-research-agenda`
+- `rbs-systematic-source-discovery`
+- `rbs-discovery-runner-deduper`
+- `rbs-annotation-to-source-note`
+- `rbs-extraction-table-builder`
+- `rbs-literature-review-mapper`
+- `rbs-annotated-bibliography-builder`
+- `rbs-methodology-source-auditor`
+- `rbs-claim-evidence-ledger`
+- `rbs-claim-traceability-graph`
+- `rbs-argument-architecture`
+- `rbs-counterargument-peer-review`
+- `rbs-chapter-architecture`
+- `rbs-scholarly-prose-editor`
+- `rbs-citation-integrity-auditor`
+- `rbs-figure-table-integrity-auditor`
+- `rbs-scholarly-integrity-gate`
+- `rbs-ai-human-workflow-log`
+- `rbs-rights-privacy-release-auditor`
+- `rbs-manuscript-continuity-editor`
+- `rbs-case-study-integration`
+- `rbs-book-proposal-scholarship`
+- `rbs-book-comps-verifier`
+
+Upstream skill names covered by those wrappers:
+
+- `research-intent-router`
+- `dyslexia-research-companion`
+- `dictation-to-research-notes`
+- `reading-load-reducer`
+- `dyslexia-friendly-prose-editor`
 - `research-book-orchestrator`
 - `scholarly-research-agenda`
 - `systematic-source-discovery`
@@ -655,6 +705,9 @@ Research Book Skills plugin usage:
 - `chapter-architecture`
 - `scholarly-prose-editor`
 - `citation-integrity-auditor`
+- `figure-table-integrity-auditor`
+- `scholarly-integrity-gate`
+- `ai-human-workflow-log`
 - `rights-privacy-release-auditor`
 - `manuscript-continuity-editor`
 - `case-study-integration`
@@ -673,7 +726,12 @@ Expected result:
 - It does not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims.
 - It preserves source and citation limits.
 
-Subagent Orchestrator plugin usage:
+Subagent Orchestrator guarded wrapper usage:
+
+- `subagent-safe-using-subagent-orchestrator`
+- `subagent-safe-subagent-orchestrator`
+
+Upstream skill names covered by those wrappers:
 
 - `using-subagent-orchestrator`
 - `subagent-orchestrator`
@@ -686,7 +744,7 @@ Use using-subagent-orchestrator for this synthetic QA task. Classify whether the
 
 Expected result:
 
-- The plugin only provides execution-shape guidance.
+- The wrapper only provides execution-shape guidance.
 - It does not override project rules, citation rules, manuscript rules, audit rules, or vendor rules.
 - Subagent output is not treated as evidence.
 
