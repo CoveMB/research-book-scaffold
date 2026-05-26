@@ -2,11 +2,15 @@
 
 Codex Panel is the recommended Obsidian plugin that connects a vault to local Codex workflows. Default setup installs it unless `--skip-obsidian-panel` is passed.
 
+Codex Panel is separate from Obsidian Skills. Obsidian Skills are vendored reference skills with local wrappers for Obsidian syntax and vault mechanics; see `docs/15-obsidian-skills.md`.
+
 ## Access and value
 
 It uses `codex app-server`, so sandboxing, approvals, model selection, MCP, and hooks remain governed by the local Codex CLI configuration. It is useful for bounded note work, draft passes, and audits inside Obsidian.
 
 Use it carefully because vault notes can contain untrusted source text and personal material.
+
+Open the repository root as the Obsidian vault. Codex Panel should launch Codex with the vault/repo root as the working directory, or with a path below it. Codex discovers repo-scoped skills from `.agents/skills` in the working directory and parent directories up to the repository root; if the panel starts outside the repo tree, the wrappers will not be visible.
 
 ## Prerequisites
 
@@ -41,10 +45,14 @@ GUI apps may not inherit the shell `PATH`, so the plugin settings should use an 
 Default setup treats the repository root as the vault root:
 
 ```sh
-python3 scripts/operations/setup/setup_environment.py
+bash setup.sh
 ```
 
-This creates `.obsidian/` in the project root, installs the plugin at `.obsidian/plugins/codex-panel/`, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, and writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
+This creates `.obsidian/` in the project root, installs the plugin at `.obsidian/plugins/codex-panel/`, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
+
+The downloaded `.obsidian/plugins/codex-panel/` plugin directory is ignored because setup can recreate it and `data.json` may contain a user-specific absolute Codex path. `.obsidian/community-plugins.json` is not ignored so a fork can intentionally commit vault-level plugin enablement defaults after review.
+
+If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. When a stale or broken plugin folder is suspected, rerun setup with `--force`, then run `make check-obsidian-panel`.
 
 By default, setup does not modify Obsidian's app-level vault registry. If Obsidian has never opened this project root as a vault, a direct `obsidian://open?path=...` launch can report that the vault is not found even though the vault-local `.obsidian/` files exist.
 
@@ -78,7 +86,7 @@ The installer refuses to replace an existing plugin folder unless `--force` is p
 Health check:
 
 ```sh
-python3 scripts/operations/obsidian/check_obsidian_panel.py
+make check-obsidian-panel
 ```
 
 Expected result:
@@ -89,6 +97,15 @@ Expected result:
 - `.obsidian/plugins/codex-panel/data.json` contains an absolute executable `codexPath`
 - `codex --version` exits 0 through that configured path
 - `codex app-server --help` exits 0 through that configured path
+
+If the check fails:
+
+- missing or non-executable `codexPath`: rerun setup from the shell where `codex --version` works, or edit `.obsidian/plugins/codex-panel/data.json` to an absolute executable path
+- disabled community plugin: enable Codex Panel in Obsidian Community plugins, then rerun the check
+- manifest ID mismatch or missing plugin files: rerun `bash setup.sh --force`, then rerun the check
+- `codex app-server --help` failure: update or reinstall Codex CLI before using Codex Panel
+
+This check verifies the local plugin install and Codex command. It cannot prove the runtime working directory used by the panel. Use the read-only prompts below inside Codex Panel to verify the vault/repo root context and repo-scoped skill discovery.
 
 ## Recommended modes
 
@@ -119,4 +136,18 @@ Safe first prompt:
 Read AGENTS.md and summarize the project rules. Do not edit anything.
 ```
 
-Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, and `docs/07-citation-workflow.md` before using it for edits.
+Skill availability prompt:
+
+```text
+Read AGENTS.md and list the repo-scoped skills available from .agents/skills. Do not edit files.
+```
+
+Obsidian wrapper test:
+
+```text
+Use $obsidian-research-markdown to inspect notes/README.md and explain which Obsidian Markdown rules apply. Do not edit files.
+```
+
+If Codex Panel does not see repo-scoped skills, verify that Obsidian opened the project root as the vault root and that Codex Panel launched Codex from the repo root or a path below it. Then run `python3 scripts/operations/vendors/check_external_skills.py` to confirm wrappers and vendors are present.
+
+Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, `docs/07-citation-workflow.md`, and `docs/15-obsidian-skills.md` before using it for edits that involve Obsidian-specific syntax, Bases, Canvas files, CLI operations, or web ingest.

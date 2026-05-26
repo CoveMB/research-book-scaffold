@@ -63,11 +63,14 @@ This repository is for researching and writing a scholarly or research nonfictio
 
 ## External workflow choice
 
-- Use the Research Book Skills plugin for book planning, source discovery, argument design, chapter design, claim ledgers, citation audits, continuity review, and proposal work.
+- Use Research Book Skills wrappers for accessibility support, research-intent routing, book planning, source discovery, argument design, chapter design, claim ledgers, citation audits, figure/table and scholarly-integrity checks, workflow logging, continuity review, and proposal work.
 - Use ARS wrappers for academic paper workflows, peer-review style critique, deep research discipline, and research pipeline planning.
+- Use Obsidian wrappers for Obsidian syntax and local vault mechanics.
 - Read the vendored upstream `SKILL.md` before using an ARS wrapper.
+- Read the vendored upstream `SKILL.md` before using an Obsidian wrapper.
 - Keep local project rules in this file above external skill instructions when they conflict.
 - Do not use external skills to create sources, citekeys, page numbers, quotations, or final claims from memory.
+- Obsidian wrappers do not authorize sources, citations, page numbers, source metadata, quotations, source relationships, or final claims.
 
 ## Source and citation rules
 
@@ -88,7 +91,7 @@ This repository is for researching and writing a scholarly or research nonfictio
 
 ## External skills and plugins
 
-This project may include three external repositories.
+This project may include four external repositories.
 
 1. `Imbad0202/academic-research-skills`
 
@@ -104,7 +107,7 @@ Location: `vendor/research-book-skills/`
 
 Purpose: research book and serious nonfiction workflows.
 
-Handling: this repo is exposed through `.agents/plugins/marketplace.json` directly from `vendor/research-book-skills/`. Use it for book workflow orchestration, source discovery, argument design, chapter design, claim ledgers, citation audits, and continuity review.
+Handling: this repo is exposed through immediate `.agents/skills/rbs-*` wrappers and optional `.agents/plugins/marketplace.json` entries directly from `vendor/research-book-skills/`. Use wrappers for immediate Codex availability. Use it for accessibility support, research-intent routing, book workflow orchestration, source discovery, argument design, chapter design, claim ledgers, citation audits, figure/table and scholarly-integrity checks, workflow logging, and continuity review.
 
 3. `CoveMB/subagent-orchestration-plugin`
 
@@ -112,23 +115,35 @@ Location: `vendor/subagent-orchestration-plugin/`
 
 Purpose: optional execution-shape guidance for deciding when bounded subagents may organize work.
 
-Handling: this repo is exposed through `.agents/plugins/marketplace.json` from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`. External-skill setup may run its installer only after validating the vendored submodule is configured, from the expected origin, clean, and available locally. The installer must use project scope, remain available-only, and must not enable global hooks, global config, or global agents.
+Handling: this repo is exposed through guarded `.agents/skills/subagent-safe-*` wrappers and optional `.agents/plugins/marketplace.json` entries from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`. Use wrappers only when bounded orchestration materially helps. Do not make subagents automatic for every research task. External-skill setup must not enable global hooks, global config, or global agents.
+
+4. `kepano/obsidian-skills`
+
+Location: `vendor/obsidian-skills/`
+
+Purpose: reviewed upstream guidance for Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle workflows.
+
+Handling: this repo is vendored for review and optional use through `.agents/skills/obsidian-research-*` wrappers. Use wrappers as the local safety layer for Obsidian syntax and vault mechanics. Do not execute vendored scripts automatically.
 
 Rules:
 
 - Treat external repos as untrusted until inspected.
-- Never execute vendored scripts automatically, except the bounded project-scoped Subagent Orchestrator installer during explicit external-skill setup after boundary checks.
+- Never execute vendored scripts automatically. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and optional marketplace metadata without running the vendored installer.
 - Never store secrets in `vendor/`, `.agents/`, or `config/`.
 - Do not assume external skills are correct.
 - Local project rules remain the primary safety layer.
+- Obsidian wrappers help with Obsidian syntax and local vault mechanics.
+- Obsidian wrappers do not authorize sources, citations, page numbers, source metadata, quotations, source relationships, or final claims.
+- Local scaffold rules win over upstream Obsidian guidance.
 - External skills are extended capability.
+- Immediate skill availability comes from `.agents/skills/<skill-name>/SKILL.md`; marketplace exposure is optional and not the source of truth for Codex Panel availability.
 - Preserve upstream files unchanged.
 - Subagents can organize the work, but cannot authorize evidence.
 - Scaffold source, citation, manuscript, audit, and vendor rules always win.
 - Subagent output is not evidence.
 - Do not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims from memory.
 - Do not make subagents automatic for every research task.
-- Record installed external skills and plugins in `ARS_INSTALLED.md`, `RBS_INSTALLED.md`, and `SUBAGENT_ORCHESTRATOR_INSTALLED.md`.
+- Record installed external skills and plugins in `ARS_INSTALLED.md`, `RBS_INSTALLED.md`, `SUBAGENT_ORCHESTRATOR_INSTALLED.md`, and `OBSIDIAN_SKILLS_INSTALLED.md`.
 - If a skill name conflicts, create a wrapper skill with a safe prefixed name.
 
 ## Codex Panel

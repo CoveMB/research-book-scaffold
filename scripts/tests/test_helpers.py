@@ -25,7 +25,7 @@ class HelpersTests(unittest.TestCase):
 
         self.assertEqual(
             helpers.REMOVED_EXTERNAL_REPO_FLAGS,
-            ("--ars-repo", "--rbs-repo", "--subagent-orchestrator-repo"),
+            ("--ars-repo", "--rbs-repo", "--subagent-orchestrator-repo", "--obsidian-skills-repo"),
         )
 
     def test_assert_parse_args_rejects_requires_system_exit(self) -> None:

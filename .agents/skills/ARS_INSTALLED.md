@@ -2,9 +2,10 @@
 
 - Repo: `https://github.com/Imbad0202/academic-research-skills.git`
 - Ref: `default branch`
-- Commit: `153203d129b1d0e83dd65ab96340048257cd45b2`
+- Commit: `2129726b3382b48c6944273933562e164e4ae37d`
 - Vendor path: `vendor/academic-research-skills`
-- License note: CC-BY-NC-4.0. Confirm license compatibility before commercial use.
+- License note: Creative Commons Attribution-NonCommercial 4.0 International verified from `vendor/academic-research-skills/LICENSE`.
+- Upstream files edited: no.
 
 ## Wrappers
 - `.agents/skills/ars-deep-research/SKILL.md`
@@ -15,3 +16,4 @@
 ## Warnings
 - Upstream is Claude Code oriented.
 - Do not run Claude-specific commands here.
+- Upstream files were not edited.

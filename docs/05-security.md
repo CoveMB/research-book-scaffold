@@ -18,6 +18,9 @@
 - Read external skills before using them.
 - Do not run vendored scripts by default.
 - Prefer local generic skills for repo work.
+- Use `.agents/skills` wrappers for immediate Codex availability; do not rely on marketplace installation as the safety layer.
+- Keep plugin marketplace entries optional unless the user explicitly chooses to install a repo plugin.
+- Use Obsidian wrappers as syntax and vault-mechanics guidance only; they are not evidence authority.
 
 ## Shell command risk
 
@@ -53,3 +56,8 @@
 - Preserve upstream files under `vendor/`.
 - Do not run Claude-specific commands from external academic skills here.
 - Review plugin metadata before exposing vendored plugins.
+- Do not claim Obsidian Skills are globally installed unless the user separately installed them outside this repository.
+- Optional user-level skill installation commands are not part of project setup and require explicit user-level approval.
+- Do not let Obsidian CLI output, Defuddle output, or generated Obsidian artifacts authorize citations, source metadata, page numbers, or final claims.
+- Do not let Bases or Canvases become evidence; they are views and maps over source-backed notes.
+- Guarded subagent wrappers must not enable global hooks, global agents, or global config, and subagent output is not evidence.

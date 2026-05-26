@@ -7,3 +7,6 @@
 [submodule "vendor/subagent-orchestration-plugin"]
 	path = vendor/subagent-orchestration-plugin
 	url = https://github.com/CoveMB/subagent-orchestration-plugin.git
+[submodule "vendor/obsidian-skills"]
+	path = vendor/obsidian-skills
+	url = https://github.com/kepano/obsidian-skills.git

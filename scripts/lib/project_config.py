@@ -11,11 +11,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ARS_REPO = "https://github.com/Imbad0202/academic-research-skills.git"
 DEFAULT_RBS_REPO = "https://github.com/CoveMB/research-book-skills.git"
 DEFAULT_SUBAGENT_ORCHESTRATOR_REPO = "https://github.com/CoveMB/subagent-orchestration-plugin.git"
+DEFAULT_OBSIDIAN_SKILLS_REPO = "https://github.com/kepano/obsidian-skills.git"
 
 GITMODULES_PATH = Path(".gitmodules")
 ARS_VENDOR = Path("vendor/academic-research-skills")
 RBS_VENDOR = Path("vendor/research-book-skills")
 SUBAGENT_ORCHESTRATOR_VENDOR = Path("vendor/subagent-orchestration-plugin")
+OBSIDIAN_SKILLS_VENDOR = Path("vendor/obsidian-skills")
 SKILLS_DIR = Path(".agents/skills")
 PLUGIN_MARKETPLACE = Path(".agents/plugins/marketplace.json")
 MARKETPLACE_PLUGIN_PATH = "./vendor/research-book-skills"
@@ -60,7 +62,24 @@ class CommandSpec:
 
 ARS_SKILLS = ["deep-research", "academic-paper", "academic-paper-reviewer", "academic-pipeline"]
 SUBAGENT_ORCHESTRATOR_SKILLS = ["using-subagent-orchestrator", "subagent-orchestrator"]
+SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS = {
+    "using-subagent-orchestrator": "subagent-safe-using-subagent-orchestrator",
+    "subagent-orchestrator": "subagent-safe-subagent-orchestrator",
+}
+OBSIDIAN_SKILLS = ["obsidian-markdown", "obsidian-bases", "json-canvas", "obsidian-cli", "defuddle"]
+OBSIDIAN_SKILL_WRAPPERS = {
+    "obsidian-markdown": "obsidian-research-markdown",
+    "obsidian-bases": "obsidian-research-bases",
+    "json-canvas": "obsidian-research-canvas",
+    "obsidian-cli": "obsidian-research-cli",
+    "defuddle": "obsidian-research-defuddle",
+}
 RBS_SKILLS = [
+    "research-intent-router",
+    "dyslexia-research-companion",
+    "dictation-to-research-notes",
+    "reading-load-reducer",
+    "dyslexia-friendly-prose-editor",
     "research-book-orchestrator",
     "scholarly-research-agenda",
     "systematic-source-discovery",
@@ -77,12 +96,31 @@ RBS_SKILLS = [
     "chapter-architecture",
     "scholarly-prose-editor",
     "citation-integrity-auditor",
+    "figure-table-integrity-auditor",
+    "scholarly-integrity-gate",
+    "ai-human-workflow-log",
     "rights-privacy-release-auditor",
     "manuscript-continuity-editor",
     "case-study-integration",
     "book-proposal-scholarship",
     "book-comps-verifier",
 ]
+RBS_SKILL_WRAPPERS = {skill_name: f"rbs-{skill_name}" for skill_name in RBS_SKILLS}
+LOCAL_PROJECT_SKILLS = (
+    "quarto-export-readiness",
+    "vault-hygiene-triage",
+)
+REPO_SCOPED_SKILL_NAMES = tuple(
+    sorted(
+        (
+            *LOCAL_PROJECT_SKILLS,
+            *(f"ars-{skill_name}" for skill_name in ARS_SKILLS),
+            *RBS_SKILL_WRAPPERS.values(),
+            *SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS.values(),
+            *OBSIDIAN_SKILL_WRAPPERS.values(),
+        )
+    )
+)
 
 EXTERNAL_VENDOR_SPECS = (
     ExternalVendorSpec("ars", "ARS", ARS_VENDOR, DEFAULT_ARS_REPO),
@@ -92,6 +130,12 @@ EXTERNAL_VENDOR_SPECS = (
         "Subagent Orchestrator",
         SUBAGENT_ORCHESTRATOR_VENDOR,
         DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
+    ),
+    ExternalVendorSpec(
+        "obsidian-skills",
+        "Obsidian Skills",
+        OBSIDIAN_SKILLS_VENDOR,
+        DEFAULT_OBSIDIAN_SKILLS_REPO,
     ),
 )
 
@@ -124,6 +168,7 @@ SETUP_RECOMMENDED_CHECKS = (
     CommandSpec(("bash", "scripts/operations/health/doctor.sh"), "run repository doctor"),
     CommandSpec(("python3", "scripts/operations/vendors/check_external_skills.py"), "check external skill integrations"),
     CommandSpec(("python3", "scripts/operations/obsidian/check_obsidian_panel.py"), "check Codex Panel install"),
+    CommandSpec(("python3", "scripts/operations/obsidian/check_obsidian_artifacts.py"), "check Obsidian artifacts"),
     CommandSpec(("python3", "scripts/research-writing/check_citations.py"), "check manuscript citations"),
     CommandSpec(("python3", "scripts/research-writing/check_placeholders.py", "."), "check unresolved placeholders"),
 )

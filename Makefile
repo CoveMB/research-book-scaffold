@@ -1,4 +1,4 @@
-.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel install-obsidian-panel audit release-audit ci
+.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-artifacts install-obsidian-panel audit release-audit ci
 
 help:
 	@echo "Targets:"
@@ -16,9 +16,10 @@ help:
 	@echo "  check-manuscript-readiness Check release config for scaffold manuscript entries"
 	@echo "  check-external-skills  Check external skill/plugin integration"
 	@echo "  install-external-skills Vendor external skills and update marketplace"
-	@echo "  install-subagent-orchestrator Install optional subagent plugin in project scope"
+	@echo "  install-subagent-orchestrator Refresh guarded subagent wrappers and marketplace"
 	@echo "  update-skills-vendors  Fast-forward skill vendors and refresh integrations"
 	@echo "  check-obsidian-panel   Check Codex Panel install in the project root vault"
+	@echo "  check-obsidian-artifacts Check .base and .canvas Obsidian artifacts"
 	@echo "  install-obsidian-panel Install Codex Panel in the project root vault"
 	@echo "  audit                  Run repository checks"
 	@echo "  release-audit          Run strict manuscript readiness checks"
@@ -68,7 +69,7 @@ install-external-skills:
 	python3 scripts/operations/vendors/install_external_skills.py --yes
 
 install-subagent-orchestrator:
-	python3 scripts/operations/vendors/install_external_skills.py --yes --skip-ars --skip-rbs
+	python3 scripts/operations/vendors/install_external_skills.py --yes --skip-ars --skip-rbs --skip-obsidian-skills
 
 update-skills-vendors:
 	bash scripts/operations/vendors/update-skills-vendors.sh
@@ -76,11 +77,14 @@ update-skills-vendors:
 check-obsidian-panel:
 	python3 scripts/operations/obsidian/check_obsidian_panel.py
 
+check-obsidian-artifacts:
+	python3 scripts/operations/obsidian/check_obsidian_artifacts.py
+
 install-obsidian-panel:
 	bash scripts/operations/obsidian/install_obsidian_panel.sh
 
-audit: test check-placeholders check-citations check-links check-external-skills
+audit: test check-placeholders check-citations check-links check-external-skills check-obsidian-artifacts
 
-release-audit: test check-placeholders check-citations-strict check-links check-manuscript-readiness check-external-skills
+release-audit: test check-placeholders check-citations-strict check-links check-manuscript-readiness check-external-skills check-obsidian-artifacts
 
 ci: lint release-audit

@@ -31,12 +31,26 @@ SCRIPT_LAYOUT = {
     "scripts/operations/vendors/update-skills-vendors.sh",
     "scripts/operations/obsidian/obsidian_agent.py",
     "scripts/operations/obsidian/check_obsidian_panel.py",
+    "scripts/operations/obsidian/check_obsidian_artifacts.py",
     "scripts/operations/obsidian/install_obsidian_panel.sh",
     "scripts/lib/project_config.py",
     "scripts/lib/script_utils.py",
     "scripts/lib/git_utils.py",
     "scripts/lib/import_paths.py",
     "scripts/lib/script_env.sh",
+}
+
+OBSIDIAN_SKILL_WRAPPERS = {
+    "obsidian-markdown": "obsidian-research-markdown",
+    "obsidian-bases": "obsidian-research-bases",
+    "json-canvas": "obsidian-research-canvas",
+    "obsidian-cli": "obsidian-research-cli",
+    "defuddle": "obsidian-research-defuddle",
+}
+
+SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS = {
+    "using-subagent-orchestrator": "subagent-safe-using-subagent-orchestrator",
+    "subagent-orchestrator": "subagent-safe-subagent-orchestrator",
 }
 
 LEGACY_SCRIPT_PATHS = {
@@ -54,6 +68,7 @@ LEGACY_SCRIPT_PATHS = {
     "scripts/install_obsidian_panel.sh",
     "scripts/new_from_template.py",
     "scripts/obsidian_agent.py",
+    "scripts/check_obsidian_artifacts.py",
     "scripts/project_config.py",
     "scripts/render.sh",
     "scripts/render_manuscript.py",
@@ -113,6 +128,109 @@ class ProjectToolingTests(unittest.TestCase):
             specs_by_key["subagent-orchestrator"].default_repo,
             project_config.DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
         )
+        self.assertEqual(specs_by_key["obsidian-skills"].label, "Obsidian Skills")
+        self.assertEqual(specs_by_key["obsidian-skills"].path, project_config.OBSIDIAN_SKILLS_VENDOR)
+        self.assertEqual(
+            specs_by_key["obsidian-skills"].default_repo,
+            project_config.DEFAULT_OBSIDIAN_SKILLS_REPO,
+        )
+        self.assertEqual(
+            project_config.OBSIDIAN_SKILLS,
+            ["obsidian-markdown", "obsidian-bases", "json-canvas", "obsidian-cli", "defuddle"],
+        )
+        self.assertEqual(project_config.OBSIDIAN_SKILL_WRAPPERS, OBSIDIAN_SKILL_WRAPPERS)
+        self.assertEqual(
+            project_config.RBS_SKILL_WRAPPERS,
+            {skill_name: f"rbs-{skill_name}" for skill_name in project_config.RBS_SKILLS},
+        )
+        self.assertEqual(
+            project_config.SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
+            SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
+        )
+
+    def test_repo_scoped_skill_manifest_matches_skill_directories(self) -> None:
+        skill_files = (ROOT / project_config.SKILLS_DIR).glob("*/SKILL.md")
+        actual_skill_names = {skill_file.parent.name for skill_file in skill_files}
+        expected_skill_names = set(project_config.REPO_SCOPED_SKILL_NAMES)
+
+        self.assertEqual(len(project_config.REPO_SCOPED_SKILL_NAMES), len(expected_skill_names))
+        self.assertEqual(actual_skill_names, expected_skill_names)
+
+    def test_obsidian_safety_wrappers_exist_with_frontmatter_and_contract(self) -> None:
+        for upstream_name, wrapper_name in OBSIDIAN_SKILL_WRAPPERS.items():
+            with self.subTest(wrapper=wrapper_name):
+                upstream_path = project_config.OBSIDIAN_SKILLS_VENDOR / "skills" / upstream_name / "SKILL.md"
+                wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
+
+                self.assertTrue(wrapper_path.exists(), wrapper_path)
+                text = wrapper_path.read_text(encoding="utf-8")
+
+                self.assertTrue(text.startswith("---\n"))
+                self.assertIn("\n---\n", text[4:])
+                self.assertIn(f"name: {wrapper_name}", text)
+                self.assertIn("description:", text)
+                self.assertIn(upstream_name, text)
+                self.assertIn(upstream_path.as_posix(), text)
+                self.assertIn("Read the upstream `SKILL.md` before use.", text)
+                self.assertIn("AGENTS.md", text)
+                self.assertIn("citation workflow", text)
+                self.assertIn("evidence rules", text)
+                self.assertIn("folder responsibilities", text)
+                self.assertIn("## Allowed Reads", text)
+                self.assertIn("## Allowed Writes", text)
+                self.assertIn("## Forbidden Actions", text)
+                self.assertIn("## Validation Steps", text)
+                self.assertIn("## Failure Modes", text)
+
+    def test_rbs_safety_wrappers_exist_with_frontmatter_and_contract(self) -> None:
+        for upstream_name, wrapper_name in project_config.RBS_SKILL_WRAPPERS.items():
+            with self.subTest(wrapper=wrapper_name):
+                upstream_path = project_config.RBS_VENDOR / "skills" / upstream_name / "SKILL.md"
+                wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
+
+                self.assertTrue(wrapper_path.exists(), wrapper_path)
+                text = wrapper_path.read_text(encoding="utf-8")
+
+                self.assertTrue(text.startswith("---\n"))
+                self.assertIn(f"name: {wrapper_name}", text)
+                self.assertIn("description:", text)
+                self.assertIn(upstream_path.as_posix(), text)
+                self.assertIn("local scaffold rules win", text)
+                self.assertIn("Do not invent citations or claims", text)
+                self.assertIn("source notes", text)
+                self.assertIn("claim ledgers", text)
+                self.assertIn("audits", text)
+                self.assertIn("bibliography checks", text)
+                self.assertIn("workflow guidance, not evidence", text)
+
+    def test_rbs_config_exposes_all_vendored_plugin_skills(self) -> None:
+        vendor_skill_names = {
+            skill_file.parent.name
+            for skill_file in (ROOT / project_config.RBS_PLUGIN_SPEC.skills_root).glob("*/SKILL.md")
+        }
+
+        self.assertEqual(set(project_config.RBS_SKILLS), vendor_skill_names)
+
+    def test_subagent_safety_wrappers_exist_with_guarded_contract(self) -> None:
+        for upstream_name, wrapper_name in project_config.SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS.items():
+            with self.subTest(wrapper=wrapper_name):
+                upstream_path = (
+                    project_config.SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skills_root / upstream_name / "SKILL.md"
+                )
+                wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
+
+                self.assertTrue(wrapper_path.exists(), wrapper_path)
+                text = wrapper_path.read_text(encoding="utf-8")
+
+                self.assertTrue(text.startswith("---\n"))
+                self.assertIn(f"name: {wrapper_name}", text)
+                self.assertIn("description:", text)
+                self.assertIn(upstream_path.as_posix(), text)
+                self.assertIn("bounded orchestration materially helps", text)
+                self.assertIn("not use automatically for every research task", text)
+                self.assertIn("Subagent output is not evidence", text)
+                self.assertIn("no global hooks, global agents, or global config", text)
+                self.assertIn("project, citation, manuscript, audit, and vendor rules win", text)
 
     def test_external_plugin_specs_are_canonical(self) -> None:
         specs_by_key = {spec.vendor_key: spec for spec in project_config.EXTERNAL_PLUGIN_SPECS}
@@ -132,6 +250,34 @@ class ProjectToolingTests(unittest.TestCase):
 
         for relative_path in sorted(LEGACY_SCRIPT_PATHS):
             self.assertFalse((ROOT / relative_path).exists(), relative_path)
+
+    def test_subagent_make_target_skips_other_external_vendors(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("--skip-ars --skip-rbs --skip-obsidian-skills", makefile)
+
+    def test_makefile_exposes_obsidian_artifact_check(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("check-obsidian-artifacts", makefile)
+        self.assertIn("python3 scripts/operations/obsidian/check_obsidian_artifacts.py", makefile)
+
+    def test_gitignore_keeps_vault_defaults_trackable_but_ignores_plugin_artifacts(self) -> None:
+        gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+
+        self.assertIn(".obsidian/plugins/codex-panel/", gitignore)
+        self.assertNotIn(".obsidian/community-plugins.json", gitignore)
+
+    def test_obsidian_manual_refresh_docs_include_force(self) -> None:
+        docs = (ROOT / "docs" / "15-obsidian-skills.md").read_text(encoding="utf-8")
+        scripts_readme = (ROOT / "scripts" / "README.md").read_text(encoding="utf-8")
+        expected = (
+            "python3 scripts/operations/vendors/install_external_skills.py --yes "
+            "--force --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-vendor-checkouts"
+        )
+
+        self.assertIn(expected, docs)
+        self.assertIn(expected, scripts_readme)
 
     def test_docs_and_commands_reference_grouped_script_paths(self) -> None:
         references_by_file = {

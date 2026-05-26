@@ -16,10 +16,14 @@ import update_skills_vendors
 from project_config import (
     ARS_VENDOR,
     ExternalVendorSpec,
+    OBSIDIAN_SKILLS_VENDOR,
     RBS_VENDOR,
     SUBAGENT_ORCHESTRATOR_VENDOR,
     VENDOR_UPDATE_HEALTH_CHECKS,
 )
+
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class UpdateSkillsVendorsTests(unittest.TestCase):
@@ -72,10 +76,12 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         self.assertIn(("git", "-C", RBS_VENDOR.as_posix(), "pull", "--ff-only"), calls)
         self.assertIn(("git", "submodule", "sync", "--", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix()), calls)
         self.assertIn(("git", "-C", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix(), "pull", "--ff-only"), calls)
+        self.assertIn(("git", "submodule", "sync", "--", OBSIDIAN_SKILLS_VENDOR.as_posix()), calls)
+        self.assertIn(("git", "-C", OBSIDIAN_SKILLS_VENDOR.as_posix(), "pull", "--ff-only"), calls)
         self.assertIn(self.expected_install_external_command(), calls)
         for check in VENDOR_UPDATE_HEALTH_CHECKS:
             self.assertIn(tuple(check.command), calls)
-        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS", "Subagent Orchestrator"])
+        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS", "Subagent Orchestrator", "Obsidian Skills"])
 
     def test_skip_flags_limit_vendor_refresh_scope(self) -> None:
         args = update_skills_vendors.parse_args(["--skip-ars", "--skip-checks"])
@@ -85,13 +91,33 @@ class UpdateSkillsVendorsTests(unittest.TestCase):
         self.assertNotIn(("git", "submodule", "sync", "--", ARS_VENDOR.as_posix()), calls)
         self.assertIn(("git", "submodule", "sync", "--", RBS_VENDOR.as_posix()), calls)
         self.assertIn(("git", "submodule", "sync", "--", SUBAGENT_ORCHESTRATOR_VENDOR.as_posix()), calls)
+        self.assertIn(("git", "submodule", "sync", "--", OBSIDIAN_SKILLS_VENDOR.as_posix()), calls)
         self.assertIn(self.expected_install_external_command("--skip-ars"), calls)
         for check in VENDOR_UPDATE_HEALTH_CHECKS:
             self.assertNotIn(tuple(check.command), calls)
-        self.assertEqual([summary.label for summary in summaries], ["RBS", "Subagent Orchestrator"])
+        self.assertEqual([summary.label for summary in summaries], ["RBS", "Subagent Orchestrator", "Obsidian Skills"])
+
+    def test_obsidian_skills_skip_flag_limits_vendor_refresh_scope(self) -> None:
+        args = update_skills_vendors.parse_args(["--skip-obsidian-skills", "--skip-checks"])
+
+        summaries, calls = self.run_update_and_capture_commands(args)
+
+        self.assertNotIn(("git", "submodule", "sync", "--", OBSIDIAN_SKILLS_VENDOR.as_posix()), calls)
+        self.assertIn(self.expected_install_external_command("--skip-obsidian-skills"), calls)
+        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS", "Subagent Orchestrator"])
+
+    def test_shell_entrypoint_forwards_vendor_flags_to_python(self) -> None:
+        shell_script = (ROOT / "scripts" / "operations" / "vendors" / "update-skills-vendors.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("exec python3", shell_script)
+        self.assertIn('update_skills_vendors.py" "$@"', shell_script)
 
     def test_subagent_skip_flag_limits_vendor_refresh_scope(self) -> None:
-        args = update_skills_vendors.parse_args(["--skip-ars", "--skip-rbs", "--skip-subagent-orchestrator"])
+        args = update_skills_vendors.parse_args(
+            ["--skip-ars", "--skip-rbs", "--skip-subagent-orchestrator", "--skip-obsidian-skills"]
+        )
 
         with self.assertRaisesRegex(update_skills_vendors.UpdateError, "No vendors selected"):
             update_skills_vendors.vendor_specs(args)

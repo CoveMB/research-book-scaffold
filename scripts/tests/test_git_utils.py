@@ -42,6 +42,23 @@ class GitUtilsTests(unittest.TestCase):
             with self.assertRaisesRegex(git_utils.GitCommandError, "git command failed: git status"):
                 git_utils.git_stdout_required(["git", "status"])
 
+    def test_github_repositories_match_https_and_ssh_forms(self) -> None:
+        expected = "https://github.com/kepano/obsidian-skills.git"
+
+        self.assertTrue(git_utils.github_repositories_match("git@github.com:kepano/obsidian-skills.git", expected))
+        self.assertTrue(git_utils.github_repositories_match("ssh://git@github.com/kepano/obsidian-skills.git", expected))
+        self.assertTrue(git_utils.github_repositories_match("https://github.com/kepano/obsidian-skills", expected))
+
+    def test_github_repositories_match_rejects_lookalike_paths(self) -> None:
+        expected = "https://github.com/kepano/obsidian-skills.git"
+
+        self.assertFalse(
+            git_utils.github_repositories_match("https://github.com/attacker/kepano/obsidian-skills.git", expected)
+        )
+        self.assertFalse(
+            git_utils.github_repositories_match("https://github.com/kepano/obsidian-skills.git.evil", expected)
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
