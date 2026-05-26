@@ -2,6 +2,8 @@
 
 Codex Panel is the recommended Obsidian plugin that connects a vault to local Codex workflows. Default setup installs it unless `--skip-obsidian-panel` is passed.
 
+Codex Panel is separate from Obsidian Skills. Obsidian Skills are vendored reference skills with local wrappers for Obsidian syntax and vault mechanics; see `docs/15-obsidian-skills.md`.
+
 ## Access and value
 
 It uses `codex app-server`, so sandboxing, approvals, model selection, MCP, and hooks remain governed by the local Codex CLI configuration. It is useful for bounded note work, draft passes, and audits inside Obsidian.
@@ -119,4 +121,4 @@ Safe first prompt:
 Read AGENTS.md and summarize the project rules. Do not edit anything.
 ```
 
-Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, and `docs/07-citation-workflow.md` before using it for edits.
+Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, `docs/07-citation-workflow.md`, and `docs/15-obsidian-skills.md` before using it for edits that involve Obsidian-specific syntax, Bases, Canvas files, CLI operations, or web ingest.

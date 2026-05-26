@@ -10,4 +10,4 @@ SCRIPT_HELPER_DIR=$(CDPATH= cd -- "$SCRIPT_ENTRY_DIR/../../lib" && pwd)
 cd "$PROJECT_ROOT" || exit 1
 require_python3 "update skill vendors"
 
-python3 "$PROJECT_ROOT/scripts/operations/vendors/update_skills_vendors.py" "$@"
+exec python3 "$PROJECT_ROOT/scripts/operations/vendors/update_skills_vendors.py" "$@"

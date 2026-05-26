@@ -50,7 +50,7 @@ Use `templates/` for local source notes, concept notes, claim notes, audits, sou
 
 ## Repo-scoped skills and plugins
 
-ARS wrappers live in `.agents/skills/`. Research Book Skills and the optional Subagent Orchestrator plugin are exposed through `.agents/plugins/marketplace.json`, which points directly at reviewed vendored paths. Use them for bounded tasks such as search planning, candidate dedupe, source-note conversion, evidence extraction, claim traceability, claim audits, release/privacy review, proposal comps, drafting from notes, final manuscript checks, and orchestration planning when subagents would materially help.
+ARS wrappers and Obsidian Skills wrappers live in `.agents/skills/`. Research Book Skills and the optional Subagent Orchestrator plugin are exposed through `.agents/plugins/marketplace.json`, which points directly at reviewed vendored paths. Use them for bounded tasks such as search planning, candidate dedupe, source-note conversion, evidence extraction, claim traceability, claim audits, release/privacy review, proposal comps, drafting from notes, final manuscript checks, Obsidian syntax/mechanics, and orchestration planning when subagents would materially help.
 
 ## Default local agent integration
 
@@ -61,8 +61,9 @@ ARS wrappers live in `.agents/skills/`. Research Book Skills and the optional Su
 - Academic Research Skills can be vendored from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
 - Research Book Skills can be vendored from `CoveMB/research-book-skills` and exposed directly from `vendor/research-book-skills/`.
 - Subagent Orchestrator can be vendored from `CoveMB/subagent-orchestration-plugin` and exposed from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`.
+- Obsidian Skills can be vendored from `kepano/obsidian-skills` and exposed through local wrappers for Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle guidance.
 
-External repositories stay optional. Review upstream files before use. The subagent plugin installer runs only through external-skill setup after boundary checks confirm the vendored submodule is configured, clean, and from the expected origin; it receives `--scope project` and stays available-only. The Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel from published release assets only, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, and writes `.obsidian/plugins/codex-panel/data.json`. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
+External repositories stay optional. Review upstream files before use. The subagent plugin installer runs only through external-skill setup after boundary checks confirm the vendored submodule is configured, clean, and from the expected origin; it receives `--scope project` and stays available-only. Obsidian Skills are vendored and wrapped locally; they are not installed globally by this scaffold. The Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel from published release assets only, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, and writes `.obsidian/plugins/codex-panel/data.json`. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
 
 The external repositories under `vendor/` are Git submodules. After cloning, initialize them with:
 
@@ -71,6 +72,8 @@ git submodule update --init --recursive
 ```
 
 `make install-external-skills` also initializes them. `bash setup.sh` checks local tools, scaffold files, and the default Obsidian integration without changing external repositories unless `--with-external-skills` is passed. Use `bash setup.sh --skip-obsidian-panel` when Obsidian/Codex Panel coverage is out of scope.
+
+See `docs/15-obsidian-skills.md` for Obsidian Skills usage, wrapper boundaries, optional agent-native installation notes, folder conventions, checks, and troubleshooting.
 
 ## Do not automate
 

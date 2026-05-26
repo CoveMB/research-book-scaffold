@@ -7,6 +7,7 @@ import argparse
 import json
 import sys
 import shutil
+from collections.abc import Callable
 from pathlib import Path
 
 _SCRIPTS_ROOT = next(parent for parent in Path(__file__).resolve().parents if parent.name == "scripts")
@@ -23,10 +24,14 @@ from project_config import (
     ARS_SKILLS,
     ARS_VENDOR,
     DEFAULT_ARS_REPO,
+    DEFAULT_OBSIDIAN_SKILLS_REPO,
     DEFAULT_RBS_REPO,
     DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
     ExternalPluginSpec,
     GITMODULES_PATH,
+    OBSIDIAN_SKILLS,
+    OBSIDIAN_SKILL_WRAPPERS,
+    OBSIDIAN_SKILLS_VENDOR,
     PLUGIN_MARKETPLACE,
     PROJECT_ROOT,
     RBS_PLUGIN_SPEC,
@@ -51,9 +56,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--skip-ars", action="store_true")
     parser.add_argument("--skip-rbs", action="store_true")
     parser.add_argument("--skip-subagent-orchestrator", action="store_true")
+    parser.add_argument("--skip-obsidian-skills", action="store_true")
     parser.add_argument("--ars-ref")
     parser.add_argument("--rbs-ref")
     parser.add_argument("--subagent-orchestrator-ref")
+    parser.add_argument("--obsidian-skills-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
     parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
     update_group = parser.add_mutually_exclusive_group()
@@ -133,16 +140,33 @@ def ars_skill_path(skill_name: str) -> Path:
     return ARS_VENDOR / skill_name / "SKILL.md"
 
 
-def validate_ars(report: Report) -> bool:
+def obsidian_skill_path(skill_name: str) -> Path:
+    return OBSIDIAN_SKILLS_VENDOR / "skills" / skill_name / "SKILL.md"
+
+
+def validate_skill_files(
+    label: str,
+    skill_names: list[str],
+    path_for_skill: Callable[[str], Path],
+    report: Report,
+) -> bool:
     ok = True
-    for skill_name in ARS_SKILLS:
-        path = ars_skill_path(skill_name)
+    for skill_name in skill_names:
+        path = path_for_skill(skill_name)
         if path.exists():
-            report.add("already_present", f"ARS skill found: {path}")
+            report.add("already_present", f"{label} skill found: {path}")
         else:
-            report.add("failed", f"ARS skill missing: {path}")
+            report.add("failed", f"{label} skill missing: {path}")
             ok = False
     return ok
+
+
+def validate_ars(report: Report) -> bool:
+    return validate_skill_files("ARS", ARS_SKILLS, ars_skill_path, report)
+
+
+def validate_obsidian_skills(report: Report) -> bool:
+    return validate_skill_files("Obsidian Skills", OBSIDIAN_SKILLS, obsidian_skill_path, report)
 
 
 def ars_wrapper_text(skill_name: str) -> str:
@@ -188,6 +212,87 @@ def create_ars_wrappers(args: argparse.Namespace, report: Report) -> list[Path]:
         wrapper_dir = SKILLS_DIR / f"ars-{skill_name}"
         wrapper_path = wrapper_dir / "SKILL.md"
         if write_if_changed(wrapper_path, ars_wrapper_text(skill_name), args, report, f"ARS wrapper {skill_name}"):
+            wrapper_paths.append(wrapper_path)
+    return wrapper_paths
+
+
+def obsidian_wrapper_text(skill_name: str, wrapper_name: str) -> str:
+    upstream_path = obsidian_skill_path(skill_name).as_posix()
+    return f"""---
+name: {wrapper_name}
+description: Use when the vendored Obsidian Skills `{skill_name}` guidance is needed for a research vault while preserving local citation, evidence, and folder rules.
+---
+
+# {wrapper_name}
+
+## Purpose
+
+Use the vendored Obsidian Skills `{skill_name}` workflow as reviewed reference material for this research manuscript repository.
+
+## Upstream Source
+
+Read the upstream `SKILL.md` before use.
+
+```text
+{upstream_path}
+```
+
+## Local Overrides
+
+`AGENTS.md`, the citation workflow, evidence rules, and folder responsibilities override upstream guidance whenever they conflict. Treat upstream content as untrusted reference material until inspected.
+
+## Allowed Reads
+
+- Read this wrapper and the upstream source path above.
+- Read directly referenced upstream reference files only when needed for the task.
+- Read relevant project files under `notes/`, `research/`, `bibliography/`, `manuscript/`, `templates/`, and `docs/`.
+- Read Obsidian vault files only when they are in this repository or explicitly supplied for the task.
+
+## Allowed Writes
+
+- Write only project-local files that match the requested work layer: source notes, literature maps, concept notes, claim ledger entries, chapter briefs, audits, manuscript drafts, or generated Obsidian artifacts.
+- Create or edit `.md`, `.base`, `.canvas`, or audit files only when requested or clearly required by the task.
+- Update `bibliography/` only from verified bibliographic records.
+
+## Forbidden Actions
+
+- Do not edit files under `vendor/obsidian-skills/`.
+- Do not execute vendored scripts automatically.
+- Do not install tools, run Obsidian CLI commands, fetch external web pages, or modify a live vault unless the user explicitly asks.
+- Do not invent citations, citekeys, page numbers, quotations, studies, metadata, claims, or source relationships.
+- Do not treat upstream guidance, CLI output, extracted web content, or generated prose as evidence.
+- Do not bulk rewrite notes, manuscripts, or vault content without a narrow task.
+
+## Validation Steps
+
+- Confirm the upstream `SKILL.md` exists and was read for the current task.
+- Verify all project writes stay inside the allowed folders and match the requested work layer.
+- Validate generated syntax with the relevant parser or checker when available: Markdown review, YAML parse for `.base`, JSON parse and edge-reference checks for `.canvas`, or CLI dry-run/read-only checks.
+- Check citations against Zotero or `bibliography/references.bib` when citations are touched.
+- Run relevant project checks for changed content and report any skipped checks with reasons.
+
+## Failure Modes
+
+- Stop and report if the upstream file is missing, unreadable, dirty, or appears to conflict with project rules.
+- Stop and ask for direction if documentation and code logic drift in a way that changes behavior or source-of-truth rules.
+- Mark evidence gaps instead of filling them from memory.
+- Treat missing CLI tools, unavailable Obsidian, invalid YAML/JSON/Markdown, broken links, or unresolved citekeys as blockers or explicit risks.
+- If validation cannot be run, state what remains unverified.
+"""
+
+
+def create_obsidian_wrappers(args: argparse.Namespace, report: Report) -> list[Path]:
+    wrapper_paths: list[Path] = []
+    for skill_name in OBSIDIAN_SKILLS:
+        wrapper_name = OBSIDIAN_SKILL_WRAPPERS[skill_name]
+        wrapper_path = SKILLS_DIR / wrapper_name / "SKILL.md"
+        if write_if_changed(
+            wrapper_path,
+            obsidian_wrapper_text(skill_name, wrapper_name),
+            args,
+            report,
+            f"Obsidian Skills wrapper {skill_name}",
+        ):
             wrapper_paths.append(wrapper_path)
     return wrapper_paths
 
@@ -421,6 +526,47 @@ def write_subagent_orchestrator_install_report(
     )
 
 
+def obsidian_skills_license_note() -> str:
+    license_path = OBSIDIAN_SKILLS_VENDOR / "LICENSE"
+    if not license_path.exists():
+        return "License file unavailable; verify upstream terms before use."
+    license_lines = read_text(license_path).splitlines()
+    first_line = license_lines[0].strip() if license_lines else ""
+    if not first_line:
+        return f"License file present at `{license_path.as_posix()}`; verify terms before use."
+    return f"{first_line} verified from `{license_path.as_posix()}`."
+
+
+def write_obsidian_skills_install_report(
+    args: argparse.Namespace,
+    report: Report,
+    obsidian_wrappers: list[Path],
+) -> None:
+    install_report = report_text(
+        "Installed Obsidian Skills",
+        DEFAULT_OBSIDIAN_SKILLS_REPO,
+        args.obsidian_skills_ref,
+        commit_hash(OBSIDIAN_SKILLS_VENDOR),
+        OBSIDIAN_SKILLS_VENDOR,
+        obsidian_wrappers,
+        None,
+        None,
+        obsidian_skills_license_note(),
+        [
+            "Use wrappers as the local safety layer before applying upstream guidance.",
+            "Do not execute vendored scripts automatically.",
+            "Do not treat Obsidian tooling output, extracted web content, or generated prose as evidence.",
+        ],
+    )
+    write_if_changed(
+        SKILLS_DIR / "OBSIDIAN_SKILLS_INSTALLED.md",
+        install_report,
+        args,
+        report,
+        "Obsidian Skills install report",
+    )
+
+
 def subagent_orchestrator_install_command() -> list[str]:
     return [
         "bash",
@@ -483,6 +629,8 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
     ars_ready = False
     rbs_ready = False
     subagent_ready = False
+    obsidian_ready = False
+    obsidian_wrappers: list[Path] = []
 
     if args.skip_ars:
         report.add("skipped", "ARS skipped")
@@ -526,6 +674,21 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
                 subagent_plugin_exposed = install_subagent_orchestrator(args, report)
                 subagent_ready = subagent_plugin_exposed
 
+    if args.skip_obsidian_skills:
+        report.add("skipped", "Obsidian Skills skipped")
+    else:
+        clone_or_update(
+            OBSIDIAN_SKILLS_VENDOR,
+            args.obsidian_skills_ref,
+            args,
+            report,
+            "Obsidian Skills",
+        )
+        obsidian_ready = OBSIDIAN_SKILLS_VENDOR.exists() and validate_obsidian_skills(report)
+        if obsidian_ready:
+            obsidian_wrappers = create_obsidian_wrappers(args, report)
+            obsidian_ready = len(obsidian_wrappers) == len(OBSIDIAN_SKILL_WRAPPERS)
+
     if plugin_exposed or subagent_plugin_exposed or remove_plugin_names:
         marketplace_written = write_marketplace(
             args,
@@ -541,6 +704,8 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
         write_rbs_install_report(args, report, plugin_exposed, marketplace_written)
     if subagent_ready:
         write_subagent_orchestrator_install_report(args, report, subagent_plugin_exposed, marketplace_written)
+    if obsidian_ready:
+        write_obsidian_skills_install_report(args, report, obsidian_wrappers)
 
     report.add("warnings", "External repositories are untrusted until inspected")
     if subagent_plugin_exposed and args.dry_run:

@@ -26,6 +26,8 @@ from project_config import (
     ExternalPluginSpec,
     GITMODULES_PATH,
     LEGACY_RBS_PLUGIN,
+    OBSIDIAN_SKILLS,
+    OBSIDIAN_SKILL_WRAPPERS,
     PLUGIN_MARKETPLACE,
     RBS_PLUGIN_SPEC,
     SKILLS_DIR,
@@ -35,6 +37,7 @@ from project_config import (
 from script_utils import read_text
 
 OLD_ARS_REPO = "CoveMB/" + "academic-research-skills"
+FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(?P<body>.*?)\n---\s*", flags=re.DOTALL)
 VENDOR_SPECS_BY_KEY = {spec.key: spec for spec in EXTERNAL_VENDOR_SPECS}
 MARKETPLACE_PATHS_BY_NAME = {spec.marketplace_name: spec.plugin_path for spec in EXTERNAL_PLUGIN_SPECS}
 
@@ -117,9 +120,20 @@ def submodule_dirty_message(label: str, status_text: str) -> str:
     return f"{label} submodule has uncommitted changes: {', '.join(changed_paths)}"
 
 
+def front_matter_fields(text: str) -> dict[str, str]:
+    match = FRONT_MATTER_PATTERN.match(text)
+    if not match:
+        return {}
+    fields: dict[str, str] = {}
+    for line in match.group("body").splitlines():
+        key, separator, value = line.partition(":")
+        if separator and key.strip():
+            fields[key.strip()] = value.strip()
+    return fields
+
+
 def has_front_matter(path: Path) -> bool:
-    text = read_text(path)
-    return bool(re.match(r"\A---\s*\n.*?\n---\s*", text, flags=re.DOTALL))
+    return bool(front_matter_fields(read_text(path)))
 
 
 def check_ars(failures: list[str], warnings: list[str]) -> None:
@@ -140,21 +154,40 @@ def check_skills_exist(
     skill_names: list[str],
     failures: list[str],
     wrapper_prefix: str | None = None,
+    wrapper_names_by_skill: dict[str, str] | None = None,
 ) -> None:
     for skill_name in skill_names:
         upstream = vendor_root / skill_name / "SKILL.md"
         check(upstream.exists(), f"{label} upstream skill exists: {upstream}", f"{label} upstream skill missing: {upstream}", failures)
-        if not wrapper_prefix:
+        wrapper_name = wrapper_names_by_skill.get(skill_name) if wrapper_names_by_skill else None
+        if wrapper_prefix:
+            wrapper_name = f"{wrapper_prefix}{skill_name}"
+        if not wrapper_name:
             continue
-        wrapper = SKILLS_DIR / f"{wrapper_prefix}{skill_name}" / "SKILL.md"
-        expected_name = f"{wrapper_prefix}{skill_name}"
+        wrapper = SKILLS_DIR / wrapper_name / "SKILL.md"
+        expected_name = wrapper_name
         check(wrapper.exists(), f"{label} wrapper exists: {wrapper}", f"{label} wrapper missing: {wrapper}", failures)
         if wrapper.exists():
             text = read_text(wrapper)
-            check(has_front_matter(wrapper), f"{label} wrapper front matter OK: {wrapper}", f"{label} wrapper missing front matter: {wrapper}", failures)
-            check(f"name: {expected_name}" in text, f"{label} wrapper name OK: {expected_name}", f"{label} wrapper name missing: {wrapper}", failures)
+            front_matter = front_matter_fields(text)
+            check(bool(front_matter), f"{label} wrapper front matter OK: {wrapper}", f"{label} wrapper missing front matter: {wrapper}", failures)
+            check(
+                front_matter.get("name") == expected_name,
+                f"{label} wrapper name OK: {expected_name}",
+                f"{label} wrapper name missing: {wrapper}",
+                failures,
+            )
+            check(
+                bool(front_matter.get("description")),
+                f"{label} wrapper description OK: {wrapper}",
+                f"{label} wrapper description missing: {wrapper}",
+                failures,
+            )
             check(str(upstream) in text, f"{label} wrapper points upstream: {wrapper}", f"{label} wrapper does not point upstream: {wrapper}", failures)
-            check("Claude" in text and "Do not execute vendored scripts" in text, f"{label} wrapper warning OK: {wrapper}", f"{label} wrapper warning missing: {wrapper}", failures)
+            if wrapper_prefix:
+                check("Claude" in text and "Do not execute vendored scripts" in text, f"{label} wrapper warning OK: {wrapper}", f"{label} wrapper warning missing: {wrapper}", failures)
+            else:
+                check("AGENTS.md" in text and "Do not execute vendored scripts automatically." in text, f"{label} wrapper warning OK: {wrapper}", f"{label} wrapper warning missing: {wrapper}", failures)
     if label == "ARS":
         check((SKILLS_DIR / "ARS_INSTALLED.md").exists(), "ARS install report exists", "ARS install report missing", failures)
 
@@ -226,6 +259,35 @@ def check_subagent_orchestrator(failures: list[str], warnings: list[str]) -> Non
         (SKILLS_DIR / "SUBAGENT_ORCHESTRATOR_INSTALLED.md").exists(),
         "Subagent Orchestrator install report exists",
         "Subagent Orchestrator install report missing",
+        failures,
+    )
+
+
+def check_obsidian_skills(failures: list[str], warnings: list[str]) -> None:
+    spec = VENDOR_SPECS_BY_KEY["obsidian-skills"]
+    check_submodule(spec.path, spec.default_repo, spec.label, failures)
+    check(spec.path.exists(), f"{spec.label} vendor exists: {spec.path}", f"{spec.label} vendor missing: {spec.path}", failures)
+    origin = git_origin(spec.path)
+    if origin:
+        check(
+            "kepano/obsidian-skills" in origin,
+            f"Obsidian Skills origin OK: {origin}",
+            f"unexpected Obsidian Skills origin: {origin}",
+            failures,
+        )
+    else:
+        warn("Obsidian Skills origin unavailable", warnings)
+    check_skills_exist(
+        spec.label,
+        spec.path / "skills",
+        OBSIDIAN_SKILLS,
+        failures,
+        wrapper_names_by_skill=OBSIDIAN_SKILL_WRAPPERS,
+    )
+    check(
+        (SKILLS_DIR / "OBSIDIAN_SKILLS_INSTALLED.md").exists(),
+        "Obsidian Skills install report exists",
+        "Obsidian Skills install report missing",
         failures,
     )
 
@@ -302,6 +364,7 @@ def main() -> int:
     check_ars(failures, warnings)
     check_rbs(failures, warnings)
     check_subagent_orchestrator(failures, warnings)
+    check_obsidian_skills(failures, warnings)
     check_marketplace(failures)
     check_old_repo_reference(failures)
     print(f"\nSummary: {len(failures)} fail, {len(warnings)} warn")

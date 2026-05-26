@@ -18,6 +18,7 @@
 - Read external skills before using them.
 - Do not run vendored scripts by default.
 - Prefer local generic skills for repo work.
+- Use Obsidian wrappers as syntax and vault-mechanics guidance only; they are not evidence authority.
 
 ## Shell command risk
 
@@ -53,3 +54,5 @@
 - Preserve upstream files under `vendor/`.
 - Do not run Claude-specific commands from external academic skills here.
 - Review plugin metadata before exposing vendored plugins.
+- Do not claim Obsidian Skills are globally installed unless the user separately installed them outside this repository.
+- Do not let Obsidian CLI output, Defuddle output, or generated Obsidian artifacts authorize citations, source metadata, page numbers, or final claims.

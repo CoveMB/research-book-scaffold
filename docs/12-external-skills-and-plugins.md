@@ -56,7 +56,15 @@ The updater:
 - runs `python3 scripts/operations/vendors/check_external_skills.py`
 - runs `bash scripts/operations/health/doctor.sh`
 
-After a successful run, review the submodule pointer changes and any refreshed files before committing. Use `--skip-ars`, `--skip-rbs`, or `--skip-subagent-orchestrator` to leave a vendor pinned while updating others. Use `--skip-checks` only when another verification command will be run immediately afterward.
+After a successful run, review the submodule pointer changes and any refreshed files before committing. Use `--skip-ars`, `--skip-rbs`, `--skip-subagent-orchestrator`, or `--skip-obsidian-skills` to leave a vendor pinned while updating others. Use `--skip-checks` only when another verification command will be run immediately afterward.
+
+## Obsidian Skills
+
+`kepano/obsidian-skills` is vendored at `vendor/obsidian-skills/` for reviewed upstream guidance covering Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle workflows. The local installer validates the expected upstream `SKILL.md` files, creates or refreshes `.agents/skills/obsidian-research-*` wrappers, and records `.agents/skills/OBSIDIAN_SKILLS_INSTALLED.md`; it does not execute vendored scripts or install the skills globally.
+
+The wrappers are for Obsidian syntax and local vault mechanics only. They do not authorize sources, citations, page numbers, source metadata, quotations, source relationships, or final claims. Local scaffold rules win over upstream Obsidian guidance.
+
+Use `docs/15-obsidian-skills.md` for wrapper list, optional agent-native install notes, folder conventions, usage recipes, local checks, and troubleshooting.
 
 ## Optional subagent plugin
 
@@ -73,3 +81,4 @@ The scaffold does not make subagents automatic for every research task. When Sub
 - `Imbad0202/academic-research-skills`: CC-BY-NC-4.0.
 - `CoveMB/research-book-skills`: MIT.
 - `CoveMB/subagent-orchestration-plugin`: MIT.
+- `kepano/obsidian-skills`: MIT.

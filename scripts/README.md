@@ -18,4 +18,6 @@ Use `bash scripts/operations/health/doctor.sh` for a quick health check, `python
 
 Use `bash scripts/operations/vendors/update-skills-vendors.sh` when the vendored skill or plugin repositories have new upstream commits. It fetches repository refs, fast-forwards the configured vendor submodules, refreshes local skill wrappers, marketplace metadata, install reports, and runs the external-skill and doctor checks.
 
+Use `python3 scripts/operations/vendors/install_external_skills.py --yes --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-vendor-checkouts` when only the vendored Obsidian Skills wrappers and install report need to be refreshed from the current `vendor/obsidian-skills/` checkout. Verify with `python3 scripts/operations/vendors/check_external_skills.py`.
+
 Use `make install-subagent-orchestrator` when only the optional subagent plugin should be refreshed. External-skill setup runs that installer after boundary checks, passes `--scope project`, keeps the plugin available-only, and does not activate the prompt gate or install project agents.

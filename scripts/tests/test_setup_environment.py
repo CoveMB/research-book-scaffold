@@ -136,9 +136,12 @@ class SetupEnvironmentTests(unittest.TestCase):
                 "--force",
                 "--skip-ars",
                 "--skip-subagent-orchestrator",
+                "--skip-obsidian-skills",
                 "--rbs-ref",
                 "main",
                 "--subagent-orchestrator-ref",
+                "main",
+                "--obsidian-skills-ref",
                 "main",
                 "--no-rbs-plugin",
                 "--no-subagent-orchestrator-plugin",
@@ -153,8 +156,10 @@ class SetupEnvironmentTests(unittest.TestCase):
         self.assertTrue(external_args.force)
         self.assertTrue(external_args.skip_ars)
         self.assertTrue(external_args.skip_subagent_orchestrator)
+        self.assertTrue(external_args.skip_obsidian_skills)
         self.assertEqual(external_args.rbs_ref, "main")
         self.assertEqual(external_args.subagent_orchestrator_ref, "main")
+        self.assertEqual(external_args.obsidian_skills_ref, "main")
         self.assertTrue(external_args.no_rbs_plugin)
         self.assertTrue(external_args.no_subagent_orchestrator_plugin)
         self.assertTrue(external_args.no_update)
