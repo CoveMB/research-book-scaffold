@@ -122,6 +122,21 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         for phrase in expected_phrases:
             self.assertIn(phrase, self.runbook_text)
 
+    def test_runbook_includes_project_start_prompt_filling_qa(self) -> None:
+        expected_phrases = [
+            "## Project Start Script QA",
+            "Run the guided initializer and fill every prompt",
+            "Use synthetic QA answers",
+            "`make start-project`",
+            "`python3 scripts/start_project.py --dry-run --answers .qa-start-project.yml --non-interactive --skip-render`",
+            "`python3 scripts/start_project.py --answers .qa-start-project.yml --non-interactive --skip-render`",
+            "`python3 scripts/research-writing/check_manuscript_readiness.py`",
+            "front/back matter files",
+            "Do not use real private subject matter, source metadata, page numbers, quotations, or claims",
+        ]
+        for phrase in expected_phrases:
+            self.assertIn(phrase, self.runbook_text)
+
     def test_vendor_update_is_not_in_routine_targeted_checks(self) -> None:
         targeted_start = self.runbook_text.index("Targeted script checks:")
         targeted_end = self.runbook_text.index("## Vendor Update QA")
@@ -151,6 +166,11 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             "`make doctor`, `make lint`, `make test`, `make audit`, `make release-audit`, and `make ci`",
             self.runbook_text,
         )
+
+    def test_runbook_distinguishes_uninitialized_scaffold_from_release_ready_manuscript(self) -> None:
+        self.assertIn("fresh uninitialized scaffold", self.runbook_text)
+        self.assertIn("fails manuscript readiness", self.runbook_text)
+        self.assertNotIn("for a fresh scaffold and for a production manuscript", self.runbook_text)
 
     def test_runbook_documents_tinytex_bibtex_obsidian_and_browser_qa_remediations(self) -> None:
         expected_phrases = [

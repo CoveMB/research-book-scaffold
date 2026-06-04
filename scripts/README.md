@@ -2,6 +2,16 @@
 
 Local research-writing tools, operational scripts, tests, and shared helpers live here.
 
+Use `python3 scripts/start_project.py --dry-run` before serious writing starts to
+preview project initialization changes. The script can also read
+`--answers project-start.yml` or JSON for repeatable setup, and
+`make start-project` runs the guided interactive path. If `project-start.yml`
+already exists, the interactive path uses it as saved answers and only prompts
+for missing values. The script prints a preflight summary before prompting and a
+manual next-step list at the end, including Zotero, Better BibTeX, bibliography,
+placeholder, and render-tool items when they still need attention. Use
+`--force --dry-run` before replacing protected files.
+
 ## Layout
 
 | Folder | Purpose |

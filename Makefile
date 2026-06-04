@@ -1,7 +1,8 @@
-.PHONY: help doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-artifacts install-obsidian-panel audit release-audit ci
+.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-artifacts install-obsidian-panel audit release-audit ci
 
 help:
 	@echo "Targets:"
+	@echo "  start-project          Initialize a real scholarly project from guided answers"
 	@echo "  doctor                 Check local tools and scaffold files"
 	@echo "  render                 Render manuscript when Quarto is installed"
 	@echo "  render-html            Render manuscript HTML only"
@@ -13,7 +14,7 @@ help:
 	@echo "  check-citations        Check manuscript citekeys"
 	@echo "  check-citations-strict Check manuscript citekeys and require at least one citation"
 	@echo "  check-links            Check wiki-style internal links"
-	@echo "  check-manuscript-readiness Check release config for scaffold manuscript entries"
+	@echo "  check-manuscript-readiness Check release manuscript files for scaffold entries"
 	@echo "  check-external-skills  Check external skill/plugin integration"
 	@echo "  install-external-skills Vendor external skills and update marketplace"
 	@echo "  install-subagent-orchestrator Refresh guarded subagent wrappers and marketplace"
@@ -24,6 +25,9 @@ help:
 	@echo "  audit                  Run repository checks"
 	@echo "  release-audit          Run strict manuscript readiness checks"
 	@echo "  ci                     Run checks suitable for hosted CI"
+
+start-project:
+	python3 scripts/start_project.py
 
 doctor:
 	bash scripts/operations/health/doctor.sh

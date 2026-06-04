@@ -159,6 +159,87 @@ Expected result:
 - Package checks are explicitly skipped.
 - Later `make doctor` still verifies required commands.
 
+## Project Start Script QA
+
+Run the guided initializer and fill every prompt in a disposable QA clone before claiming the scaffold can move from uninitialized manuscript defaults to an initialized project state. Use synthetic QA answers only. Do not use real private subject matter, source metadata, page numbers, quotations, or claims in this smoke test.
+
+First inspect the prompt flow:
+
+```sh
+python3 scripts/start_project.py --help
+make start-project
+```
+
+Expected interactive behavior:
+
+- `make start-project` runs `python3 scripts/start_project.py`.
+- The initializer prompts for working title, author/display name, project type, research question, scope, output formats, chapter names, citation setup, Obsidian use, agent use, audit, and render choices.
+- Fill every prompt with synthetic QA values, using `unknown`, `undecided`, or `decide later` only where unresolved decisions are intentionally being tested.
+- Stop before continuing with other mutating QA if the prompt flow skips required questions, records private data, or silently invents bibliography metadata.
+
+For reproducible QA, record equivalent synthetic answers in `.qa-start-project.yml` and run the answers-file path:
+
+```yaml
+working_title: QA Start Script Manuscript
+subtitle: Synthetic Workflow Check
+author_name: QA Operator
+project_slug: qa-start-script-manuscript
+project_type: book
+central_research_question: How does the scaffold initialize a project without inventing evidence?
+working_thesis: unknown yet
+primary_audience: Scaffold maintainers
+secondary_audience: Future project authors
+fields_disciplines:
+  - workflow QA
+theories_to_engage:
+  - unknown yet
+contested_theories:
+  - unknown yet
+scope_included:
+  - start script behavior
+scope_excluded:
+  - real scholarship
+main_uncertainties:
+  - citation library state
+initial_research_tasks:
+  - verify generated project files
+output_formats:
+  - html
+chapter_names:
+  - Introduction
+  - Evidence Plan
+citation_style: undecided
+target_venue: undecided
+bibliography_path: bibliography/references.bib
+better_bibtex_auto_export: not sure
+use_obsidian: yes
+use_codex_agents: yes
+strict_placeholder_detection: yes
+run_audit_after_initialization: no
+render_after_initialization: no
+```
+
+Run `python3 scripts/start_project.py --dry-run --answers .qa-start-project.yml --non-interactive --skip-render` first, then run `python3 scripts/start_project.py --answers .qa-start-project.yml --non-interactive --skip-render`. After initialization, verify the release manuscript with `python3 scripts/research-writing/check_manuscript_readiness.py`.
+
+```sh
+python3 scripts/start_project.py --dry-run --answers .qa-start-project.yml --non-interactive --skip-render
+python3 scripts/start_project.py --answers .qa-start-project.yml --non-interactive --skip-render
+python3 scripts/research-writing/check_manuscript_readiness.py
+python3 scripts/research-writing/check_placeholders.py .
+git status --short
+git diff -- manuscript/_quarto.yml manuscript/index.qmd manuscript/chapters notes/00-inbox/project-charter.md project-start.yml
+```
+
+Expected result:
+
+- Dry run shows planned changes without writing files.
+- The real run writes `project-start.yml`, `manuscript/_quarto.yml`, `manuscript/index.qmd`, front/back matter files, project chapter stubs, and `notes/00-inbox/project-charter.md`.
+- Scaffold manuscript identity is removed from release manuscript files.
+- Manuscript readiness exits 0 after initialization.
+- The placeholder command may exit nonzero while synthetic unresolved decisions remain; findings should be limited to those intentional unresolved decisions when strict placeholder detection is enabled.
+- The diff contains only synthetic QA initialization content and no invented citations, page numbers, quotations, source metadata, or final claims.
+- If later QA needs a clean uninitialized scaffold, create a fresh disposable clone or intentionally restore the checkout before continuing.
+
 ## Scaffold App Usability QA
 
 Confirm that every required or recommended app can open and be used against the scaffolded project, not only that command-line checks pass.
@@ -274,6 +355,7 @@ Expected result:
 | Target | Purpose | Pass condition |
 | --- | --- | --- |
 | `make help` | Lists available targets | Includes setup, check, render, audit, and release-audit targets |
+| `make start-project` | Runs the guided project initializer | Prints preflight status, resumes from `project-start.yml` when present, and preserves existing non-scaffold content unless force is intentionally used |
 | `make doctor` | Checks local tools, files, folders, and git tracking | Exits 0 and has no `FAIL` lines |
 | `make render` | Renders all enabled Quarto formats | Exits 0 and all required outputs are present |
 | `make render-html` | Renders HTML only | Exits 0 and generated HTML is present under `exports/` |
@@ -309,7 +391,9 @@ make release-audit
 
 Expected result:
 
-- `make doctor`, `make lint`, `make test`, `make audit`, and `make release-audit` exit 0 for a fresh scaffold and for a production manuscript.
+- `make doctor`, `make lint`, `make test`, and `make audit` exit 0 for a fresh scaffold.
+- A fresh uninitialized scaffold fails manuscript readiness and `make release-audit` until generic manuscript identity is replaced by `make start-project` or project-specific manuscript files.
+- `make release-audit` exits 0 for an initialized production manuscript after all blockers are resolved.
 - `make ci` is the hosted-CI aggregate and can be used as the local one-command equivalent of lint plus release-audit.
 - A production manuscript still needs real project material, verified source notes, and manual scholarly QA even when scaffold release gates pass.
 
@@ -394,6 +478,7 @@ Expected result:
 
 Entry points and support modules:
 
+- `scripts/start_project.py`
 - `scripts/research-writing/check_broken_internal_links.py`
 - `scripts/research-writing/check_citations.py`
 - `scripts/operations/vendors/check_external_skills.py`
@@ -435,6 +520,7 @@ Expected result:
 Targeted script checks:
 
 ```sh
+python3 scripts/start_project.py --help
 bash scripts/operations/health/doctor.sh
 python3 scripts/operations/health/doctor.py
 python3 scripts/operations/obsidian/check_obsidian_artifacts.py
@@ -454,7 +540,7 @@ bash scripts/research-writing/render.sh --to html
 
 Expected result:
 
-- Non-mutating checks exit 0 where prerequisites exist.
+- Non-mutating checks exit 0 where prerequisites and initialized manuscript state exist; manuscript readiness exits nonzero on a fresh uninitialized scaffold.
 - Missing optional render tooling is reported as a tooling blocker, not a manuscript failure.
 - Vendor checks fail if submodule pointers differ from the parent index, are uninitialized, conflicted, dirty, or from an unexpected origin.
 

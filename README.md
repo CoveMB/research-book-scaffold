@@ -35,6 +35,7 @@ After setup, read `AGENTS.md`, add verified sources to Zotero or `bibliography/r
 
 ```sh
 make doctor
+make start-project
 make audit
 make release-audit
 make render
@@ -44,6 +45,51 @@ make render-docx
 make check-citations-strict
 make install-external-skills
 ```
+
+## Start a real project
+
+Run the project initializer before serious writing begins:
+
+```sh
+python3 scripts/start_project.py --dry-run
+make start-project
+```
+
+The script asks for project identity, scholarly framing, output preferences,
+citation setup, and local workflow choices. It writes a normalized
+`project-start.yml`, creates or updates a project charter from
+`templates/project-charter-template.md`, updates scaffold-owned manuscript setup
+files, creates empty chapter or section stubs, and creates an empty bibliography
+placeholder only if the configured bibliography file is missing or blank.
+Before the interactive questions, it prints a short preflight summary covering
+the saved answers file, bibliography status, local render tools, the audit
+target, and existing initializer targets.
+
+For repeatable setup, provide answers from JSON or the simple YAML file the
+script writes:
+
+```sh
+python3 scripts/start_project.py --answers project-start.yml --dry-run
+python3 scripts/start_project.py --answers project-start.yml --non-interactive
+```
+
+If `project-start.yml` already exists and you run the interactive command, the
+script uses that file as saved answers and asks only for missing values. Edit the
+file first when you want to change an existing answer.
+
+The initializer will not invent citations, sources, page numbers, quotations,
+claims, chapter arguments, or bibliographic metadata. Unknown scholarly decisions
+stay marked as unresolved; when strict placeholder detection is enabled, Markdown
+outputs use release-check-visible markers. Existing non-scaffold
+manuscript content is preserved unless `--force` is passed, and `--dry-run` shows
+the planned diff before any file changes. Use `--force --dry-run` first when you
+need to inspect protected files that would be replaced. Use `--skip-audit` or
+`--skip-render` when you only want file initialization.
+
+The final summary includes manual next steps. Expect it to call out Zotero and
+Better BibTeX setup, empty bibliography files, unresolved citation style or
+publisher decisions, Obsidian setup, release-visible placeholders, or missing
+Quarto when those apply.
 
 ## Templates
 
