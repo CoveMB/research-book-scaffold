@@ -3,4 +3,3 @@
 ## Unreleased
 
 - Added initial project scaffold.
-

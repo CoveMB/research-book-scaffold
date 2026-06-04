@@ -26,6 +26,7 @@ Required for core scaffold QA:
 - Python 3.11 or newer
 - `curl`
 - `unzip`
+- `pre-commit` for local hook QA
 - Codex CLI installed and logged in for local agent workflows
 
 Optional until the matching workflow is tested:
@@ -60,6 +61,7 @@ git --version
 python3 --version
 curl --version
 unzip -v
+pre-commit --version
 codex --version
 quarto --version
 pandoc --version
@@ -377,6 +379,8 @@ Expected result:
 | `make check-obsidian-panel` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
 | `make check-obsidian-artifacts` | Validates project-local `.base` and `.canvas` artifacts | Exits 0 |
 | `make install-obsidian-panel` | Installs Codex Panel plugin | Use only in disposable QA or intentional local setup |
+| `make install-hooks` | Installs the configured local pre-commit hook | Use after `pre-commit` is installed; hook installation does not run release-only checks |
+| `make precommit-run` | Runs default pre-commit hooks across all files | Exits 0 after file hygiene, citation, placeholder, link, and Python compile checks pass |
 | `make audit` | Runs normal scaffold health checks | Exits 0 |
 | `make release-audit` | Runs strict pre-release manuscript checks | Exits 0 and all blockers are resolved |
 | `make ci` | Runs hosted CI-safe lint and release-audit checks | Exits 0 on every supported Python version |
@@ -387,6 +391,7 @@ Standard command sequence:
 make doctor
 make lint
 make test
+make precommit-run
 make audit
 make release-audit
 ```

@@ -1,4 +1,6 @@
-.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-artifacts install-obsidian-panel audit release-audit ci
+PRE_COMMIT ?= pre-commit
+
+.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-artifacts install-obsidian-panel install-hooks precommit-run audit release-audit ci
 
 help:
 	@echo "Targets:"
@@ -24,6 +26,8 @@ help:
 	@echo "  check-obsidian-panel   Check Codex Panel install in the project root vault"
 	@echo "  check-obsidian-artifacts Check .base and .canvas Obsidian artifacts"
 	@echo "  install-obsidian-panel Install Codex Panel in the project root vault"
+	@echo "  install-hooks          Install local pre-commit hooks"
+	@echo "  precommit-run          Run pre-commit hooks across the repository"
 	@echo "  audit                  Run repository checks"
 	@echo "  release-audit          Run strict manuscript readiness checks"
 	@echo "  ci                     Run checks suitable for hosted CI"
@@ -94,6 +98,12 @@ check-obsidian-artifacts:
 
 install-obsidian-panel:
 	bash scripts/operations/obsidian/install_obsidian_panel.sh
+
+install-hooks:
+	$(PRE_COMMIT) install --hook-type pre-commit
+
+precommit-run:
+	$(PRE_COMMIT) run --all-files --show-diff-on-failure
 
 audit: test check-placeholders check-citations check-links check-external-skills check-obsidian-artifacts
 

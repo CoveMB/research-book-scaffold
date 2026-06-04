@@ -36,6 +36,8 @@ After setup, read `AGENTS.md`, add verified sources to Zotero or `bibliography/r
 ```sh
 make doctor
 make start-project
+make install-hooks
+make precommit-run
 make audit
 make release-audit
 make render
@@ -135,6 +137,18 @@ Read AGENTS.md and list the repo-scoped skills available from .agents/skills. Do
 ```
 
 See `docs/15-obsidian-skills.md` for Obsidian Skills usage, wrapper boundaries, optional agent-native installation notes, folder conventions, checks, and troubleshooting.
+
+## Pre-commit hooks
+
+Use lightweight hooks to catch obvious file hygiene, scaffold, citation, and internal-link issues before commits:
+
+```sh
+python3 -m pip install pre-commit
+make install-hooks
+make precommit-run
+```
+
+The hooks wrap existing Makefile checks and avoid Quarto renders, network checks, vendor refresh workflows, and release-only manuscript readiness enforcement during normal commits. Use `SKIP=<hook-id> git commit` or `git commit --no-verify` for intentional bypasses. See `docs/16-pre-commit-hooks.md` for hook scope, blocking behavior, manual runs, and release-only checks.
 
 ## Do not automate
 
