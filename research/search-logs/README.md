@@ -4,7 +4,7 @@ Record source discovery work as it happens.
 
 Use this folder when searching databases, catalogs, archives, search engines,
 citation trails, bibliographies, indexes, or specialist websites. A search log
-should make the path visible enough that someone can rerun the search, understand
+Make the path visible enough that someone can rerun the search, understand
 what changed, and see what still needs attention.
 
 Include:

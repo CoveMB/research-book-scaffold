@@ -39,6 +39,7 @@ They help with small reads, focused edits, audits, and checks. Zotero, notes, Bi
 | Repo-scoped skills | Agent workflow rules | Give agents repeatable procedures for source discovery, chapter design, claim ledgers, citation audits, continuity checks, and safe wrappers. |
 | Research Book Skills | Research book workflows | Add optional support for book planning, source discovery, argument design, chapter design, drafting from notes, and manuscript checks. |
 | Academic Research Skills | Academic workflow wrappers | Add optional support for paper planning, peer review style critique, deep research, and pipeline design after the upstream instructions have been reviewed. |
+| Obsidian Skills | Obsidian syntax and vault mechanics wrappers | Add optional guidance for Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle without making them evidence authority. |
 | MCP | Permissioned tool bridge | Connect agents to narrow local integrations such as Zotero without opening broad filesystem or credential access. |
 | Discovery tools | Source finding | Use tools such as Elicit, Semantic Scholar, OpenAlex, and Scite to find candidate sources. Verify anything kept in Zotero or BibTeX before citing it. |
 | Quarto | Manuscript source and renderer | Keep draft chapters in `manuscript/` and render outputs only from checked source files. |

@@ -1,4 +1,4 @@
-# Codex Panel For Obsidian
+# Codex Panel for Obsidian
 
 Codex Panel is the recommended Obsidian plugin that connects a vault to local Codex workflows. Default setup installs it unless `--skip-obsidian-panel` is passed.
 
@@ -10,7 +10,7 @@ It uses `codex app-server`, so sandboxing, approvals, model selection, MCP, and 
 
 Use it carefully because vault notes can contain untrusted source text and personal material.
 
-Open the repository root as the Obsidian vault. Codex Panel should launch Codex with the vault/repo root as the working directory, or with a path below it. Codex discovers repo-scoped skills from `.agents/skills` in the working directory and parent directories up to the repository root; if the panel starts outside the repo tree, the wrappers will not be visible.
+Open the repository root as the Obsidian vault. Launch Codex Panel with the vault/repo root as the working directory, or with a path below it. Codex discovers repo-scoped skills from `.agents/skills` in the working directory and parent directories up to the repository root; if the panel starts outside the repo tree, the wrappers will not be visible.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ Open the repository root as the Obsidian vault. Codex Panel should launch Codex 
 - This project root, unless a different vault path is passed.
 - Git or another backup method for important notes.
 
-GUI apps may not inherit the shell `PATH`, so the plugin settings should use an absolute Codex executable path. The setup script writes `.obsidian/plugins/codex-panel/data.json` with `codexPath` when it can find one.
+GUI apps may not inherit the shell `PATH`, so use an absolute Codex executable path in the plugin settings. The setup script writes `.obsidian/plugins/codex-panel/data.json` with `codexPath` when it can find one.
 
 ## Manual installation
 
@@ -56,7 +56,7 @@ If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it un
 
 By default, setup does not modify Obsidian's app-level vault registry. If Obsidian has never opened this project root as a vault, a direct `obsidian://open?path=...` launch can report that the vault is not found even though the vault-local `.obsidian/` files exist.
 
-For GUI QA or first-time local setup where direct Obsidian URLs should work immediately, opt in to app-level registration:
+For GUI QA or first-time local setup where direct Obsidian URLs need to work immediately, opt in to app-level registration:
 
 ```sh
 python3 scripts/operations/setup/setup_environment.py --register-obsidian-vault

@@ -238,13 +238,13 @@ Expected result:
 - The real run writes `project-start.yml`, `manuscript/_quarto.yml`, `manuscript/index.qmd`, front/back matter files, project chapter stubs, and `notes/00-inbox/project-charter.md`.
 - Scaffold manuscript identity is removed from release manuscript files.
 - Manuscript readiness exits 0 after initialization.
-- The placeholder command may exit nonzero while synthetic unresolved decisions remain; findings should be limited to those intentional unresolved decisions when strict placeholder detection is enabled.
+- The placeholder command may exit nonzero while synthetic unresolved decisions remain; limit findings to those intentional unresolved decisions when strict placeholder detection is enabled.
 - The diff contains only synthetic QA initialization content and no invented citations, page numbers, quotations, source metadata, or final claims.
 - If later QA needs a clean uninitialized scaffold, create a fresh disposable clone or intentionally restore the checkout before continuing.
 
 ## Scaffold App Usability QA
 
-Confirm that every required or recommended app can open and be used against the scaffolded project, not only that command-line checks pass.
+Confirm that every required or recommended app can open and be used against the scaffolded project. Command-line checks alone are not enough for GUI QA.
 
 Codex Panel is installed by default setup unless `--skip-obsidian-panel` is used. If the flag was used, skip the Obsidian and Codex Panel checks below and record that Codex Panel coverage is not claimed for the run.
 
@@ -584,7 +584,7 @@ Expected result:
 - Submodule pointer changes are visible for review.
 - No unexpected files are modified.
 
-## Negative Fixture Checks
+## Negative fixture checks
 
 Run these only in a disposable QA clone and clean up immediately afterward.
 
@@ -678,7 +678,7 @@ Expected result:
 - Any file-write or command action still requires approval.
 - `git status --short` shows no unexpected source changes.
 
-## External Skills And Plugin QA
+## External skills and plugin QA
 
 Run integration checks:
 
@@ -834,7 +834,7 @@ Upstream skill names covered by those wrappers:
 Safe usage prompt:
 
 ```text
-Use using-subagent-orchestrator for this synthetic QA task. Classify whether the task should be single-thread, sequential-plan, or parallel-subagents. Do not spawn agents. Do not edit files. Treat output as planning aid only, not evidence.
+Use using-subagent-orchestrator for this synthetic QA task. Classify whether the task fits single-thread, sequential-plan, or parallel-subagents. Do not spawn agents. Do not edit files. Treat output as planning aid only, not evidence.
 ```
 
 Expected result:
@@ -941,7 +941,7 @@ Unresolved risks:
 Final decision:
 ```
 
-Production release should not proceed if any skipped check is required for the claimed release artifact.
+Do not proceed with production release if any skipped check is required for the claimed release artifact.
 
 ## Final Release Decision
 

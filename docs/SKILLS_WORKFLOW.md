@@ -1,6 +1,6 @@
 # Skills workflow
 
-Keep this file next to the upstream playbook when you need a prompt for a specific Research Book Skill. The upstream workflow remains in `vendor/research-book-skills/docs/WORKFLOW_PLAYBOOK.md`; this project file gives one practical example per skill without editing vendored docs.
+Keep this file next to the upstream playbook when you need a prompt for a specific Research Book Skill. The upstream workflow remains in `vendor/research-book-skills/docs/user/WORKFLOW_PLAYBOOK.md`; this project file gives one practical example per skill without editing vendored docs.
 
 Treat every prompt below as a way to organize work, not as evidence. Sources, citekeys, page numbers, quotations, and bibliographic metadata still need to come from Zotero, `bibliography/references.bib`, source notes, or material the user supplied.
 
@@ -14,7 +14,7 @@ Use this when a research request could fit several skills and you need the small
 Use research-intent-router. I want to start research on [topic]. Classify the task, choose the smallest useful Research Book Skill, and say whether source lookup is needed.
 ```
 
-The result should name the route, explain the lookup decision, list visible assumptions, and give one next action.
+Expect a route, lookup decision, visible assumptions, and one next action.
 
 ### `dyslexia-research-companion`
 
@@ -34,7 +34,7 @@ Use this for voice transcripts, meeting notes, and spoken fragments that need st
 Use dictation-to-research-notes. Turn this voice transcript into cleaned notes, claims, questions, evidence needs, ambiguities, and next actions without changing my meaning.
 ```
 
-The output should separate notes, possible claims, evidence needs, open questions, and next actions.
+Keep notes, possible claims, evidence needs, open questions, and next actions separate.
 
 ### `reading-load-reducer`
 
@@ -44,7 +44,7 @@ Use this when a source pile is too dense and the reader needs to know what deser
 Use reading-load-reducer. Triage these abstracts and source excerpts into read closely, skim, park, or skip for my current chapter goal: [goal].
 ```
 
-The result should sort the material into reading categories, point to close-reading targets, and name evidence gaps.
+Expect reading categories, close-reading targets, and named evidence gaps.
 
 ### `dyslexia-friendly-prose-editor`
 
@@ -54,7 +54,7 @@ Use this for local spelling, grammar, punctuation, sentence-boundary, and readab
 Use dyslexia-friendly-prose-editor. Repair spelling, grammar, punctuation, and sentence boundaries in this passage without changing my argument or adding claims.
 ```
 
-The output should include the revised passage, corrections to review, ambiguous fixes, and any claims that still need evidence.
+Expect the revised passage, corrections to review, ambiguous fixes, and any claims that still need evidence.
 
 ## Planning and discovery
 
@@ -66,7 +66,7 @@ Use this for a project or task that spans several stages of a research nonfictio
 Use research-book-orchestrator. My research book project is about [topic/thesis]. Build a staged research, writing, and verification workflow with quality gates.
 ```
 
-The result should give a staged plan, a skill sequence, the immediate deliverable, quality gates, and limits.
+Expect a staged plan, skill sequence, immediate deliverable, quality gates, and limits.
 
 ### `scholarly-research-agenda`
 
@@ -86,7 +86,7 @@ Use this to plan source discovery in a way someone else could check later.
 Use systematic-source-discovery. Build search families, Boolean query strings, database targets, inclusion and exclusion rules, citation-chaining steps, and a search log for: [topic].
 ```
 
-The output should include search families, query strings, venues, criteria, citation-chaining steps, and a search-log draft.
+Expect search families, query strings, venues, criteria, citation-chaining steps, and a search-log draft.
 
 ### `discovery-runner-deduper`
 
@@ -96,7 +96,7 @@ Use this after searches produce candidate records from an index, catalogue, bibl
 Use discovery-runner-deduper. Dedupe these exported candidate sources, screen them against my criteria, and draft a search-log update. Here are the records: [CSV/BIB/RIS/pasted records].
 ```
 
-The result should include a candidate matrix, duplicate clusters, keep/reject notes, a search-log update, and follow-up checks.
+Expect a candidate matrix, duplicate clusters, keep/reject notes, a search-log update, and follow-up checks.
 
 ## Source notes and evidence extraction
 
@@ -108,7 +108,7 @@ Use this to turn highlights, annotations, excerpts, or reading notes into source
 Use annotation-to-source-note. Turn these Zotero notes and PDF highlights into a source note with quote, paraphrase, summary, interpretation, metadata, and locator gaps marked.
 ```
 
-The output should preserve source metadata, quote and locator needs, passage-specific claims, interpretation limits, and follow-up tasks.
+The output needs to preserve source metadata, quote and locator needs, passage-specific claims, interpretation limits, and follow-up tasks.
 
 ### `extraction-table-builder`
 
@@ -128,7 +128,7 @@ Use this when verified sources need short annotations about argument, method, ev
 Use annotated-bibliography-builder. Create an annotated bibliography from these verified sources, noting each source's argument, method, evidence, relevance, limitations, key terms, and likely chapter placement.
 ```
 
-The result should give source-by-source annotations plus verification limits and user checks.
+Expect source-by-source annotations plus verification limits and user checks.
 
 ### `methodology-source-auditor`
 
@@ -138,7 +138,7 @@ Use this when source credibility or source-claim fit could change how the manusc
 Use methodology-source-auditor. Audit these sources for method quality, evidence strength, bias, generalizability, and what each source can or cannot support in my manuscript.
 ```
 
-The output should identify high-risk sources, missing stronger evidence, and safer ways to use or replace weak sources.
+Expect high-risk sources, missing stronger evidence, and safer ways to use or replace weak sources.
 
 ## Literature, cases, and argument
 
@@ -150,7 +150,7 @@ Use this when a source set needs to become a map of schools of thought, debates,
 Use literature-review-mapper. Map these sources and notes into schools of thought, major debates, consensus, gaps, and implications for my thesis: [thesis].
 ```
 
-The result should make corpus limits visible before it summarizes the field, debates, gaps, and source needs.
+The result needs to make corpus limits visible before it summarizes the field, debates, gaps, and source needs.
 
 ### `case-study-integration`
 
@@ -170,7 +170,7 @@ Use this when the book-level argument needs a clearer structure before chapter p
 Use argument-architecture. Build a thesis tree from this research agenda, literature map, and notes, including claims, warrants, evidence paths, assumptions, counterarguments, chapter sequence, and weak links.
 ```
 
-The output should show the thesis tree, assumptions, chapter sequence, weak links, and a stronger formulation where the evidence allows it.
+Expect the thesis tree, assumptions, chapter sequence, weak links, and a stronger formulation where the evidence allows it.
 
 ### `counterargument-peer-review`
 
@@ -180,7 +180,7 @@ Use this to stress-test a thesis, chapter, outline, proposal, or argument.
 Use counterargument-peer-review. Challenge this thesis like a skeptical peer reviewer, identify rival explanations and missing literatures, then suggest a stronger narrowed version.
 ```
 
-The result should give serious objections, rival explanations, missing perspectives, claims to narrow, and a revised thesis if the source basis supports one.
+Expect serious objections, rival explanations, missing perspectives, claims to narrow, and a revised thesis if the source basis supports one.
 
 ## Chapter and prose work
 
@@ -202,7 +202,7 @@ Use this after the evidence and chapter logic are stable enough for prose work.
 Use scholarly-prose-editor. Revise this passage for clarity, precision, structure, rhythm, and readability while preserving nuance, uncertainty, voice, and evidence limits.
 ```
 
-The output should include the revised passage, what changed, a meaning-preservation check, a new-claim check, and evidence flags.
+Expect the revised passage, what changed, a meaning-preservation check, a new-claim check, and evidence flags.
 
 ### `manuscript-continuity-editor`
 
@@ -212,7 +212,7 @@ Use this across multiple chapters or a whole manuscript.
 Use manuscript-continuity-editor. Review these chapter summaries and drafts for thesis coherence, repetition, contradictions, concept tracking, tone consistency, chapter order, and priority revisions.
 ```
 
-The result should map chapter functions, repetition, concept tracking, claim drift, contradictions, and priority revisions.
+Expect chapter functions, repetition, concept tracking, claim drift, contradictions, and priority revisions.
 
 ## Claims, citations, and integrity
 
@@ -224,7 +224,7 @@ Use this before claim tracing or citation audit, once a draft or outline contain
 Use claim-evidence-ledger. Extract the major claims in this draft and classify claim type, evidence status, citation need, confidence, overclaiming risk, and safer wording.
 ```
 
-The output should separate high-risk claims, interpretive claims, source priorities, and user checks.
+Keep high-risk claims, interpretive claims, source priorities, and user checks separate.
 
 ### `claim-traceability-graph`
 
@@ -244,7 +244,7 @@ Use this for citations, quotations, paraphrases, bibliography problems, and sour
 Use citation-integrity-auditor. Check this chapter for unsupported claims, citation-source mismatch, quote and page-number needs, fabricated-reference risk, and bibliography issues.
 ```
 
-The result should list claim-level findings, quotation issues, bibliography issues, and repairs that matter most.
+Expect claim-level findings, quotation issues, bibliography issues, and the repairs that matter most.
 
 ### `figure-table-integrity-auditor`
 
@@ -254,7 +254,7 @@ Use this when figures, tables, charts, screenshots, maps, or image panels carry 
 Use figure-table-integrity-auditor. Audit these figures and tables for data provenance, caption and axis accuracy, source licensing, duplicate visual risk, manipulation risk, and claim support limits.
 ```
 
-The output should name blockers, missing data or source files, provenance problems, rights issues, and repair actions.
+Expect blockers, missing data or source files, provenance problems, rights issues, and repair actions.
 
 ### `scholarly-integrity-gate`
 
@@ -264,7 +264,7 @@ Use this before AI-assisted analyses, generated syntheses, computed results, or 
 Use scholarly-integrity-gate. Gate this AI-assisted research artifact before it supports manuscript claims. Check for hallucinated evidence, methodology fabrication, implementation bugs, shortcut reliance, frame-lock, and missing human checkpoints.
 ```
 
-The result should give a CLEAR, SUSPECTED, INSUFFICIENT EVIDENCE, or OVERRIDDEN decision, with blockers, repair priorities, and human checkpoints.
+Expect a CLEAR, SUSPECTED, INSUFFICIENT EVIDENCE, or OVERRIDDEN decision, with blockers, repair priorities, and human checkpoints.
 
 ## Release, proposal, and workflow records
 
@@ -286,7 +286,7 @@ Use this before sharing notes, source packets, proposals, manuscript exports, or
 Use rights-privacy-release-auditor. Check this manuscript export for privacy, copied source text, quote locator, copyright, license, credential, local metadata, and AI-disclosure risks before I share it.
 ```
 
-The result should give a release verdict and identify privacy, copyright, license, metadata, credential, and disclosure risks.
+Expect a release verdict plus privacy, copyright, license, metadata, credential, and disclosure risks.
 
 ### `book-proposal-scholarship`
 
@@ -296,7 +296,7 @@ Use this once the thesis, audience, source base, and chapter structure are stabl
 Use book-proposal-scholarship. Draft a research nonfiction book proposal from this thesis, chapter structure, source base, audience notes, and sample-material plan, marking market and comps claims that still need verification.
 ```
 
-The output should draft the proposal pieces and mark the audience, market, comparable-title, and submission risks that still need checking.
+Expect proposal pieces with audience, market, comparable-title, and submission risks that still need checking.
 
 ### `book-comps-verifier`
 

@@ -16,14 +16,14 @@ make audit
 
 After setup, Codex Panel can use these wrappers immediately when it is launched from the project-root vault or a path below it. No manual repo marketplace plugin installation is required.
 
-## What They Are
+## What they are
 
 - Reviewed upstream reference material for Obsidian-specific syntax and local vault mechanics.
 - Repo-local wrappers for applying that material inside this research manuscript scaffold.
 - Helpers for creating valid Obsidian Markdown, `.base`, and `.canvas` artifacts.
 - Guidance for cautious Obsidian CLI and Defuddle use when the user explicitly asks for those tools.
 
-## What They Are Not
+## What they are not
 
 - They are not globally installed by this scaffold.
 - They are not an Obsidian plugin and are separate from Codex Panel.
@@ -32,7 +32,7 @@ After setup, Codex Panel can use these wrappers immediately when it is launched 
 - They do not replace Zotero or `bibliography/references.bib`.
 - They do not grant permission to execute vendored scripts, run Obsidian CLI commands, fetch web pages, or modify a live vault without explicit user direction.
 
-## Vendor Installation
+## Vendor installation
 
 The vendored source is a Git submodule:
 
@@ -70,7 +70,7 @@ Review the resulting submodule pointer, wrapper diffs, and install report before
 | `.agents/skills/obsidian-research-cli/SKILL.md` | `obsidian-cli` | Read-only or explicitly approved Obsidian CLI operations |
 | `.agents/skills/obsidian-research-defuddle/SKILL.md` | `defuddle` | Explicitly approved web-page extraction to Markdown |
 
-## Optional Agent-Native Installation
+## Optional agent-native installation
 
 The repository documents agent-native installation paths but does not run them. They are not part of project setup and require explicit user-level approval because they write outside the repository. Use these only when you want the upstream Obsidian Skills available outside this scaffold, and review upstream files first.
 
@@ -81,7 +81,7 @@ mkdir -p ~/.codex/skills
 cp -R vendor/obsidian-skills/skills/* ~/.codex/skills/
 ```
 
-For Claude Code, copy the upstream repository contents into the `.claude` folder for the vault or workspace where Claude Code should discover them:
+For Claude Code, copy the upstream repository contents into the `.claude` folder for the vault or workspace where Claude Code needs to discover them:
 
 ```sh
 mkdir -p /path/to/vault/.claude
@@ -114,7 +114,7 @@ Create the `research/views/`, `research/canvases/`, and `research/web-ingest/` f
 
 ## Usage Recipes
 
-### Source Note Markdown
+### Source note Markdown
 
 Use `obsidian-research-markdown` for Obsidian syntax, but use the project source-note template and citation rules as the source of truth.
 
@@ -122,7 +122,7 @@ Use `obsidian-research-markdown` for Obsidian syntax, but use the project source
 python3 scripts/research-writing/new_from_template.py templates/source-note-template.md notes/01-source-notes/example-source-note.md
 ```
 
-Before adding a citekey, verify it exists in Zotero or `bibliography/references.bib`. Page numbers or stable section locators are required when a claim depends on a specific passage. Wikilinks should point only to existing or intentionally planned project notes.
+Before adding a citekey, verify it exists in Zotero or `bibliography/references.bib`. Page numbers or stable section locators are required when a claim depends on a specific passage. Point wikilinks only to existing or intentionally planned project notes.
 
 ### Claim-Ledger Base
 
@@ -204,7 +204,7 @@ defuddle parse "https://example.com/source-page" --md -o research/web-ingest/sou
 
 Defuddle output is extracted text, not verified evidence. Add retrieval metadata, source URL, access date, and follow-up tasks before converting web-ingest material into source notes or claims.
 
-### Safe Obsidian CLI Usage
+### Safe Obsidian CLI usage
 
 Use `obsidian-research-cli` only for narrow, explicit vault operations. Prefer read-only commands first:
 
@@ -221,7 +221,7 @@ obsidian vault="Research Book" search query="claim_id" limit=10
 
 Avoid write commands until the target file, expected change, and rollback path are clear. Do not use `obsidian eval` for research tasks; reserve it for explicit plugin/theme debugging.
 
-## Checks And Troubleshooting
+## Checks and troubleshooting
 
 Run the local integration and research-writing checks that match the work:
 
@@ -257,7 +257,7 @@ Troubleshooting rules:
 - Obsidian CLI target ambiguity: add a concrete vault parameter such as `vault="Research Book"` or avoid CLI writes.
 - Defuddle missing: document the blocker; do not install global tools unless the user explicitly asks.
 
-## Limitations And Safety Rules
+## Limitations and safety rules
 
 - Local scaffold rules win over upstream Obsidian Skills.
 - Use wrappers for project work; read upstream `SKILL.md` before applying its guidance.

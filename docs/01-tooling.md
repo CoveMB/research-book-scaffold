@@ -20,6 +20,7 @@
 | Academic Research Skills vendor repo | External academic paper and pipeline workflows | Optional |
 | Research Book Skills plugin | External research book workflows | Optional |
 | Subagent Orchestrator plugin | Optional execution-shape guidance for bounded subagents | Optional |
+| Obsidian Skills vendor repo | Obsidian Markdown, Bases, Canvas, CLI, and Defuddle wrapper guidance | Optional |
 
 Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help find candidate sources. Import and verify useful sources in Zotero or `bibliography/references.bib` before citing them.
 

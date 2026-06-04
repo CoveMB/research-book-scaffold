@@ -20,6 +20,7 @@
 | External skills not installed | Run `python3 scripts/operations/vendors/install_external_skills.py --yes`, then review reports. |
 | Research Book Skills plugin not visible | Check `vendor/research-book-skills/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
 | Subagent Orchestrator plugin not visible | Check `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
+| Obsidian Skills wrapper missing | Run `python3 scripts/operations/vendors/check_external_skills.py`, then confirm `vendor/obsidian-skills/skills/` is initialized and refresh wrappers with the local installer if needed. |
 | Agent edited too much | Inspect diff, keep intended changes, revert only with user approval. |
 | Export failed | Check Quarto, Pandoc, the TinyTeX `PATH`, bibliography path, and unresolved citation errors. |
 | Quarto render reports `unable to open database file` in sandboxed automation | Rerun render QA with normal user permissions or a writable Quarto cache location, then record the sandbox failure as an environment constraint rather than a manuscript failure if the normal render passes. |

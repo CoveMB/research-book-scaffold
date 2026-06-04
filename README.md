@@ -99,7 +99,7 @@ Use `templates/` for local source notes, concept notes, claim notes, audits, sou
 
 ## Repo-scoped skills and plugins
 
-Immediate Codex skill availability comes from wrapper skills in `.agents/skills/<skill-name>/SKILL.md`. Codex Panel should launch Codex with this project root, or a path below it, as the working directory so Codex can discover those repo-scoped skills.
+Immediate Codex skill availability comes from wrapper skills in `.agents/skills/<skill-name>/SKILL.md`. Launch Codex Panel with this project root, or a path below it, as the working directory so Codex can discover those repo-scoped skills.
 
 The external layers are separate:
 

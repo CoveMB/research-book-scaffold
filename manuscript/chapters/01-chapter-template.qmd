@@ -6,7 +6,7 @@ This sample chapter shows the expected shape of a chapter file. Replace it with 
 
 ## Central question
 
-Each chapter should answer one central question tied to the book scope.
+Each chapter answers one central question tied to the book scope.
 
 ## Argument sequence
 

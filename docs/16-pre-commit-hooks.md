@@ -51,7 +51,7 @@ The local scholarly hooks call existing Makefile targets. Keep those Makefile ta
 
 `make check-citations` can warn when no citations are present without blocking the commit. Strict citation requirements remain release-only.
 
-`make-check-manuscript-readiness` is configured as a manual hook because early scaffold and writing commits can legitimately contain generic manuscript text. Run it before release review or whenever a manuscript setup pass should be checked.
+`make-check-manuscript-readiness` is configured as a manual hook because early scaffold and writing commits can legitimately contain generic manuscript text. Run it before release review or whenever a manuscript setup pass needs a check.
 
 ## Intentional skips
 

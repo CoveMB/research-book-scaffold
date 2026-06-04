@@ -18,7 +18,7 @@ Include:
 
 Use `templates/source-matrix-template.md` as the starting point when it fits. Keep
 source-specific summaries and quotations in `notes/01-source-notes/` or
-`research/extraction-tables/`; the matrix should make comparison easier, not
+`research/extraction-tables/`; the matrix makes comparison easier, not
 replace the underlying notes.
 
 Do not turn a matrix into draft prose. If the comparison supports a claim, move

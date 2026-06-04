@@ -5,7 +5,7 @@ blurry.
 
 This folder is for procedures that govern how sources will be found, selected,
 extracted, coded, reviewed, or audited. A protocol can be short for a narrow task
-or detailed for a systematic search, but it should make the method clear enough
+or detailed for a systematic search, but make the method clear enough
 that another pass could follow the same rules.
 
 Include:
