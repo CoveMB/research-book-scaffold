@@ -2,7 +2,7 @@
 
 - Repo: `https://github.com/Imbad0202/academic-research-skills.git`
 - Ref: `default branch`
-- Commit: `2129726b3382b48c6944273933562e164e4ae37d`
+- Commit: `c5284f629b5eb80bb125fb39da3d7133c63138cc`
 - Vendor path: `vendor/academic-research-skills`
 - License note: Creative Commons Attribution-NonCommercial 4.0 International verified from `vendor/academic-research-skills/LICENSE`.
 - Upstream files edited: no.

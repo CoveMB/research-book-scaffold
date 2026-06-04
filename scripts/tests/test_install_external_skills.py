@@ -212,7 +212,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
                 "research-book-skills",
                 "./vendor/research-book-skills",
                 vendor,
-                "scholarly-research-book",
+                "research-skills-plugin",
                 vendor / "skills",
                 ("missing-skill",),
             )

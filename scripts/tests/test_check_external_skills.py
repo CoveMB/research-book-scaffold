@@ -333,7 +333,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
         )
 
     def test_expected_rbs_plugin_name_matches_upstream(self) -> None:
-        self.assertEqual(RBS_PLUGIN_JSON_NAME, "scholarly-research-book")
+        self.assertEqual(RBS_PLUGIN_JSON_NAME, "research-skills-plugin")
 
     def test_expected_subagent_orchestrator_plugin_name_matches_upstream(self) -> None:
         self.assertEqual(SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME, "subagent-orchestrator")

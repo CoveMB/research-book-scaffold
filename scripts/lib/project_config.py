@@ -25,7 +25,7 @@ SUBAGENT_ORCHESTRATOR_PLUGIN_PATH = "./vendor/subagent-orchestration-plugin/plug
 SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT = SUBAGENT_ORCHESTRATOR_VENDOR / "plugin" / "subagent-orchestrator"
 LEGACY_RBS_PLUGIN = Path("plugins/research-book-skills")
 RBS_MARKETPLACE_NAME = "research-book-skills"
-RBS_PLUGIN_JSON_NAME = "scholarly-research-book"
+RBS_PLUGIN_JSON_NAME = "research-skills-plugin"
 SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME = "subagent-orchestrator"
 SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME = "subagent-orchestrator"
 
