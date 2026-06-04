@@ -367,6 +367,8 @@ Expected result:
 | `make check-citations` | Checks manuscript citekeys against `bibliography/references.bib` | Exits 0 and missing citekey count is zero |
 | `make check-citations-strict` | Checks manuscript, notes, and research citekeys and requires at least one citation | Exits 0 for production release |
 | `make check-links` | Checks wiki-style internal links | Exits 0 and reports no broken or ambiguous links |
+| `make check-external-references` | Checks external URLs and DOI resolution without archive lookup | Run only when network QA is in scope; warnings are reviewed without blocking ordinary writing |
+| `make external-reference-report` | Writes `reports/external-reference-check.json` for external-reference audit review | Run only when a generated report is useful; archive lookup still requires an explicit script flag |
 | `make check-manuscript-readiness` | Detects remaining scaffold manuscript entries | Exits 0 for production release |
 | `make check-external-skills` | Validates vendor submodules, wrappers, plugins, marketplace, and old repo references | Exits 0 with zero failures |
 | `make install-external-skills` | Vendors external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
@@ -481,6 +483,7 @@ Entry points and support modules:
 - `scripts/start_project.py`
 - `scripts/research-writing/check_broken_internal_links.py`
 - `scripts/research-writing/check_citations.py`
+- `scripts/research-writing/check_external_references.py`
 - `scripts/operations/vendors/check_external_skills.py`
 - `scripts/research-writing/check_manuscript_readiness.py`
 - `scripts/operations/obsidian/check_obsidian_artifacts.py`
@@ -532,6 +535,7 @@ python3 scripts/research-writing/check_citations.py
 python3 scripts/research-writing/check_citations.py --include-notes --require-citations
 python3 scripts/research-writing/check_citations.py --show-unused
 python3 scripts/research-writing/check_broken_internal_links.py
+python3 scripts/research-writing/check_external_references.py --help
 python3 scripts/research-writing/check_manuscript_readiness.py
 python3 scripts/research-writing/new_from_template.py --help
 python3 scripts/research-writing/render_manuscript.py --to html

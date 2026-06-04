@@ -1,4 +1,4 @@
-.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-artifacts install-obsidian-panel audit release-audit ci
+.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-artifacts install-obsidian-panel audit release-audit ci
 
 help:
 	@echo "Targets:"
@@ -14,6 +14,8 @@ help:
 	@echo "  check-citations        Check manuscript citekeys"
 	@echo "  check-citations-strict Check manuscript citekeys and require at least one citation"
 	@echo "  check-links            Check wiki-style internal links"
+	@echo "  check-external-references Check external URLs and DOIs without archive lookup"
+	@echo "  external-reference-report Write an external-reference JSON report"
 	@echo "  check-manuscript-readiness Check release manuscript files for scaffold entries"
 	@echo "  check-external-skills  Check external skill/plugin integration"
 	@echo "  install-external-skills Vendor external skills and update marketplace"
@@ -62,6 +64,12 @@ check-citations-strict:
 
 check-links:
 	python3 scripts/research-writing/check_broken_internal_links.py
+
+check-external-references:
+	python3 scripts/research-writing/check_external_references.py
+
+external-reference-report:
+	python3 scripts/research-writing/check_external_references.py --json-report reports/external-reference-check.json
 
 check-manuscript-readiness:
 	python3 scripts/research-writing/check_manuscript_readiness.py

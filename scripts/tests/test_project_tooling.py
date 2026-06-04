@@ -16,6 +16,7 @@ import project_config
 SCRIPT_LAYOUT = {
     "scripts/research-writing/new_from_template.py",
     "scripts/research-writing/check_citations.py",
+    "scripts/research-writing/check_external_references.py",
     "scripts/research-writing/check_placeholders.py",
     "scripts/research-writing/check_broken_internal_links.py",
     "scripts/research-writing/check_manuscript_readiness.py",

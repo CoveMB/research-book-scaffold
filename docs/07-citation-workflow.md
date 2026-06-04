@@ -65,6 +65,14 @@ Add page numbers when a claim depends on a specific passage. If page numbers are
 
 Record title, author or organization, URL, access date when needed, and archive link when available.
 
+Use `make check-external-references` for an explicit network check of external URLs and DOI resolution in `bibliography/references.bib`, `notes/`, `research/`, and `manuscript/`. The checker validates URL and DOI syntax, prefers `HEAD` with `GET` fallback, uses a clear user agent, and separates likely failures from uncertain network results.
+
+The checker treats malformed URLs, malformed DOIs, HTTP 404, HTTP 410, and repeated DNS failure as likely failures. It treats HTTP 403, HTTP 429, timeouts, TLS errors, server errors, and access-controlled or paywalled responses as warnings because they are common false-positive sources.
+
+Archive coverage is opt-in. Pass `--check-archives` to query the Internet Archive availability endpoint. This submits checked public URLs to a third-party service but does not create snapshots. Pass `--create-archives` only when you intentionally want to request public archive snapshots; this can disclose URLs and should not be used for private, sensitive, embargoed, localhost, or internal sources. Local and private-looking URLs are skipped for archive submission unless `--allow-private-archive-submission` is also passed.
+
+Use `make external-reference-report` to write `reports/external-reference-check.json`. Reports and checker findings are audit aids; they do not repair, invent, or authorize bibliographic metadata. Fix source metadata in Zotero or verified BibTeX records.
+
 ## AI output
 
 AI-generated citations are untrusted until verified against Zotero, BibTeX, or the source itself.
