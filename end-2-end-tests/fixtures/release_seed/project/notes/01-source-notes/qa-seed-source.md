@@ -7,7 +7,7 @@ authors:
 year: "2026"
 source_type: synthetic-fixture
 evidence_type: qa-fixture
-reading_status: fixture
+source_status: verified
 ---
 
 # QA seed source

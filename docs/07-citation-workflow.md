@@ -61,6 +61,24 @@ Use visible markers for missing support:
 
 Add page numbers when a claim depends on a specific passage. If page numbers are unknown, mark the gap.
 
+## Source-note metadata
+
+Source-note front matter is an audit aid for reading status, locator quality,
+and claim discipline. It does not authorize bibliographic metadata. Zotero or
+`bibliography/references.bib` remains the source of truth for citekeys and
+source metadata.
+
+When using `templates/source-note-template.md`, copy `citekey`, `zotero_uri`,
+`DOI`, `URL`, `archive_url`, and `access_date` from Zotero, Better BibTeX, the
+source itself, or another verified record. Leave DOI, URL, archive URL, and
+access date blank when they have not been checked; do not fill them with guessed
+values. The external-reference checker reads `DOI:`, `URL:`, `archive_url:`,
+and `access_date:` fields when they contain values, so inaccurate placeholders
+can become false reference failures.
+
+Use status fields to keep uncertainty visible. The controlled vocabulary for
+source-note fields lives in `notes/01-source-notes/README.md`.
+
 ## Web sources
 
 Record title, author or organization, URL, access date when needed, and archive link when available.

@@ -6,7 +6,8 @@ Use these as starting points. Replace `{{PLACEHOLDER}}` markers with verified pr
 
 ## Available templates
 
-- `source-note-template.md`
+- `source-note-template.md` for source-bound notes with compact traceability metadata. Use Zotero or
+  `bibliography/references.bib` as the bibliographic source of truth.
 - `project-charter-template.md`
 - `concept-note-template.md`
 - `claim-note-template.md`

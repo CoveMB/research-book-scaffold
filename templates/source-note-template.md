@@ -1,12 +1,24 @@
 ---
 type: source-note
-citekey: ""
-title: ""
+citekey:
+zotero_uri:
+DOI:
+URL:
+archive_url:
+access_date:
+source_type: unknown
+evidence_type:
+peer_review_status: not_checked
+source_status: unread
+locator_quality: missing_locator
+relevance_to_project: unknown
+main_use:
+limitations:
+last_checked:
+# Optional orientation only; Zotero or bibliography/references.bib remains the bibliographic source of truth.
+title:
 authors: []
-year: ""
-source_type: ""
-evidence_type: ""
-reading_status: unread
+year:
 ---
 
 # Source note
@@ -15,7 +27,7 @@ reading_status: unread
 
 {{BRIEF_SUMMARY}}
 
-## Main claims
+## Source's main claims
 
 - {{CLAIM}}
 
@@ -23,32 +35,37 @@ reading_status: unread
 
 - {{EVIDENCE_METHOD_OR_ARGUMENT_TYPE}}
 
-## Useful passages
+## Key passages with locators
 
-| Location | Evidence kind | Verified text, paraphrase, or summary | Note |
-| --- | --- | --- | --- |
-| {{PAGE_OR_SECTION}} | {{EVIDENCE_KIND}} | {{VERIFIED_MATERIAL}} | {{WHY_IT_MATTERS}} |
+| Locator | Note type | Verified text, paraphrase, or summary | Claim or use | Verification gap |
+| --- | --- | --- | --- | --- |
+| {{PAGE_OR_SECTION}} | {{SUMMARY_PARAPHRASE_QUOTE_OR_INTERPRETATION}} | {{VERIFIED_MATERIAL}} | {{WHY_IT_MATTERS}} | {{LOCATOR_OR_QUOTE_CHECK_NEEDED}} |
 
-## Limitations
-
-- {{LIMITS_GAPS_OR_UNCERTAINTY}}
-
-## What it supports
+## Claims this source supports
 
 - {{SUPPORTED_CLAIM_OR_QUESTION}}
 
-## What it challenges
+## Claims this source complicates or weakens
 
-- {{CHALLENGED_CLAIM_OR_ASSUMPTION}}
+- {{COMPLICATED_OR_WEAKENED_CLAIM}}
 
-## Related claims
+## Methodological limitations
 
-- {{CLAIM_ID}}
+- {{METHOD_LIMITS_GAPS_OR_UNCERTAINTY}}
 
-## Related concepts
+## Relation to other sources
 
-- {{CONCEPT_NOTE}}
+- {{RELATED_SOURCE_OR_DEBATE}}
+
+## Related project notes
+
+- Claims: {{CLAIM_ID}}
+- Concepts: {{CONCEPT_NOTE}}
 
 ## Possible manuscript use
 
 - {{MANUSCRIPT_USE}}
+
+## Follow-up tasks
+
+- {{FOLLOW_UP_TASK}}

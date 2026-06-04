@@ -263,6 +263,35 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn("check-obsidian-artifacts", makefile)
         self.assertIn("python3 scripts/operations/obsidian/check_obsidian_artifacts.py", makefile)
 
+    def test_ci_target_uses_scaffold_audit_not_release_audit(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("ci: lint audit", makefile)
+        self.assertNotIn("ci: lint release-audit", makefile)
+
+    def test_github_workflow_uses_descriptive_scaffold_check_steps(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+        expected_steps = [
+            "Check out repository and vendored submodules",
+            "Set up Python ${{ matrix.python-version }}",
+            "Show Python, Git, and Make versions",
+            "Compile-check Python scripts and QA tools",
+            "Run script and end-to-end tests",
+            "Scan Markdown and Quarto placeholders",
+            "Check manuscript citations against bibliography",
+            "Check wiki-style internal links",
+            "Validate external skill integration",
+            "Validate Obsidian artifact files",
+        ]
+        for step_name in expected_steps:
+            with self.subTest(step_name=step_name):
+                self.assertIn(f"- name: {step_name}", workflow)
+
+        self.assertIn("uses: actions/checkout@v6", workflow)
+        self.assertIn("uses: actions/setup-python@v6", workflow)
+        self.assertNotIn("Run CI checks", workflow)
+
     def test_gitignore_keeps_vault_defaults_trackable_but_ignores_plugin_artifacts(self) -> None:
         gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
 

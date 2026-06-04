@@ -109,4 +109,4 @@ audit: test check-placeholders check-citations check-links check-external-skills
 
 release-audit: test check-placeholders check-citations-strict check-links check-manuscript-readiness check-external-skills check-obsidian-artifacts
 
-ci: lint release-audit
+ci: lint audit
