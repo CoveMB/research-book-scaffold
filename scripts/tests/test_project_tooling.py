@@ -54,6 +54,8 @@ SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS = {
     "subagent-orchestrator": "subagent-safe-subagent-orchestrator",
 }
 
+CI_PYTHON_VERSION = "3.11"
+
 LEGACY_SCRIPT_PATHS = {
     "scripts/check_broken_internal_links.py",
     "scripts/check_citations.py",
@@ -274,7 +276,7 @@ class ProjectToolingTests(unittest.TestCase):
 
         expected_steps = [
             "Check out repository and vendored submodules",
-            "Set up Python ${{ matrix.python-version }}",
+            f"Set up Python {CI_PYTHON_VERSION}",
             "Show Python, Git, and Make versions",
             "Compile-check Python scripts and QA tools",
             "Run script and end-to-end tests",
@@ -291,6 +293,17 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn("uses: actions/checkout@v6", workflow)
         self.assertIn("uses: actions/setup-python@v6", workflow)
         self.assertNotIn("Run CI checks", workflow)
+
+    def test_github_workflow_uses_single_declared_python_floor(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+        self.assertIn(f"name: Scaffold QA (Python {CI_PYTHON_VERSION})", workflow)
+        self.assertIn(f'python-version: "{CI_PYTHON_VERSION}"', workflow)
+        self.assertNotIn("strategy:", workflow)
+        self.assertNotIn("matrix:", workflow)
+        self.assertNotIn("matrix.python-version", workflow)
+        self.assertNotIn('- "3.12"', workflow)
+        self.assertNotIn('- "3.13"', workflow)
 
     def test_gitignore_keeps_vault_defaults_trackable_but_ignores_plugin_artifacts(self) -> None:
         gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")

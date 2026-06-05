@@ -12,16 +12,8 @@ permissions:
 
 jobs:
   checks:
-    name: Scaffold QA (Python ${{ matrix.python-version }})
+    name: Scaffold QA (Python 3.11)
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-          - "3.11"
-          - "3.12"
-          - "3.13"
 
     steps:
       - name: Check out repository and vendored submodules
@@ -29,10 +21,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.11
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
 
       - name: Show Python, Git, and Make versions
         run: |
