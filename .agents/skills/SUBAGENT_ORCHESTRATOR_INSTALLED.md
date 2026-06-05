@@ -2,7 +2,7 @@
 
 - Repo: `https://github.com/CoveMB/subagent-orchestration-plugin.git`
 - Ref: `default branch`
-- Commit: `1e1933d1f2aa8e1832186fa6adaf41de8a2c875f`
+- Commit: `e961a248d94b38b494f863e5a2323776b52ca30b`
 - Vendor path: `vendor/subagent-orchestration-plugin`
 - License note: MIT License verified from `vendor/subagent-orchestration-plugin/LICENSE`.
 - Upstream files edited: no.

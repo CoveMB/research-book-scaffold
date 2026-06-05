@@ -2,7 +2,7 @@
 
 - Repo: `https://github.com/CoveMB/research-book-skills.git`
 - Ref: `default branch`
-- Commit: `f91585ea92e50e3d3ded23250ac2a48b3f5d8a34`
+- Commit: `6d000633f73f368f352e1bc937300322d40148d0`
 - Vendor path: `vendor/research-book-skills`
 - License note: MIT License verified from `vendor/research-book-skills/LICENSE`.
 - Upstream files edited: no.
