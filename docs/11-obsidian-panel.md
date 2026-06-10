@@ -1,8 +1,10 @@
-# Codex Panel for Obsidian
+# Obsidian Plugin Setup
 
 Codex Panel is the recommended Obsidian plugin that connects a vault to local Codex workflows. Default setup installs it unless `--skip-obsidian-panel` is passed.
 
 Codex Panel is separate from Obsidian Skills. Obsidian Skills are vendored reference skills with local wrappers for Obsidian syntax and vault mechanics; see `docs/15-obsidian-skills.md`.
+
+Default setup also installs Zotero Integration and Pandoc Reference List unless `--skip-obsidian-research-plugins` is passed. Those plugins support the citation workflow in `docs/07-citation-workflow.md`; they do not replace Zotero, Better BibTeX, or repository citation checks.
 
 ## Access and value
 
@@ -48,11 +50,11 @@ Default setup treats the repository root as the vault root:
 bash setup.sh
 ```
 
-This creates `.obsidian/` in the project root, installs the plugin at `.obsidian/plugins/codex-panel/`, adds `codex-panel` to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
+This creates `.obsidian/` in the project root, installs Codex Panel at `.obsidian/plugins/codex-panel/`, installs Zotero Integration at `.obsidian/plugins/obsidian-zotero-desktop-connector/`, installs Pandoc Reference List at `.obsidian/plugins/obsidian-pandoc-reference-list/`, adds all three plugin IDs to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
 
-The downloaded `.obsidian/plugins/codex-panel/` plugin directory is ignored because setup can recreate it and `data.json` may contain a user-specific absolute Codex path. `.obsidian/community-plugins.json` is not ignored so a fork can intentionally commit vault-level plugin enablement defaults after review.
+The downloaded plugin directories under `.obsidian/plugins/` are ignored because setup can recreate them and plugin settings may contain machine-specific paths. `.obsidian/community-plugins.json` is not ignored so a fork can intentionally commit vault-level plugin enablement defaults after review.
 
-If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. When a stale or broken plugin folder is suspected, rerun setup with `--force`, then run `make check-obsidian-panel`.
+If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. The research plugin installer accepts existing Zotero Integration and Pandoc Reference List folders only after checking their required files and manifest IDs. When a stale or broken plugin folder is suspected, rerun setup with `--force`, then run the matching check.
 
 By default, setup does not modify Obsidian's app-level vault registry. If Obsidian has never opened this project root as a vault, a direct `obsidian://open?path=...` launch can report that the vault is not found even though the vault-local `.obsidian/` files exist.
 
@@ -87,6 +89,7 @@ Health check:
 
 ```sh
 make check-obsidian-panel
+make check-obsidian-research-plugins
 ```
 
 Expected result:
@@ -97,6 +100,9 @@ Expected result:
 - `.obsidian/plugins/codex-panel/data.json` contains an absolute executable `codexPath`
 - `codex --version` exits 0 through that configured path
 - `codex app-server --help` exits 0 through that configured path
+- research plugin files exist under `.obsidian/plugins/obsidian-zotero-desktop-connector/` and `.obsidian/plugins/obsidian-pandoc-reference-list/`
+- research plugin manifests have the expected IDs
+- `.obsidian/community-plugins.json` lists both research plugin IDs
 
 If the check fails:
 
@@ -104,6 +110,9 @@ If the check fails:
 - disabled community plugin: enable Codex Panel in Obsidian Community plugins, then rerun the check
 - manifest ID mismatch or missing plugin files: rerun `bash setup.sh --force`, then rerun the check
 - `codex app-server --help` failure: update or reinstall Codex CLI before using Codex Panel
+- missing research plugin directory: rerun `make install-obsidian-research-plugins`, then rerun `make check-obsidian-research-plugins`
+- invalid existing research plugin folder or manifest mismatch: rerun `python3 scripts/operations/obsidian/obsidian_research_plugins.py install --force`, then rerun `make check-obsidian-research-plugins`
+- missing `pandoc`: the plugin can still be installed, but Pandoc Reference List cannot render the sidebar references until Pandoc is available
 
 This check verifies the local plugin install and Codex command. It cannot prove the runtime working directory used by the panel. Use the read-only prompts below inside Codex Panel to verify the vault/repo root context and repo-scoped skill discovery.
 
@@ -151,3 +160,11 @@ Use $obsidian-research-markdown to inspect notes/README.md and explain which Obs
 If Codex Panel does not see repo-scoped skills, verify that Obsidian opened the project root as the vault root and that Codex Panel launched Codex from the repo root or a path below it. Then run `python3 scripts/operations/vendors/check_external_skills.py` to confirm wrappers and vendors are present.
 
 Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, `docs/07-citation-workflow.md`, and `docs/15-obsidian-skills.md` before using it for edits that involve Obsidian-specific syntax, Bases, Canvas files, CLI operations, or web ingest.
+
+## Research Plugin Workflow
+
+Use Zotero Integration to search Zotero and insert Pandoc-style citations into notes or manuscript files. Keep the inserted form as `[@citekey]`, `[-@citekey]`, or `[@first; @second]` so Quarto and the citation checker can read it.
+
+Use Pandoc Reference List while drafting to preview the references for citekeys in the active note. Configure it with `bibliography/references.bib`; add a CSL path only when the project has selected a citation style.
+
+Imported annotations and Zotero notes belong in `notes/01-source-notes/` after review. Keep direct quotations, paraphrases, interpretation, and missing locators separate. Run `make check-citations` before treating inserted citekeys as manuscript-ready.

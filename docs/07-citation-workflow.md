@@ -28,6 +28,32 @@ Do not enable Better BibTeX git push from this working copy. It can commit or pu
 
 If Zotero auto-export is not available, export manually from Zotero to `bibliography/references.bib`, then run the citation check.
 
+## Obsidian citation plugins
+
+Setup installs two Obsidian research plugins by default:
+
+- Zotero Integration (`obsidian-zotero-desktop-connector`)
+- Pandoc Reference List (`obsidian-pandoc-reference-list`)
+
+These plugins are convenience tools. Zotero or `bibliography/references.bib` remains the source of truth for metadata and citekeys.
+
+Use this workflow after Better BibTeX auto-export is configured:
+
+1. Open the repository root as the Obsidian vault.
+2. Confirm Zotero is open and Better BibTeX has exported the project collection to `bibliography/references.bib`.
+3. In Obsidian, confirm Zotero Integration and Pandoc Reference List are enabled in Community plugins.
+4. Configure Zotero Integration so inserted citations use Pandoc citekey syntax such as `[@citekey]`.
+5. Configure Pandoc Reference List with `bibliography/references.bib`. Add a CSL file or URL only after the citation style has been chosen.
+6. Insert citations from Zotero Integration while drafting notes or manuscript files.
+7. Open the Pandoc Reference List sidebar to check that each visible citekey resolves to a formatted reference.
+8. Run `make check-citations` before relying on the citation in a manuscript draft.
+
+If Zotero Integration inserts a formatted prose citation instead of a Pandoc citekey, do not use that text in `manuscript/`. Reconfigure the plugin or replace the citation with the checked citekey form.
+
+Imported Zotero notes, PDF annotations, and highlights are source material, not final evidence by themselves. Move useful material into `notes/01-source-notes/` with the source-note template, keep quotations distinct from paraphrase, and add page numbers or locators when a claim depends on a specific passage.
+
+Pandoc Reference List is a preview aid. It can catch unresolved citekeys while writing, but `python3 scripts/research-writing/check_citations.py` is the repository check.
+
 ## Citekeys
 
 - Use Better BibTeX citekeys when possible.

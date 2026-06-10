@@ -23,6 +23,16 @@ Use Better BibTeX in Zotero to keep this file current:
 
 After auto-export is active, edit source metadata in Zotero. Avoid hand-editing `references.bib`; Zotero may overwrite it on the next export.
 
+## Obsidian plugin use
+
+The setup workflow installs Zotero Integration and Pandoc Reference List in the project-root Obsidian vault. Point both plugins at this exported bibliography path when a setting asks for a bibliography file:
+
+```text
+bibliography/references.bib
+```
+
+Use the plugins to insert and preview existing citekeys. Do not use plugin output to create unverified bibliography metadata.
+
 ## Manual fallback
 
 If Better BibTeX auto-export is not set up, export BibTeX from Zotero into `references.bib`, then run citation checks before sharing drafts.

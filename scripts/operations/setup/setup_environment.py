@@ -17,6 +17,7 @@ from import_paths import configure_script_paths
 configure_script_paths(__file__)
 
 import install_external_skills
+import obsidian_research_plugins
 from environment_checks import check_packages
 from obsidian_agent import (
     install_codex_panel,
@@ -59,6 +60,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
     parser.add_argument("--obsidian-release-sha256")
+    parser.add_argument("--zotero-integration-release-url")
+    parser.add_argument("--pandoc-reference-list-release-url")
+    parser.add_argument("--skip-obsidian-research-plugins", action="store_true")
     parser.add_argument(
         "--register-obsidian-vault",
         action="store_true",
@@ -129,6 +133,12 @@ def recommended_checks(args: argparse.Namespace) -> list[str]:
     checks = [check.shell_text() for check in SETUP_RECOMMENDED_CHECKS]
     if args.skip_obsidian_panel:
         checks = [check for check in checks if check != "python3 scripts/operations/obsidian/check_obsidian_panel.py"]
+    if args.skip_obsidian_research_plugins:
+        checks = [
+            check
+            for check in checks
+            if check != "python3 scripts/operations/obsidian/obsidian_research_plugins.py check"
+        ]
     return checks
 
 
@@ -136,6 +146,8 @@ def run_recommendations(args: argparse.Namespace, report: Report) -> None:
     report.next_steps.extend(f"Run {check}" for check in recommended_checks(args))
     if args.skip_obsidian_panel:
         report.next_steps.append("Run make install-obsidian-panel when Obsidian/Codex Panel coverage is needed")
+    if args.skip_obsidian_research_plugins:
+        report.next_steps.append("Run make install-obsidian-research-plugins when Zotero/Pandoc Obsidian coverage is needed")
 
 
 def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespace:
@@ -181,6 +193,17 @@ def install_obsidian_panel_layer(args: argparse.Namespace, report: Report) -> No
     install_codex_panel(args, report)
 
 
+def install_research_plugins(args: argparse.Namespace, report: Report) -> None:
+    obsidian_research_plugins.install_research_plugins(args, report)
+
+
+def install_obsidian_research_plugin_layer(args: argparse.Namespace, report: Report) -> None:
+    if args.skip_obsidian_research_plugins:
+        report.add("skipped", "Obsidian research plugin setup skipped by --skip-obsidian-research-plugins")
+        return
+    install_research_plugins(args, report)
+
+
 def main(argv: list[str]) -> int:
     change_to_project_root()
     args = parse_args(argv)
@@ -193,6 +216,7 @@ def main(argv: list[str]) -> int:
     validate_local_skills(Path(".agents/skills"), report, args.dry_run)
     install_external_layer(args, report)
     install_obsidian_panel_layer(args, report)
+    install_obsidian_research_plugin_layer(args, report)
     run_recommendations(args, report)
     report.print_summary()
     return 1 if report.failed else 0

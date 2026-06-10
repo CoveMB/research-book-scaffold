@@ -5,9 +5,11 @@
 | Zotero | Source library, PDFs, metadata | Recommended |
 | Better BibTeX | Stable citekeys and BibTeX export | Recommended |
 | Obsidian project-root vault | Project-root notes and local navigation | Recommended; setup default unless skipped |
+| Zotero Integration Obsidian plugin | Insert Pandoc-style citations and import Zotero notes or annotations | Recommended; setup default unless skipped |
+| Pandoc Reference List Obsidian plugin | Preview references for citekeys in the current note | Recommended; setup default unless skipped |
 | Markdown editor | Direct file editing outside Obsidian | Optional |
 | Quarto | Book rendering | Optional until export |
-| Pandoc | Format conversion | Optional until export |
+| Pandoc | Format conversion and Pandoc Reference List rendering | Optional until export; needed for live reference preview |
 | Git | Version history, submodules, and checkpoints | Required for setup and vendor checks |
 | Python 3 | Local scripts, checks, setup, and tests | Required |
 | pre-commit | Lightweight local commit hooks for hygiene and scaffold checks | Optional |
@@ -27,6 +29,8 @@ Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help f
 Do not store API keys or credentials in this repository.
 
 External repositories live under `vendor/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the vendored Research Book Skills submodule and the nested optional Subagent Orchestrator plugin path.
+
+`bash setup.sh` installs the Obsidian plugin files for Codex Panel, Zotero Integration, and Pandoc Reference List into `.obsidian/plugins/`. The plugin payload folders are ignored because setup can recreate them and local settings may be machine-specific. `.obsidian/community-plugins.json` is trackable so this scaffold can declare the recommended vault-level plugin set.
 
 ## Render tool verification
 

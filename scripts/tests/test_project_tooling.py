@@ -31,9 +31,11 @@ SCRIPT_LAYOUT = {
     "scripts/operations/vendors/update_skills_vendors.py",
     "scripts/operations/vendors/update-skills-vendors.sh",
     "scripts/operations/obsidian/obsidian_agent.py",
+    "scripts/operations/obsidian/obsidian_research_plugins.py",
     "scripts/operations/obsidian/check_obsidian_panel.py",
     "scripts/operations/obsidian/check_obsidian_artifacts.py",
     "scripts/operations/obsidian/install_obsidian_panel.sh",
+    "scripts/operations/obsidian/install_obsidian_research_plugins.sh",
     "scripts/lib/project_config.py",
     "scripts/lib/script_utils.py",
     "scripts/lib/git_utils.py",
@@ -265,6 +267,14 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn("check-obsidian-artifacts", makefile)
         self.assertIn("python3 scripts/operations/obsidian/check_obsidian_artifacts.py", makefile)
 
+    def test_makefile_exposes_obsidian_research_plugin_commands(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("check-obsidian-research-plugins", makefile)
+        self.assertIn("python3 scripts/operations/obsidian/obsidian_research_plugins.py check", makefile)
+        self.assertIn("install-obsidian-research-plugins", makefile)
+        self.assertIn("bash scripts/operations/obsidian/install_obsidian_research_plugins.sh", makefile)
+
     def test_ci_target_uses_scaffold_audit_not_release_audit(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
@@ -309,6 +319,8 @@ class ProjectToolingTests(unittest.TestCase):
         gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
 
         self.assertIn(".obsidian/plugins/codex-panel/", gitignore)
+        self.assertIn(".obsidian/plugins/obsidian-zotero-desktop-connector/", gitignore)
+        self.assertIn(".obsidian/plugins/obsidian-pandoc-reference-list/", gitignore)
         self.assertNotIn(".obsidian/community-plugins.json", gitignore)
 
     def test_obsidian_manual_refresh_docs_include_force(self) -> None:

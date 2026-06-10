@@ -168,6 +168,10 @@ SETUP_RECOMMENDED_CHECKS = (
     CommandSpec(("bash", "scripts/operations/health/doctor.sh"), "run repository doctor"),
     CommandSpec(("python3", "scripts/operations/vendors/check_external_skills.py"), "check external skill integrations"),
     CommandSpec(("python3", "scripts/operations/obsidian/check_obsidian_panel.py"), "check Codex Panel install"),
+    CommandSpec(
+        ("python3", "scripts/operations/obsidian/obsidian_research_plugins.py", "check"),
+        "check Obsidian research plugins",
+    ),
     CommandSpec(("python3", "scripts/operations/obsidian/check_obsidian_artifacts.py"), "check Obsidian artifacts"),
     CommandSpec(("python3", "scripts/research-writing/check_citations.py"), "check manuscript citations"),
     CommandSpec(("python3", "scripts/research-writing/check_placeholders.py", "."), "check unresolved placeholders"),
@@ -179,6 +183,12 @@ VENDOR_UPDATE_HEALTH_CHECKS = (
 )
 
 CODEX_PANEL_PLUGIN_ID = "codex-panel"
+ZOTERO_INTEGRATION_PLUGIN_ID = "obsidian-zotero-desktop-connector"
+PANDOC_REFERENCE_LIST_PLUGIN_ID = "obsidian-pandoc-reference-list"
+OBSIDIAN_RESEARCH_PLUGIN_IDS = (
+    ZOTERO_INTEGRATION_PLUGIN_ID,
+    PANDOC_REFERENCE_LIST_PLUGIN_ID,
+)
 LEGACY_OBSIDIAN_PLUGIN_IDS = ("obsidian-" + "codex",)
 OBSIDIAN_DIR = Path(".obsidian")
 OBSIDIAN_PLUGINS_DIR = OBSIDIAN_DIR / "plugins"

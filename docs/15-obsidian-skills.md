@@ -11,6 +11,7 @@ git clone --recurse-submodules <repo-url>
 cd <repo-folder>
 bash setup.sh
 make check-obsidian-panel
+make check-obsidian-research-plugins
 make audit
 ```
 

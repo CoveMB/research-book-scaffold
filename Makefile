@@ -1,6 +1,6 @@
 PRE_COMMIT ?= pre-commit
 
-.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-artifacts install-obsidian-panel install-hooks precommit-run audit release-audit ci
+.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run audit release-audit ci
 
 help:
 	@echo "Targets:"
@@ -24,8 +24,10 @@ help:
 	@echo "  install-subagent-orchestrator Refresh guarded subagent wrappers and marketplace"
 	@echo "  update-skills-vendors  Fast-forward skill vendors and refresh integrations"
 	@echo "  check-obsidian-panel   Check Codex Panel install in the project root vault"
+	@echo "  check-obsidian-research-plugins Check Zotero/Pandoc Obsidian plugin installs"
 	@echo "  check-obsidian-artifacts Check .base and .canvas Obsidian artifacts"
 	@echo "  install-obsidian-panel Install Codex Panel in the project root vault"
+	@echo "  install-obsidian-research-plugins Install Zotero/Pandoc Obsidian plugins"
 	@echo "  install-hooks          Install local pre-commit hooks"
 	@echo "  precommit-run          Run pre-commit hooks across the repository"
 	@echo "  audit                  Run repository checks"
@@ -93,11 +95,17 @@ update-skills-vendors:
 check-obsidian-panel:
 	python3 scripts/operations/obsidian/check_obsidian_panel.py
 
+check-obsidian-research-plugins:
+	python3 scripts/operations/obsidian/obsidian_research_plugins.py check
+
 check-obsidian-artifacts:
 	python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 
 install-obsidian-panel:
 	bash scripts/operations/obsidian/install_obsidian_panel.sh
+
+install-obsidian-research-plugins:
+	bash scripts/operations/obsidian/install_obsidian_research_plugins.sh
 
 install-hooks:
 	$(PRE_COMMIT) install --hook-type pre-commit

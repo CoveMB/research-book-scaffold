@@ -33,6 +33,7 @@ Optional until the matching workflow is tested:
 
 - Obsidian for the recommended project-root vault workflow
 - Codex Panel, installed by default setup unless `--skip-obsidian-panel` is used
+- Zotero Integration and Pandoc Reference List, installed by default setup unless `--skip-obsidian-research-plugins` is used
 - Node and npm, used by setup only if Codex CLI needs installation through npm
 - Quarto, Pandoc, and a TeX engine such as `lualatex` for manuscript rendering
 - Zotero and Better BibTeX for citation-library verification
@@ -118,7 +119,8 @@ Expected result:
 - Dry runs exit 0.
 - No files, packages, repositories, plugins, or vendor pointers are changed.
 - Recommended checks include `bash scripts/operations/health/doctor.sh`, external skill check, Obsidian check, Obsidian artifact check, citation check, and placeholder check.
-- When `--skip-obsidian-panel` is used, setup reports Codex Panel setup as skipped and does not require the Obsidian check until Codex Panel coverage is in scope.
+- When `--skip-obsidian-panel` is used, setup reports Codex Panel setup as skipped and does not require the Codex Panel check until that coverage is in scope.
+- When `--skip-obsidian-research-plugins` is used, setup reports Zotero/Pandoc Obsidian plugin setup as skipped and does not require the research plugin check until that coverage is in scope.
 - When `--register-obsidian-vault` is used with `--dry-run`, setup reports that it would update Obsidian's app-level vault registry without writing user app state.
 - External skills are initialized and local wrappers are refreshed unless `--skip-external-skills` is passed.
 
@@ -127,6 +129,7 @@ Run setup in the disposable clone:
 ```sh
 bash setup.sh
 python3 scripts/operations/obsidian/check_obsidian_panel.py
+python3 scripts/operations/obsidian/obsidian_research_plugins.py check
 python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 ```
 
@@ -144,6 +147,7 @@ Expected result:
 - The project root is treated as the Obsidian vault root.
 - `.obsidian/plugins/codex-panel/` is installed or an existing plugin folder is reported as skipped unless `--force` was intentionally used.
 - Setup writes `.obsidian/community-plugins.json` so `codex-panel` is listed as enabled.
+- Setup writes `.obsidian/community-plugins.json` so `obsidian-zotero-desktop-connector` and `obsidian-pandoc-reference-list` are listed as enabled.
 - Setup writes `.obsidian/plugins/codex-panel/data.json` with an absolute executable `codexPath` when one is available.
 - With `--register-obsidian-vault`, setup preserves existing Obsidian vault entries and adds the project root to Obsidian's app-level vault registry if it is not already present.
 - Without `--register-obsidian-vault`, a first-time Obsidian GUI check may need the manual `Open folder as vault` flow before direct Obsidian URLs work.
@@ -246,7 +250,7 @@ Expected result:
 
 Confirm that every required or recommended app can open and be used against the scaffolded project. Command-line checks alone are not enough for GUI QA.
 
-Codex Panel is installed by default setup unless `--skip-obsidian-panel` is used. If the flag was used, skip the Obsidian and Codex Panel checks below and record that Codex Panel coverage is not claimed for the run.
+Codex Panel is installed by default setup unless `--skip-obsidian-panel` is used. Zotero Integration and Pandoc Reference List are installed by default setup unless `--skip-obsidian-research-plugins` is used. If a skip flag was used, skip only the matching checks below and record that the skipped coverage is not claimed for the run.
 
 Obsidian opens the scaffold project root as a vault:
 
@@ -293,6 +297,24 @@ Expected result:
 - File writes and command execution remain approval-gated.
 - `git status --short` shows no unexpected source changes after the smoke prompt.
 
+Obsidian research plugins are installed and enabled:
+
+1. Open Settings -> Community plugins.
+2. Confirm Zotero Integration and Pandoc Reference List are installed and enabled.
+3. Run `make check-obsidian-research-plugins` from the disposable QA clone.
+4. Open a manuscript or source note with a known citekey when the seed fixture or verified bibliography is available.
+5. Configure Pandoc Reference List with `bibliography/references.bib`.
+6. Run the command palette action `Pandoc Reference List: Show reference list`.
+
+Expected result:
+
+- `.obsidian/community-plugins.json` lists `obsidian-zotero-desktop-connector` and `obsidian-pandoc-reference-list`.
+- The plugin folders contain `manifest.json`, `main.js`, and `styles.css`.
+- The manifests use the expected plugin IDs.
+- Pandoc Reference List can read `bibliography/references.bib` when Pandoc is available.
+- Missing Pandoc is recorded as a live-preview limitation, not as a failed install.
+- No plugin settings containing local Zotero database paths, API keys, or PDF paths are committed.
+
 Codex CLI runs from the scaffold project root:
 
 ```sh
@@ -319,7 +341,10 @@ Zotero and Better BibTeX can be used with `bibliography/references.bib`:
 8. Export or refresh BibTeX into `bibliography/references.bib` only from verified library records.
 9. If no verified library records are available in the QA environment, record Better BibTeX availability and skip bibliography refresh with release impact instead of creating or exporting unverified records.
 10. Inspect `git diff -- bibliography/references.bib`.
-11. Run `python3 scripts/research-writing/check_citations.py --include-notes --require-citations`.
+11. In Obsidian, use Zotero Integration to insert a Pandoc-style citation for the verified record into a disposable note or seeded manuscript fixture.
+12. Confirm the inserted form is `[@citekey]`, `[-@citekey]`, or `[@first; @second]`.
+13. Use Pandoc Reference List to preview the inserted citekey.
+14. Run `python3 scripts/research-writing/check_citations.py --include-notes --require-citations`.
 
 Expected result:
 
@@ -329,6 +354,8 @@ Expected result:
 - Export QA is not skipped in normal citation-library QA; it is skipped only when no verified Zotero record is available and export coverage is explicitly not claimed.
 - API-based Zotero checks are claimed only after `end-2-end-tests/docs/qa-environment-requirements.md` passes.
 - `git diff -- bibliography/references.bib` shows only expected verified Zotero or Better BibTeX changes.
+- Zotero Integration inserts a Pandoc-style citekey that exists in `bibliography/references.bib`.
+- Pandoc Reference List displays the reference for the inserted citekey when Pandoc is available.
 - A skipped bibliography refresh means only Zotero/Better BibTeX availability was checked, not end-to-end library export.
 - No generated or unverified bibliographic metadata is accepted as evidence.
 
@@ -377,8 +404,10 @@ Expected result:
 | `make install-subagent-orchestrator` | Refreshes only the optional guarded subagent wrappers and marketplace path | Keeps plugin exposure optional and does not activate global hooks, global config, or global agents |
 | `make update-skills-vendors` | Fast-forwards vendored skill repositories and refreshes integrations | Use only when the release includes vendor updates |
 | `make check-obsidian-panel` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
+| `make check-obsidian-research-plugins` | Verifies Zotero Integration and Pandoc Reference List plugin installs | Exits 0 after plugin files, manifests, and enablement are present |
 | `make check-obsidian-artifacts` | Validates project-local `.base` and `.canvas` artifacts | Exits 0 |
 | `make install-obsidian-panel` | Installs Codex Panel plugin | Use only in disposable QA or intentional local setup |
+| `make install-obsidian-research-plugins` | Installs Zotero Integration and Pandoc Reference List plugins | Use only in disposable QA or intentional local setup |
 | `make install-hooks` | Installs the configured local pre-commit hook | Use after `pre-commit` is installed; hook installation does not run release-only checks |
 | `make precommit-run` | Runs default pre-commit hooks across all files | Exits 0 after file hygiene, citation, placeholder, link, and Python compile checks pass |
 | `make audit` | Runs normal scaffold health checks | Exits 0 |
@@ -493,6 +522,7 @@ Entry points and support modules:
 - `scripts/research-writing/check_manuscript_readiness.py`
 - `scripts/operations/obsidian/check_obsidian_artifacts.py`
 - `scripts/operations/obsidian/check_obsidian_panel.py`
+- `scripts/operations/obsidian/obsidian_research_plugins.py`
 - `scripts/research-writing/check_placeholders.py`
 - `scripts/operations/health/doctor.py`
 - `scripts/operations/health/doctor.sh`
@@ -501,6 +531,7 @@ Entry points and support modules:
 - `scripts/lib/import_paths.py`
 - `scripts/operations/vendors/install_external_skills.py`
 - `scripts/operations/obsidian/install_obsidian_panel.sh`
+- `scripts/operations/obsidian/install_obsidian_research_plugins.sh`
 - `scripts/research-writing/new_from_template.py`
 - `scripts/operations/obsidian/obsidian_agent.py`
 - `scripts/lib/project_config.py`
@@ -533,6 +564,8 @@ bash scripts/operations/health/doctor.sh
 python3 scripts/operations/health/doctor.py
 python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 python3 scripts/operations/obsidian/check_obsidian_panel.py
+python3 scripts/operations/obsidian/obsidian_research_plugins.py check
+python3 scripts/operations/obsidian/obsidian_research_plugins.py install --dry-run
 python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes
 python3 scripts/operations/vendors/check_external_skills.py
 python3 scripts/research-writing/check_placeholders.py .
@@ -657,7 +690,7 @@ Expected result:
 - The plugin folder `.obsidian/plugins/codex-panel/` contains `manifest.json`, `main.js`, and `styles.css`.
 - The manifest ID is `codex-panel`.
 - `.obsidian/community-plugins.json` is created or updated so `codex-panel` is enabled.
-- Only `codex-panel` is listed for this Obsidian agent integration.
+- Zotero Integration and Pandoc Reference List may also be listed because they are installed by default setup for the citation workflow.
 - `.obsidian/plugins/codex-panel/data.json` contains an absolute executable `codexPath`.
 - `codex app-server --help` exits 0 through that configured path.
 - Invalid `community-plugins.json` content fails the install and is not overwritten.
@@ -677,6 +710,36 @@ Expected result:
 - The plugin performs bounded read-only work.
 - Any file-write or command action still requires approval.
 - `git status --short` shows no unexpected source changes.
+
+## Obsidian Research Plugin QA
+
+Run dry and direct checks:
+
+```sh
+bash scripts/operations/obsidian/install_obsidian_research_plugins.sh --dry-run
+python3 scripts/operations/obsidian/obsidian_research_plugins.py install --dry-run
+python3 scripts/operations/obsidian/obsidian_research_plugins.py check
+```
+
+When testing a real plugin install, use the published release assets:
+
+```sh
+python3 scripts/operations/setup/setup_environment.py --force
+python3 scripts/operations/obsidian/obsidian_research_plugins.py check
+```
+
+Expected result:
+
+- Dry run does not modify files.
+- `.obsidian/plugins/obsidian-zotero-desktop-connector/` contains `manifest.json`, `main.js`, and `styles.css`.
+- `.obsidian/plugins/obsidian-pandoc-reference-list/` contains `manifest.json`, `main.js`, and `styles.css`.
+- The manifests use `obsidian-zotero-desktop-connector` and `obsidian-pandoc-reference-list`.
+- `.obsidian/community-plugins.json` enables both plugin IDs.
+- Missing release assets fail the install.
+- Existing malformed research plugin folders fail without `--force` and are not enabled as successful installs.
+- `--force` replaces an existing malformed research plugin folder with validated release assets.
+- Existing Obsidian workspace files are not overwritten.
+- Pandoc absence is reported as a warning because it blocks live reference rendering, not plugin installation.
 
 ## External skills and plugin QA
 

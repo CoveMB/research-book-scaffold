@@ -51,10 +51,11 @@ git clone --recurse-submodules <repo-url>
 cd <repo-folder>
 bash setup.sh
 make check-obsidian-panel
+make check-obsidian-research-plugins
 make audit
 ```
 
-`bash setup.sh` initializes vendored submodules when needed, refreshes all immediate-use wrappers, installs Codex Panel unless skipped, and leaves marketplace entries available but optional. If a clone omitted submodules, run `git submodule update --init --recursive` or rerun `bash setup.sh`.
+`bash setup.sh` initializes vendored submodules when needed, refreshes all immediate-use wrappers, installs Codex Panel and the recommended Zotero/Pandoc Obsidian plugins unless skipped, and leaves marketplace entries available but optional. If a clone omitted submodules, run `git submodule update --init --recursive` or rerun `bash setup.sh`.
 
 ## Updating skill vendors
 
