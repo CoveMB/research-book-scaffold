@@ -37,10 +37,6 @@ config/mcp.json
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/cache/
-.obsidian/plugins/obsidian-codex/
-.obsidian/plugins/codex-panel/
-.obsidian/plugins/obsidian-zotero-desktop-connector/
-.obsidian/plugins/obsidian-pandoc-reference-list/
 
 # Nested vendor repository internals
 vendor/*/.git/

@@ -106,7 +106,8 @@ Expected result:
 - Zotero Integration settings include a Pandoc citekey format
 - Zotero Integration autocomplete inserts `[@citekey]` citation syntax
 - Pandoc Reference List settings use `./bibliography/references.bib` unless a local override already existed
-- Pandoc Reference List settings use `bibliography/csl/ieee.csl` unless a local override already existed
+- Pandoc Reference List settings use `./bibliography/csl/ieee.csl` unless a local override already existed
+- Pandoc Reference List citekey completion is enabled unless a local override already existed
 
 Changed citation-plugin settings are reported as warnings, not check failures. The check target should fail for broken or missing plugin installs, not for deliberate local citation-style changes.
 
@@ -171,6 +172,6 @@ Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, `docs
 
 Use Zotero Integration to search Zotero and insert Pandoc-style citations into notes or manuscript files. Setup adds a `Pandoc citekey` format and sets citation autocomplete to insert `[@citekey]` for this purpose. Keep the inserted form as `[@citekey]`, `[-@citekey]`, or `[@first; @second]` so Quarto and the citation checker can read it.
 
-Use Pandoc Reference List while drafting to preview the references for citekeys in the active note. Setup points it at `./bibliography/references.bib` and the tracked IEEE CSL file at `bibliography/csl/ieee.csl`. Keep reviewed CSL files in `bibliography/csl/`, not `.pandoc/`. If the project later changes citation style, update the Pandoc Reference List custom CSL path and `manuscript/_quarto.yml` together.
+Use Pandoc Reference List while drafting to preview the references for citekeys in the active note. Setup points it at `./bibliography/references.bib`, enables citekey completion from that file, and uses the tracked IEEE CSL file at `./bibliography/csl/ieee.csl`. To insert from the bibliography file, open a Markdown note, type `@` plus at least two characters, and choose a suggestion. Use `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux to insert `[@citekey]`; plain `Enter` inserts `@citekey`. Keep reviewed CSL files in `bibliography/csl/`, not `.pandoc/`. If the project later changes citation style, update the Pandoc Reference List custom CSL path and `manuscript/_quarto.yml` together.
 
 Imported annotations and Zotero notes belong in `notes/01-source-notes/` after review. Keep direct quotations, paraphrases, interpretation, and missing locators separate. Run `make check-citations` before treating inserted citekeys as manuscript-ready.

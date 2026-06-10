@@ -75,7 +75,7 @@ RESEARCH_PLUGIN_SPECS = (
 
 PANDOC_CITE_FORMAT = {"name": "Pandoc citekey", "format": "pandoc"}
 PANDOC_CITE_SUGGEST_TEMPLATE = "[@{{citekey}}]"
-IEEE_CSL_STYLE_PATH = "bibliography/csl/ieee.csl"
+IEEE_CSL_STYLE_PATH = "./bibliography/csl/ieee.csl"
 
 RESEARCH_PLUGIN_DEFAULT_SETTINGS: dict[str, dict[str, object]] = {
     ZOTERO_INTEGRATION_PLUGIN_ID: {
@@ -98,6 +98,7 @@ RESEARCH_PLUGIN_DEFAULT_SETTINGS: dict[str, dict[str, object]] = {
         "renderCitations": True,
         "renderCitationsReadingMode": True,
         "renderLinkCitations": True,
+        "enableCiteKeyCompletion": True,
         "pathToBibliography": "./bibliography/references.bib",
         "cslStylePath": IEEE_CSL_STYLE_PATH,
         "pullFromZotero": False,
@@ -443,6 +444,11 @@ def check_pandoc_reference_list_settings(settings: dict[str, object], failures: 
         print_pass("Pandoc Reference List IEEE CSL path configured")
     else:
         print_warn("Pandoc Reference List IEEE CSL path is not configured")
+
+    if settings.get("enableCiteKeyCompletion") is True:
+        print_pass("Pandoc Reference List citekey completion enabled")
+    else:
+        print_warn("Pandoc Reference List citekey completion is not enabled")
 
 
 def check_research_plugin_settings(plugin_dir: Path, plugin_id: str, failures: list[str]) -> None:

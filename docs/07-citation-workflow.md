@@ -43,12 +43,14 @@ Use this workflow after Better BibTeX auto-export is configured:
 2. Confirm Zotero is open and Better BibTeX has exported the project collection to `bibliography/references.bib`.
 3. In Obsidian, confirm Zotero Integration and Pandoc Reference List are enabled in Community plugins.
 4. Configure Zotero Integration so inserted citations use Pandoc citekey syntax such as `[@citekey]`.
-5. Confirm Pandoc Reference List uses `bibliography/references.bib` and `bibliography/csl/ieee.csl`. If the project later changes citation style, update the Obsidian CSL path and `manuscript/_quarto.yml` together.
+5. Confirm Pandoc Reference List uses `./bibliography/references.bib` and `./bibliography/csl/ieee.csl`, with citekey completion enabled. If the project later changes citation style, update the Obsidian CSL path and `manuscript/_quarto.yml` together.
 6. Insert citations from Zotero Integration while drafting notes or manuscript files.
 7. Open the Pandoc Reference List sidebar to check that each visible citekey resolves to a formatted reference.
 8. Run `make check-citations` before relying on the citation in a manuscript draft.
 
 If Zotero Integration inserts a formatted prose citation instead of a Pandoc citekey, do not use that text in `manuscript/`. Reconfigure the plugin or replace the citation with the checked citekey form.
+
+To insert a citekey from `bibliography/references.bib` instead of searching Zotero, use Pandoc Reference List citekey completion. Open a Markdown note, type `@` followed by at least two characters from the citekey or title, then choose from the suggestion list. Use `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux to insert the bracketed Pandoc form `[@citekey]`. Pressing `Enter` inserts the bare form `@citekey`.
 
 Imported Zotero notes, PDF annotations, and highlights are source material, not final evidence by themselves. Move useful material into `notes/01-source-notes/` with the source-note template, keep quotations distinct from paraphrase, and add page numbers or locators when a claim depends on a specific passage.
 

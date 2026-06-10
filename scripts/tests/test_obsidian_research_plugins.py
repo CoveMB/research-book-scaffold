@@ -90,8 +90,9 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
                 ).read_text(encoding="utf-8")
             )
             self.assertEqual(reference_list_settings["pathToBibliography"], "./bibliography/references.bib")
-            self.assertEqual(reference_list_settings["cslStylePath"], "bibliography/csl/ieee.csl")
+            self.assertEqual(reference_list_settings["cslStylePath"], obsidian_research_plugins.IEEE_CSL_STYLE_PATH)
             self.assertEqual(reference_list_settings["pathToPandoc"], "")
+            self.assertTrue(reference_list_settings["enableCiteKeyCompletion"])
             self.assertFalse(reference_list_settings["pullFromZotero"])
             self.assertEqual(reference_list_settings["zoteroGroups"], [])
 
@@ -111,6 +112,7 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             custom_reference_settings = {
                 "pathToBibliography": "./bibliography/custom.bib",
                 "pathToPandoc": "/usr/local/bin/pandoc",
+                "enableCiteKeyCompletion": False,
             }
             (
                 plugins_dir
@@ -130,8 +132,9 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
                 ).read_text(encoding="utf-8")
             )
             self.assertEqual(reference_list_settings["pathToBibliography"], "./bibliography/custom.bib")
-            self.assertEqual(reference_list_settings["cslStylePath"], "bibliography/csl/ieee.csl")
+            self.assertEqual(reference_list_settings["cslStylePath"], obsidian_research_plugins.IEEE_CSL_STYLE_PATH)
             self.assertEqual(reference_list_settings["pathToPandoc"], "/usr/local/bin/pandoc")
+            self.assertFalse(reference_list_settings["enableCiteKeyCompletion"])
             self.assertFalse(reference_list_settings["pullFromZotero"])
 
     def test_existing_cite_suggest_template_is_preserved(self) -> None:
@@ -346,7 +349,8 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 json.dumps(
                     {
                         "pathToBibliography": "./bibliography/references.bib",
-                        "cslStylePath": "bibliography/csl/ieee.csl",
+                        "cslStylePath": obsidian_research_plugins.IEEE_CSL_STYLE_PATH,
+                        "enableCiteKeyCompletion": True,
                     }
                 ),
                 encoding="utf-8",
@@ -363,6 +367,7 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
             self.assertIn("PASS Zotero Integration autocomplete inserts Pandoc citation syntax", stdout.getvalue())
             self.assertIn("PASS Pandoc Reference List bibliography path configured", stdout.getvalue())
             self.assertIn("PASS Pandoc Reference List IEEE CSL path configured", stdout.getvalue())
+            self.assertIn("PASS Pandoc Reference List citekey completion enabled", stdout.getvalue())
 
     def test_check_research_plugins_warns_when_user_changes_recommended_settings(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -398,7 +403,7 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 / "obsidian-pandoc-reference-list"
                 / "data.json"
             ).write_text(
-                json.dumps({"pathToBibliography": "./bibliography/custom.bib"}),
+                json.dumps({"pathToBibliography": "./bibliography/custom.bib", "enableCiteKeyCompletion": False}),
                 encoding="utf-8",
             )
 
@@ -409,6 +414,7 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
             self.assertEqual(exit_code, 0, stdout.getvalue())
             self.assertIn("WARN Zotero Integration autocomplete is not Pandoc citation syntax", stdout.getvalue())
             self.assertIn("WARN Pandoc Reference List IEEE CSL path is not configured", stdout.getvalue())
+            self.assertIn("WARN Pandoc Reference List citekey completion is not enabled", stdout.getvalue())
 
     def test_check_research_plugins_fails_when_settings_json_is_invalid(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -77,8 +77,9 @@ The setup script writes project-local files, but a few GUI and tool settings sti
 6. Configure the Obsidian citation plugins.
    - Keep Zotero open while using Zotero Integration.
    - Setup seeds Zotero Integration with a `Pandoc citekey` format and autocomplete template for citations such as `[@citekey]`.
-   - Setup seeds Pandoc Reference List with `./bibliography/references.bib`.
-   - Setup also points Pandoc Reference List at `bibliography/csl/ieee.csl`, the same IEEE CSL file used by the default Quarto manuscript config.
+   - Setup seeds Pandoc Reference List with `./bibliography/references.bib` and enables citekey completion from that file.
+   - Setup also points Pandoc Reference List at `./bibliography/csl/ieee.csl`, the same IEEE CSL file used by the default Quarto manuscript config.
+   - To insert from `references.bib`, open a Markdown note, type at least two characters after `@`, such as `@po`, then use the suggestion list. On macOS, `Cmd+Enter` inserts the bracketed Pandoc form `[@citekey]`; on Windows or Linux, use `Ctrl+Enter`.
    - Check those plugin settings in Obsidian before serious drafting, especially after manual plugin changes.
    - If the project later changes citation style, update both `manuscript/_quarto.yml` and the Pandoc Reference List custom CSL path.
    - Treat plugin output as a convenience layer. Zotero or `bibliography/references.bib` remains the citation source of truth.
@@ -194,7 +195,7 @@ Available wrappers include local scaffold skills, `ars-*` Academic Research Skil
 ## Default local agent integration
 
 - Codex Panel connects this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/`, installs the plugin in the repository root, enables `codex-panel` in `.obsidian/community-plugins.json`, and writes an absolute Codex executable path in the plugin settings when one is available. For first-time GUI QA, pass `--register-obsidian-vault` to also register the project root in Obsidian's app-level vault registry so `obsidian://open?path=...` can find it. Pass `--skip-obsidian-panel` to leave Obsidian/Codex Panel setup for later, or pass `--obsidian-vault PATH` only for a different vault.
-- Zotero Integration and Pandoc Reference List are installed by default as Obsidian research plugins. Setup seeds Zotero Integration with a Pandoc citekey format, sets citation autocomplete to insert `[@citekey]`, and points Pandoc Reference List at `./bibliography/references.bib` plus the tracked IEEE CSL file at `bibliography/csl/ieee.csl`. Zotero Integration helps insert Pandoc-style citekeys and import Zotero notes or annotations. Pandoc Reference List previews references for citekeys in the current note from `bibliography/references.bib`. Better BibTeX remains a Zotero-side prerequisite and keeps `bibliography/references.bib` current.
+- Zotero Integration and Pandoc Reference List are installed by default as Obsidian research plugins. Setup seeds Zotero Integration with a Pandoc citekey format, sets citation autocomplete to insert `[@citekey]`, and points Pandoc Reference List at `./bibliography/references.bib` plus the tracked IEEE CSL file at `./bibliography/csl/ieee.csl`. Setup also enables Pandoc Reference List citekey completion, so typing `@` plus at least two characters in a Markdown note can suggest citekeys from `bibliography/references.bib`; `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux inserts `[@citekey]`. Zotero Integration helps insert Pandoc-style citekeys and import Zotero notes or annotations from Zotero. Pandoc Reference List previews references for citekeys in the current note from `bibliography/references.bib`. Better BibTeX remains a Zotero-side prerequisite and keeps `bibliography/references.bib` current.
 
 ## Optional external integrations
 
