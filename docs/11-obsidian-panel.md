@@ -4,7 +4,7 @@ Codex Panel is the recommended Obsidian plugin that connects a vault to local Co
 
 Codex Panel is separate from Obsidian Skills. Obsidian Skills are vendored reference skills with local wrappers for Obsidian syntax and vault mechanics; see `docs/15-obsidian-skills.md`.
 
-Default setup also installs Zotero Integration and Pandoc Reference List unless `--skip-obsidian-research-plugins` is passed. Those plugins support the citation workflow in `docs/07-citation-workflow.md`; they do not replace Zotero, Better BibTeX, or repository citation checks.
+Default setup also installs Zotero Integration, Pandoc Reference List, and qmd as md unless `--skip-obsidian-research-plugins` is passed. Those plugins support citation work and Quarto manuscript editing in Obsidian; they do not replace Zotero, Better BibTeX, Quarto renders, or repository checks.
 
 ## Access and value
 
@@ -18,6 +18,7 @@ Open the repository root as the Obsidian vault. Launch Codex Panel with the vaul
 
 - Codex CLI installed and logged in.
 - Obsidian installed.
+- Obsidian Desktop 1.8.0 or newer for qmd as md. The plugin is desktop-only and will not load on Obsidian mobile.
 - This project root, unless a different vault path is passed.
 - Git or another backup method for important notes.
 
@@ -55,10 +56,11 @@ This creates `.obsidian/` in the project root and installs:
 - Codex Panel at `.obsidian/plugins/codex-panel/`
 - Zotero Integration at `.obsidian/plugins/obsidian-zotero-desktop-connector/`
 - Pandoc Reference List at `.obsidian/plugins/obsidian-pandoc-reference-list/`
+- qmd as md at `.obsidian/plugins/qmd-as-md-obsidian/`
 
-Setup also adds all three plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json` when it finds an absolute Codex executable path, seeds safe citation-plugin settings, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
+Setup also adds all four plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json` when it finds an absolute Codex executable path, seeds safe research-plugin settings, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
 
-The downloaded plugin directories under `.obsidian/plugins/` are not ignored by default. That lets a fork persist reviewed plugin configuration when it is useful. Review diffs before committing because plugin settings may contain absolute executable paths, Zotero library cache state, or local workflow choices. Setup still writes safe defaults after the plugin payload is valid. It preserves existing plugin settings and fills only missing defaults, so rerunning setup should not overwrite a local Pandoc path, bibliography override, or Zotero group choice.
+The downloaded plugin directories under `.obsidian/plugins/` are not ignored by default. That lets a fork persist reviewed plugin configuration when it is useful. Review diffs before committing because plugin settings may contain absolute executable paths, Zotero library cache state, or local workflow choices. Setup still writes safe defaults after the plugin payload is valid. It preserves existing plugin settings and fills only missing defaults, so rerunning setup should not overwrite a local Pandoc path, Quarto path, bibliography override, or Zotero group choice.
 
 Keep `.obsidian/community-plugins.json` tracked so a fork can commit reviewed vault-level plugin defaults. Keep `.pandoc/` ignored because Pandoc Reference List can cache Zotero bibliography data, CSL files, and locale files there.
 
@@ -76,7 +78,7 @@ That CSS snippet only controls the File Explorer. `.obsidian/app.json` also uses
 
 To hide vendor documentation again, add `vendor/` to `userIgnoreFilters` in `.obsidian/app.json` and add the matching `vendor` folder selector back to `.obsidian/snippets/hide-repo-infrastructure.css`. Obsidian's ignore filters are broad, so keeping vendor docs visible may also expose some non-documentation vendor files in search.
 
-If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. The research plugin installer accepts existing Zotero Integration and Pandoc Reference List folders only after checking their required files and manifest IDs. When a plugin folder is broken or has a manifest mismatch, rerun setup with `--force`, then run the matching check.
+If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. The research plugin installer accepts existing Zotero Integration, Pandoc Reference List, and qmd as md folders only after checking their required files and manifest IDs. When a plugin folder is broken or has a manifest mismatch, rerun setup with `--force`, then run the matching check.
 
 By default, setup does not modify Obsidian's app-level vault registry. If Obsidian has never opened this project root as a vault, a direct `obsidian://open?path=...` launch can report that the vault is not found even though the vault-local `.obsidian/` files exist.
 
@@ -122,16 +124,21 @@ Expected result:
 - `.obsidian/plugins/codex-panel/data.json` contains an absolute executable `codexPath`
 - `codex --version` exits 0 through that configured path
 - `codex app-server --help` exits 0 through that configured path
-- research plugin files exist under `.obsidian/plugins/obsidian-zotero-desktop-connector/` and `.obsidian/plugins/obsidian-pandoc-reference-list/`
+- research plugin files exist under `.obsidian/plugins/obsidian-zotero-desktop-connector/`, `.obsidian/plugins/obsidian-pandoc-reference-list/`, and `.obsidian/plugins/qmd-as-md-obsidian/`
 - research plugin manifests have the expected IDs
-- `.obsidian/community-plugins.json` lists both research plugin IDs
+- `.obsidian/community-plugins.json` lists all three research plugin IDs
 - Zotero Integration settings include a Pandoc citekey format
 - Zotero Integration autocomplete inserts `[@citekey]` citation syntax
 - Pandoc Reference List settings use `./bibliography/references.bib` unless a local override already existed
 - Pandoc Reference List settings use an absolute path to `bibliography/csl/ieee.csl` unless a local override already existed
 - Pandoc Reference List citekey completion is enabled unless a local override already existed
+- qmd as md has `.qmd` linking enabled
+- qmd as md keeps `_quarto.yml` visible for project configuration edits
+- qmd as md has the Quarto outline enabled
+- qmd as md has PDF auto-open disabled so the repository render wrapper stays the export path
+- `manuscript/` is not hidden from Obsidian search, link suggestions, or the File Explorer CSS snippet
 
-Changed citation-plugin settings are reported as warnings, not check failures. The check target should fail for broken or missing plugin installs, not for deliberate local citation-style changes.
+Changed research-plugin settings are reported as warnings, not check failures. The check target should fail for broken or missing plugin installs, not for deliberate local workflow changes.
 
 If the check fails:
 
@@ -142,6 +149,7 @@ If the check fails:
 - missing research plugin directory: rerun `make install-obsidian-research-plugins`, then rerun `make check-obsidian-research-plugins`
 - invalid existing research plugin folder or manifest mismatch: rerun `python3 scripts/operations/obsidian/obsidian_research_plugins.py install --force`, then rerun `make check-obsidian-research-plugins`
 - missing `pandoc`: the plugin can still be installed, but Pandoc Reference List cannot render the sidebar references until Pandoc is available
+- missing or non-executable qmd as md `quartoPath`: install Quarto, then set qmd as md's Quarto path to `quarto` or an absolute executable path
 
 This check verifies the local plugin install and Codex command. It cannot prove the runtime working directory used by the panel. Use the read-only prompts below inside Codex Panel to verify the vault/repo root context and repo-scoped skill discovery.
 
@@ -196,6 +204,8 @@ Use Zotero Integration to search Zotero and insert Pandoc-style citations into n
 
 Use Pandoc Reference List while drafting to preview the references for citekeys in the active note. Setup points it at `./bibliography/references.bib`, enables citekey completion from that file, and uses an absolute path to the tracked IEEE CSL file at `bibliography/csl/ieee.csl`. To insert from the bibliography file, open a Markdown note, type `@` plus at least two characters, and choose a suggestion. Use `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux to insert `[@citekey]`; plain `Enter` inserts `@citekey`. Keep reviewed CSL files in `bibliography/csl/`, not `.pandoc/`. If the project later changes citation style, update the Pandoc Reference List custom CSL path and `manuscript/_quarto.yml` together.
 
-For manuscript drafting in Obsidian, follow `docs/08-writing-workflow.md`. The plugin preview helps catch unresolved citekeys while writing, but it does not replace `check_citations.py` or a Quarto render.
+Use qmd as md for manuscript drafting when you want Obsidian to open `.qmd` chapters as Markdown text. Setup enables `.qmd` linking, leaves Markdown-file preview disabled, shows YAML files so `_quarto.yml` is reachable, enables the Quarto outline, and disables automatic PDF opening. The plugin's preview and render commands are local conveniences; use `make render-html`, `make render-pdf`, `make render-docx`, and the repository checks for export decisions.
+
+For manuscript drafting in Obsidian, follow `docs/08-writing-workflow.md`. Plugin previews help catch unresolved citekeys and Quarto structure issues while writing, but they do not replace `check_citations.py` or a Quarto render.
 
 Imported annotations and Zotero notes belong in `notes/10-evidence/source-notes/` after review. Keep direct quotations, paraphrases, interpretation, and missing locators separate. Run `make check-citations` before treating inserted citekeys as manuscript-ready.

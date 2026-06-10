@@ -28,25 +28,27 @@ Do not enable Better BibTeX git push from this working copy. It can commit or pu
 
 If Zotero auto-export is not available, export manually from Zotero to `bibliography/references.bib`, then run the citation check.
 
-## Obsidian citation plugins
+## Obsidian research plugins
 
-Setup installs two Obsidian research plugins by default:
+Setup installs three Obsidian research plugins by default:
 
 - Zotero Integration (`obsidian-zotero-desktop-connector`)
 - Pandoc Reference List (`obsidian-pandoc-reference-list`)
+- qmd as md (`qmd-as-md-obsidian`)
 
-These plugins are convenience tools. Zotero or `bibliography/references.bib` remains the source of truth for metadata and citekeys.
+These plugins are convenience tools. Zotero or `bibliography/references.bib` remains the source of truth for metadata and citekeys, and Quarto remains the manuscript renderer.
 
 Use this workflow after Better BibTeX auto-export is configured:
 
 1. Open the repository root as the Obsidian vault.
 2. Confirm Zotero is open and Better BibTeX has exported the project collection to `bibliography/references.bib`.
-3. In Obsidian, confirm Zotero Integration and Pandoc Reference List are enabled in Community plugins.
+3. In Obsidian, confirm Zotero Integration, Pandoc Reference List, and qmd as md are enabled in Community plugins.
 4. Configure Zotero Integration so inserted citations use Pandoc citekey syntax such as `[@citekey]`.
 5. Confirm Pandoc Reference List uses `./bibliography/references.bib`, an absolute `cslStylePath` ending in `bibliography/csl/ieee.csl`, and citekey completion. If the project later changes citation style, update the Obsidian CSL path and `manuscript/_quarto.yml` together.
-6. Insert citations from Zotero Integration while drafting notes or manuscript files.
-7. Open the Pandoc Reference List sidebar to check that each visible citekey resolves to a formatted reference.
-8. Run `make check-citations` before relying on the citation in a manuscript draft.
+6. Confirm qmd as md opens `.qmd` files as Markdown text before drafting directly in `manuscript/`.
+7. Insert citations from Zotero Integration while drafting notes or manuscript files.
+8. Open the Pandoc Reference List sidebar to check that each visible citekey resolves to a formatted reference.
+9. Run `make check-citations` before relying on the citation in a manuscript draft.
 
 If Zotero Integration inserts a formatted prose citation instead of a Pandoc citekey, do not use that text in `manuscript/`. Reconfigure the plugin or replace the citation with the checked citekey form.
 
@@ -54,7 +56,7 @@ To insert a citekey from `bibliography/references.bib` instead of searching Zote
 
 Imported Zotero notes, PDF annotations, and highlights are source material, not final evidence by themselves. Move useful material into `notes/10-evidence/source-notes/` with the source-note template, keep quotations distinct from paraphrase, and add page numbers or locators when a claim depends on a specific passage.
 
-Pandoc Reference List is a preview aid. It can catch unresolved citekeys while writing, but `python3 scripts/research-writing/check_citations.py` is the repository check.
+Pandoc Reference List and qmd as md previews are drafting aids. They can catch unresolved citekeys or Quarto structure issues while writing, but `python3 scripts/research-writing/check_citations.py` and Quarto renders are the repository checks.
 
 ## Citekeys
 

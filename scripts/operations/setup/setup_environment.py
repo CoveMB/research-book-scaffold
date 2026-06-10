@@ -62,6 +62,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--obsidian-release-sha256")
     parser.add_argument("--zotero-integration-release-url")
     parser.add_argument("--pandoc-reference-list-release-url")
+    parser.add_argument("--qmd-as-md-release-url")
     parser.add_argument("--skip-obsidian-research-plugins", action="store_true")
     parser.add_argument(
         "--register-obsidian-vault",
@@ -147,7 +148,9 @@ def run_recommendations(args: argparse.Namespace, report: Report) -> None:
     if args.skip_obsidian_panel:
         report.next_steps.append("Run make install-obsidian-panel when Obsidian/Codex Panel coverage is needed")
     if args.skip_obsidian_research_plugins:
-        report.next_steps.append("Run make install-obsidian-research-plugins when Zotero/Pandoc Obsidian coverage is needed")
+        report.next_steps.append(
+            "Run make install-obsidian-research-plugins when Zotero/Pandoc/QMD Obsidian coverage is needed"
+        )
 
 
 def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespace:

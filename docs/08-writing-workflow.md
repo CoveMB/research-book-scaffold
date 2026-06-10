@@ -12,9 +12,11 @@
 
 Open the repository root as the Obsidian vault so `notes/`, `research/`, and `manuscript/` share one project context. Manuscript source lives in `manuscript/`, which should stay visible in Obsidian for drafting. `bibliography/` can stay hidden because Zotero and Better BibTeX manage `bibliography/references.bib`, and Pandoc Reference List reads it from the configured path. Use `notes/40-writing-bridge/` for chapter briefs and section prep before moving prose into Quarto files.
 
+Use qmd as md when editing `.qmd` chapters directly in Obsidian. Setup enables `.qmd` linking, shows YAML files so `manuscript/_quarto.yml` stays reachable, and enables the Quarto outline. Keep plugin preview and render commands as local drafting conveniences; repository renders still go through `make render-html`, `make render-pdf`, `make render-docx`, or `scripts/research-writing/render.sh`.
+
 Use Zotero Integration to insert Pandoc-style citekeys such as `[@citekey]`, `[-@citekey]`, or `[@first; @second]`. Use Pandoc Reference List to preview the references for citekeys in the active file while drafting. The preview is a convenience check only. Zotero or `bibliography/references.bib` remains the citation source of truth, and Quarto remains the manuscript renderer.
 
-When editing `.qmd` files directly in Obsidian, confirm Obsidian opens them as Markdown text in your local setup. If Pandoc Reference List does not render for a `.qmd` chapter, preview citations in a Markdown section brief under `notes/40-writing-bridge/`, then move the reviewed prose into the manuscript file.
+If qmd as md does not open `.qmd` files as Markdown text, run `make install-obsidian-research-plugins`, reload Obsidian Community plugins, and rerun `make check-obsidian-research-plugins`. If Pandoc Reference List does not render for a `.qmd` chapter, preview citations in a Markdown section brief under `notes/40-writing-bridge/`, then move the reviewed prose into the manuscript file.
 
 After an Obsidian drafting session, run the citation check before relying on the draft:
 

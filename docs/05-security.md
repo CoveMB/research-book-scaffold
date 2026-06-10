@@ -50,8 +50,8 @@
 - Use `--force` only when intentionally replacing the plugin folder.
 - Review plugin source or release contents when practical.
 - Keep command and write approval enabled.
-- Treat Zotero Integration and Pandoc Reference List as local authoring aids. They can insert or preview citekeys, but they do not authorize source metadata, quotations, page numbers, or final claims.
-- Keep Zotero database paths, Zotero API keys, local PDF paths, and plugin settings out of Git unless they are deliberately sanitized project defaults.
+- Treat Zotero Integration, Pandoc Reference List, and qmd as md as local authoring aids. They can insert or preview citekeys and make `.qmd` files easier to edit, but they do not authorize source metadata, quotations, page numbers, render output, or final claims.
+- Keep Zotero database paths, Zotero API keys, local PDF paths, local executable paths, and plugin settings out of Git unless they are deliberately sanitized project defaults.
 - Prefer Better BibTeX export to `bibliography/references.bib` over plugins that mirror a whole Zotero library into the vault or require a zotero.org API key.
 
 ## Third-party skills

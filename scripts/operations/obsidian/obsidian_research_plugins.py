@@ -42,6 +42,7 @@ from project_config import (
     OBSIDIAN_PLUGINS_DIR,
     OBSIDIAN_RESEARCH_PLUGIN_IDS,
     PANDOC_REFERENCE_LIST_PLUGIN_ID,
+    QMD_AS_MD_PLUGIN_ID,
     REQUIRED_OBSIDIAN_PLUGIN_FILES,
     ZOTERO_INTEGRATION_PLUGIN_ID,
     change_to_project_root,
@@ -70,6 +71,12 @@ RESEARCH_PLUGIN_SPECS = (
         "Pandoc Reference List",
         "https://api.github.com/repos/obsidian-community/obsidian-pandoc-reference-list/releases/latest",
         "pandoc_reference_list_release_url",
+    ),
+    ObsidianResearchPluginSpec(
+        QMD_AS_MD_PLUGIN_ID,
+        "qmd as md",
+        "https://api.github.com/repos/danieltomasz/qmd-as-md-obsidian/releases/latest",
+        "qmd_as_md_release_url",
     ),
 )
 
@@ -104,11 +111,37 @@ RESEARCH_PLUGIN_DEFAULT_SETTINGS: dict[str, dict[str, object]] = {
     },
 }
 
+QMD_AS_MD_STATIC_DEFAULT_SETTINGS: dict[str, object] = {
+    "enableQmdLinking": True,
+    "quartoTypst": "",
+    "openPdfInObsidian": False,
+    "previewInObsidian": True,
+    "previewMarkdownFiles": False,
+    "outlineMarkdownFiles": False,
+    "showYamlFiles": True,
+    "showLuaFiles": False,
+    "showOutline": True,
+    "templatesFolder": "",
+}
+
 
 # Pandoc Reference List resolves bibliography paths from the vault root, but it
 # checks cslStylePath directly through Node's filesystem APIs.
 def default_ieee_csl_style_path(vault_path: Path) -> str:
     return str((vault_path / IEEE_CSL_STYLE_PATH).resolve())
+
+
+def default_quarto_path() -> str:
+    return shutil.which("quarto") or "quarto"
+
+
+def default_research_plugin_settings(plugin_id: str, vault_path: Path) -> dict[str, object]:
+    if plugin_id == QMD_AS_MD_PLUGIN_ID:
+        return {
+            "quartoPath": default_quarto_path(),
+            **QMD_AS_MD_STATIC_DEFAULT_SETTINGS,
+        }
+    return RESEARCH_PLUGIN_DEFAULT_SETTINGS.get(plugin_id, {})
 
 
 def is_default_ieee_csl_style_path(style_path: object, vault_path: Path) -> bool:
@@ -126,6 +159,7 @@ def add_install_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--zotero-integration-release-url")
     parser.add_argument("--pandoc-reference-list-release-url")
+    parser.add_argument("--qmd-as-md-release-url")
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -227,7 +261,7 @@ def merged_research_plugin_settings(
     existing_settings: dict[str, object],
     vault_path: Path,
 ) -> dict[str, object]:
-    defaults = RESEARCH_PLUGIN_DEFAULT_SETTINGS.get(plugin_id, {})
+    defaults = default_research_plugin_settings(plugin_id, vault_path)
     settings = dict(existing_settings)
     for key, value in defaults.items():
         if key not in settings:
@@ -476,6 +510,49 @@ def check_pandoc_reference_list_settings(settings: dict[str, object], failures: 
         print_warn("Pandoc Reference List citekey completion is not enabled")
 
 
+def executable_quarto_path(path_text: str) -> str | None:
+    if not path_text.strip():
+        return None
+    candidate_path = Path(path_text).expanduser()
+    if candidate_path.is_absolute():
+        if candidate_path.is_file() and os.access(candidate_path, os.X_OK):
+            return str(candidate_path)
+        return None
+    return shutil.which(path_text)
+
+
+def check_qmd_as_md_settings(settings: dict[str, object], failures: list[str]) -> None:
+    if settings.get("enableQmdLinking") is True:
+        print_pass("qmd as md editing enabled for .qmd files")
+    else:
+        print_warn("qmd as md editing is not enabled for .qmd files")
+
+    if settings.get("showYamlFiles") is True:
+        print_pass("qmd as md YAML files visible for _quarto.yml editing")
+    else:
+        print_warn("qmd as md YAML files are hidden; _quarto.yml editing may be harder")
+
+    if settings.get("showOutline") is True:
+        print_pass("qmd as md Quarto outline enabled")
+    else:
+        print_warn("qmd as md Quarto outline is not enabled")
+
+    if settings.get("openPdfInObsidian") is False:
+        print_pass("qmd as md PDF auto-open disabled for repository render workflow")
+    else:
+        print_warn("qmd as md PDF auto-open is enabled; repository render targets remain authoritative")
+
+    quarto_path = settings.get("quartoPath")
+    if isinstance(quarto_path, str) and quarto_path.strip():
+        available_path = executable_quarto_path(quarto_path)
+        if available_path:
+            print_pass(f"qmd as md Quarto path available: {available_path}")
+        else:
+            print_warn(f"qmd as md Quarto path is not executable: {quarto_path}")
+    else:
+        print_warn("qmd as md Quarto path is not configured")
+
+
 def check_research_plugin_settings(plugin_dir: Path, plugin_id: str, failures: list[str], vault_path: Path) -> None:
     settings_path = plugin_dir / "data.json"
     try:
@@ -491,6 +568,36 @@ def check_research_plugin_settings(plugin_dir: Path, plugin_id: str, failures: l
         check_zotero_integration_settings(settings, failures)
     elif plugin_id == PANDOC_REFERENCE_LIST_PLUGIN_ID:
         check_pandoc_reference_list_settings(settings, failures, vault_path)
+    elif plugin_id == QMD_AS_MD_PLUGIN_ID:
+        check_qmd_as_md_settings(settings, failures)
+
+
+def check_qmd_vault_visibility(vault_path: Path) -> None:
+    app_config_path = vault_path / OBSIDIAN_DIR / "app.json"
+    if app_config_path.exists():
+        try:
+            app_config = read_json_object(app_config_path)
+        except RuntimeError as error:
+            print_warn(f"could not read Obsidian app config for QMD visibility: {error}")
+        else:
+            ignore_filters = app_config.get("userIgnoreFilters")
+            hidden_paths = ignore_filters if isinstance(ignore_filters, list) else []
+            if "manuscript/" in hidden_paths or "manuscript" in hidden_paths:
+                print_warn("manuscript/ is hidden by Obsidian userIgnoreFilters; .qmd files may be hard to reach")
+            else:
+                print_pass("manuscript/ is visible to Obsidian search and link suggestions")
+
+    snippet_path = vault_path / OBSIDIAN_DIR / "snippets" / "hide-repo-infrastructure.css"
+    if snippet_path.exists():
+        try:
+            snippet_text = snippet_path.read_text(encoding="utf-8")
+        except OSError as error:
+            print_warn(f"could not read Obsidian visibility CSS snippet: {error}")
+            return
+        if 'data-path="manuscript"' in snippet_text or "data-path='manuscript'" in snippet_text:
+            print_warn("manuscript/ is hidden by the Obsidian File Explorer CSS snippet")
+        else:
+            print_pass("manuscript/ is visible in the Obsidian File Explorer CSS snippet")
 
 
 def check_pandoc_available() -> None:
@@ -557,6 +664,7 @@ def check_research_plugins(argv: list[str] | None = None) -> int:
             print_fail(f"{plugin_id} not enabled in {community_plugins_path(obsidian_dir)}", failures)
         check_research_plugin_settings(plugin_dir, plugin_id, failures, vault_path)
 
+    check_qmd_vault_visibility(vault_path)
     check_pandoc_available()
     return 1 if failures else 0
 

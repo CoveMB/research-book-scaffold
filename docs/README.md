@@ -17,7 +17,7 @@ docs explain when and why to run those commands.
 - `04-mcp-setup.md` covers narrow MCP access modes.
 - `05-security.md` covers secrets, prompt injection, external skills, and Git safety.
 - `10-troubleshooting.md` covers common setup, citation, Obsidian, and render failures.
-- `11-obsidian-panel.md` covers Codex Panel and Zotero/Pandoc Obsidian plugins.
+- `11-obsidian-panel.md` covers Codex Panel and Zotero/Pandoc/QMD Obsidian plugins.
 - `16-pre-commit-hooks.md` covers commit hooks and release-only checks.
 
 ## Research and writing workflow

@@ -12,7 +12,13 @@ from scripts.tests.helpers import SilentReport, working_directory, write_plugin_
 
 import obsidian_research_plugins
 import setup_environment
-from project_config import OBSIDIAN_RESEARCH_PLUGIN_IDS, REQUIRED_OBSIDIAN_PLUGIN_FILES
+from project_config import (
+    OBSIDIAN_RESEARCH_PLUGIN_IDS,
+    PANDOC_REFERENCE_LIST_PLUGIN_ID,
+    QMD_AS_MD_PLUGIN_ID,
+    REQUIRED_OBSIDIAN_PLUGIN_FILES,
+    ZOTERO_INTEGRATION_PLUGIN_ID,
+)
 
 
 def write_research_plugin_releases(temp_path: Path) -> dict[str, str]:
@@ -28,9 +34,11 @@ def setup_args_with_releases(release_urls: dict[str, str], *extra_args: str) -> 
     return setup_environment.parse_args(
         [
             "--zotero-integration-release-url",
-            release_urls["obsidian-zotero-desktop-connector"],
+            release_urls[ZOTERO_INTEGRATION_PLUGIN_ID],
             "--pandoc-reference-list-release-url",
-            release_urls["obsidian-pandoc-reference-list"],
+            release_urls[PANDOC_REFERENCE_LIST_PLUGIN_ID],
+            "--qmd-as-md-release-url",
+            release_urls[QMD_AS_MD_PLUGIN_ID],
             *extra_args,
         ]
     )
@@ -55,8 +63,9 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
                 enabled_plugins,
                 [
                     "existing-plugin",
-                    "obsidian-zotero-desktop-connector",
-                    "obsidian-pandoc-reference-list",
+                    ZOTERO_INTEGRATION_PLUGIN_ID,
+                    PANDOC_REFERENCE_LIST_PLUGIN_ID,
+                    QMD_AS_MD_PLUGIN_ID,
                 ],
             )
             for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
@@ -73,7 +82,7 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
                     temp_path
                     / ".obsidian"
                     / "plugins"
-                    / "obsidian-zotero-desktop-connector"
+                    / ZOTERO_INTEGRATION_PLUGIN_ID
                     / "data.json"
                 ).read_text(encoding="utf-8")
             )
@@ -85,7 +94,7 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
                     temp_path
                     / ".obsidian"
                     / "plugins"
-                    / "obsidian-pandoc-reference-list"
+                    / PANDOC_REFERENCE_LIST_PLUGIN_ID
                     / "data.json"
                 ).read_text(encoding="utf-8")
             )
@@ -98,6 +107,24 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             self.assertTrue(reference_list_settings["enableCiteKeyCompletion"])
             self.assertFalse(reference_list_settings["pullFromZotero"])
             self.assertEqual(reference_list_settings["zoteroGroups"], [])
+
+            qmd_settings = json.loads(
+                (
+                    temp_path
+                    / ".obsidian"
+                    / "plugins"
+                    / QMD_AS_MD_PLUGIN_ID
+                    / "data.json"
+                ).read_text(encoding="utf-8")
+            )
+            self.assertEqual(qmd_settings["quartoPath"], obsidian_research_plugins.default_quarto_path())
+            self.assertTrue(qmd_settings["enableQmdLinking"])
+            self.assertFalse(qmd_settings["openPdfInObsidian"])
+            self.assertTrue(qmd_settings["previewInObsidian"])
+            self.assertFalse(qmd_settings["previewMarkdownFiles"])
+            self.assertTrue(qmd_settings["showYamlFiles"])
+            self.assertTrue(qmd_settings["showOutline"])
+            self.assertEqual(qmd_settings["templatesFolder"], "")
 
     def test_existing_research_plugin_settings_are_preserved_and_missing_defaults_are_added(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -117,22 +144,26 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
                 "pathToPandoc": "/usr/local/bin/pandoc",
                 "enableCiteKeyCompletion": False,
             }
-            (
-                plugins_dir
-                / "obsidian-pandoc-reference-list"
-                / "data.json"
-            ).write_text(json.dumps(custom_reference_settings), encoding="utf-8")
+            (plugins_dir / PANDOC_REFERENCE_LIST_PLUGIN_ID / "data.json").write_text(
+                json.dumps(custom_reference_settings),
+                encoding="utf-8",
+            )
+            custom_qmd_settings = {
+                "quartoPath": "/custom/quarto",
+                "enableQmdLinking": False,
+                "showYamlFiles": False,
+            }
+            (plugins_dir / QMD_AS_MD_PLUGIN_ID / "data.json").write_text(
+                json.dumps(custom_qmd_settings),
+                encoding="utf-8",
+            )
 
             report = SilentReport()
             with working_directory(temp_path):
                 obsidian_research_plugins.install_research_plugins(setup_environment.parse_args([]), report)
 
             reference_list_settings = json.loads(
-                (
-                    plugins_dir
-                    / "obsidian-pandoc-reference-list"
-                    / "data.json"
-                ).read_text(encoding="utf-8")
+                (plugins_dir / PANDOC_REFERENCE_LIST_PLUGIN_ID / "data.json").read_text(encoding="utf-8")
             )
             self.assertEqual(reference_list_settings["pathToBibliography"], "./bibliography/custom.bib")
             self.assertEqual(
@@ -142,6 +173,15 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             self.assertEqual(reference_list_settings["pathToPandoc"], "/usr/local/bin/pandoc")
             self.assertFalse(reference_list_settings["enableCiteKeyCompletion"])
             self.assertFalse(reference_list_settings["pullFromZotero"])
+            qmd_settings = json.loads(
+                (plugins_dir / QMD_AS_MD_PLUGIN_ID / "data.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(qmd_settings["quartoPath"], "/custom/quarto")
+            self.assertFalse(qmd_settings["enableQmdLinking"])
+            self.assertFalse(qmd_settings["showYamlFiles"])
+            self.assertFalse(qmd_settings["openPdfInObsidian"])
+            self.assertTrue(qmd_settings["previewInObsidian"])
+            self.assertTrue(qmd_settings["showOutline"])
 
     def test_existing_csl_style_path_is_preserved(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -441,7 +481,7 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 (plugin_dir / "styles.css").write_text("", encoding="utf-8")
             (
                 plugins_dir
-                / "obsidian-zotero-desktop-connector"
+                / ZOTERO_INTEGRATION_PLUGIN_ID
                 / "data.json"
             ).write_text(
                 json.dumps(
@@ -454,7 +494,7 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
             )
             (
                 plugins_dir
-                / "obsidian-pandoc-reference-list"
+                / PANDOC_REFERENCE_LIST_PLUGIN_ID
                 / "data.json"
             ).write_text(
                 json.dumps(
@@ -462,6 +502,20 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                         "pathToBibliography": "./bibliography/references.bib",
                         "cslStylePath": obsidian_research_plugins.default_ieee_csl_style_path(temp_path),
                         "enableCiteKeyCompletion": True,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (plugins_dir / QMD_AS_MD_PLUGIN_ID / "data.json").write_text(
+                json.dumps(
+                    {
+                        "quartoPath": obsidian_research_plugins.default_quarto_path(),
+                        "enableQmdLinking": True,
+                        "openPdfInObsidian": False,
+                        "previewInObsidian": True,
+                        "previewMarkdownFiles": False,
+                        "showYamlFiles": True,
+                        "showOutline": True,
                     }
                 ),
                 encoding="utf-8",
@@ -474,11 +528,16 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
             self.assertEqual(exit_code, 0, stdout.getvalue())
             self.assertIn("PASS obsidian-zotero-desktop-connector enabled", stdout.getvalue())
             self.assertIn("PASS obsidian-pandoc-reference-list enabled", stdout.getvalue())
+            self.assertIn("PASS qmd-as-md-obsidian enabled", stdout.getvalue())
             self.assertIn("PASS Zotero Integration settings include a Pandoc citekey format", stdout.getvalue())
             self.assertIn("PASS Zotero Integration autocomplete inserts Pandoc citation syntax", stdout.getvalue())
             self.assertIn("PASS Pandoc Reference List bibliography path configured", stdout.getvalue())
             self.assertIn("PASS Pandoc Reference List IEEE CSL path configured", stdout.getvalue())
             self.assertIn("PASS Pandoc Reference List citekey completion enabled", stdout.getvalue())
+            self.assertIn("PASS qmd as md editing enabled for .qmd files", stdout.getvalue())
+            self.assertIn("PASS qmd as md YAML files visible for _quarto.yml editing", stdout.getvalue())
+            self.assertIn("PASS qmd as md Quarto outline enabled", stdout.getvalue())
+            self.assertIn("PASS qmd as md PDF auto-open disabled for repository render workflow", stdout.getvalue())
 
     def test_check_research_plugins_warns_when_user_changes_recommended_settings(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -498,7 +557,7 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 (plugin_dir / "styles.css").write_text("", encoding="utf-8")
             (
                 plugins_dir
-                / "obsidian-zotero-desktop-connector"
+                / ZOTERO_INTEGRATION_PLUGIN_ID
                 / "data.json"
             ).write_text(
                 json.dumps(
@@ -511,10 +570,22 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
             )
             (
                 plugins_dir
-                / "obsidian-pandoc-reference-list"
+                / PANDOC_REFERENCE_LIST_PLUGIN_ID
                 / "data.json"
             ).write_text(
                 json.dumps({"pathToBibliography": "./bibliography/custom.bib", "enableCiteKeyCompletion": False}),
+                encoding="utf-8",
+            )
+            (plugins_dir / QMD_AS_MD_PLUGIN_ID / "data.json").write_text(
+                json.dumps(
+                    {
+                        "quartoPath": "/missing/quarto",
+                        "enableQmdLinking": False,
+                        "openPdfInObsidian": True,
+                        "showYamlFiles": False,
+                        "showOutline": False,
+                    }
+                ),
                 encoding="utf-8",
             )
 
@@ -526,6 +597,53 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
             self.assertIn("WARN Zotero Integration autocomplete is not Pandoc citation syntax", stdout.getvalue())
             self.assertIn("WARN Pandoc Reference List IEEE CSL path is not configured", stdout.getvalue())
             self.assertIn("WARN Pandoc Reference List citekey completion is not enabled", stdout.getvalue())
+            self.assertIn("WARN qmd as md editing is not enabled for .qmd files", stdout.getvalue())
+            self.assertIn("WARN qmd as md YAML files are hidden; _quarto.yml editing may be harder", stdout.getvalue())
+            self.assertIn("WARN qmd as md Quarto outline is not enabled", stdout.getvalue())
+            self.assertIn("WARN qmd as md PDF auto-open is enabled", stdout.getvalue())
+            self.assertIn("WARN qmd as md Quarto path is not executable: /missing/quarto", stdout.getvalue())
+
+    def test_check_research_plugins_warns_when_manuscript_is_hidden_from_obsidian(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            obsidian_dir = temp_path / ".obsidian"
+            plugins_dir = obsidian_dir / "plugins"
+            snippets_dir = obsidian_dir / "snippets"
+            plugins_dir.mkdir(parents=True)
+            snippets_dir.mkdir()
+            (obsidian_dir / "community-plugins.json").write_text(
+                json.dumps(list(OBSIDIAN_RESEARCH_PLUGIN_IDS)),
+                encoding="utf-8",
+            )
+            (obsidian_dir / "app.json").write_text(
+                json.dumps({"userIgnoreFilters": ["manuscript/"]}),
+                encoding="utf-8",
+            )
+            (snippets_dir / "hide-repo-infrastructure.css").write_text(
+                '.nav-folder:has(> .nav-folder-title[data-path="manuscript"]) { display: none; }',
+                encoding="utf-8",
+            )
+            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
+                plugin_dir = plugins_dir / plugin_id
+                plugin_dir.mkdir()
+                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
+                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
+                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
+                (plugin_dir / "data.json").write_text("{}", encoding="utf-8")
+
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                exit_code = obsidian_research_plugins.check_research_plugins([str(temp_path)])
+
+            self.assertEqual(exit_code, 0, stdout.getvalue())
+            self.assertIn(
+                "WARN manuscript/ is hidden by Obsidian userIgnoreFilters; .qmd files may be hard to reach",
+                stdout.getvalue(),
+            )
+            self.assertIn(
+                "WARN manuscript/ is hidden by the Obsidian File Explorer CSS snippet",
+                stdout.getvalue(),
+            )
 
     def test_check_research_plugins_fails_when_settings_json_is_invalid(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

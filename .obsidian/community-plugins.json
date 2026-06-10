@@ -1,5 +1,6 @@
 [
   "codex-panel",
   "obsidian-zotero-desktop-connector",
-  "obsidian-pandoc-reference-list"
+  "obsidian-pandoc-reference-list",
+  "qmd-as-md-obsidian"
 ]

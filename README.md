@@ -48,7 +48,7 @@ git submodule update --init --recursive
 
 `bash setup.sh` requires Python 3.11 or newer. It treats the project root as the
 Obsidian vault root, installs Codex Panel unless skipped, installs the
-recommended Zotero/Pandoc Obsidian plugins unless skipped, initializes vendored
+recommended Zotero/Pandoc/QMD Obsidian plugins unless skipped, initializes vendored
 external skills, refreshes repo-scoped wrappers under `.agents/skills`, and
 keeps plugin marketplace entries optional.
 
@@ -75,8 +75,9 @@ The setup script writes project-local files, but a few GUI and tool settings sti
 3. Confirm the Obsidian plugins are visible and enabled.
    - In Obsidian, open `Settings -> Community plugins`.
    - If the plugin list looks out of date, click the refresh icon to reload plugins.
-   - Confirm these installed plugins are enabled: `Codex Panel`, `Zotero Integration`, and `Pandoc Reference List`.
-   - If Zotero Integration or Pandoc Reference List is missing, run `make install-obsidian-research-plugins`, then `make check-obsidian-research-plugins`.
+   - Confirm these installed plugins are enabled: `Codex Panel`, `Zotero Integration`, `Pandoc Reference List`, and `qmd as md`.
+   - qmd as md requires Obsidian Desktop 1.8.0 or newer. It will not load on Obsidian mobile.
+   - If Zotero Integration, Pandoc Reference List, or qmd as md is missing, run `make install-obsidian-research-plugins`, then `make check-obsidian-research-plugins`.
 
 4. Check Codex Panel inside Obsidian.
    - Run the command palette action `Codex Panel: Open panel`.
@@ -91,15 +92,16 @@ The setup script writes project-local files, but a few GUI and tool settings sti
    - Do not enable Better BibTeX git push from this working copy. Commit bibliography changes through the normal project workflow.
    - Run `python3 scripts/research-writing/check_citations.py --include-notes`.
 
-6. Configure the Obsidian citation plugins.
+6. Configure the Obsidian research plugins.
    - Keep Zotero open while using Zotero Integration.
    - Setup seeds Zotero Integration with a `Pandoc citekey` format and autocomplete template for citations such as `[@citekey]`.
    - Setup seeds Pandoc Reference List with `./bibliography/references.bib` and enables citekey completion from that file.
    - Setup also points Pandoc Reference List at the resolved absolute path for `bibliography/csl/ieee.csl`, the same IEEE CSL file used by the default Quarto manuscript config. The plugin resolves bibliography paths from the vault root, but local CSL paths must be absolute.
+   - Setup seeds qmd as md so Obsidian opens `.qmd` manuscript files as Markdown text, shows YAML files such as `manuscript/_quarto.yml`, enables the Quarto outline, and leaves PDF auto-open off.
    - To insert from `references.bib`, open a Markdown note, type at least two characters after `@`, such as `@po`, then use the suggestion list. On macOS, `Cmd+Enter` inserts the bracketed Pandoc form `[@citekey]`; on Windows or Linux, use `Ctrl+Enter`.
    - Check those plugin settings in Obsidian before serious drafting, especially after manual plugin changes.
    - If the project later changes citation style, update both `manuscript/_quarto.yml` and the Pandoc Reference List custom CSL path.
-   - Treat plugin output as a convenience layer. Zotero or `bibliography/references.bib` remains the citation source of truth.
+   - Treat plugin output as a convenience layer. Zotero or `bibliography/references.bib` remains the citation source of truth, and Quarto remains the manuscript renderer.
 
 7. Install render tools when export work is in scope.
    - Install Quarto before running `make render`, `make render-html`, `make render-pdf`, or `make render-docx`.
@@ -214,7 +216,8 @@ Available wrappers include local scaffold skills, `ars-*` Academic Research Skil
 ## Default local agent integration
 
 - Codex Panel connects this project root to local agent workflows as an Obsidian vault. `bash setup.sh` creates `.obsidian/`, installs Codex Panel in the repository root, enables `codex-panel` in `.obsidian/community-plugins.json`, and writes an absolute Codex executable path in the plugin settings when one is available. For first-time GUI QA, pass `--register-obsidian-vault` to also register the project root in Obsidian's app-level vault registry so `obsidian://open?path=...` can find it. Pass `--skip-obsidian-panel` to leave Obsidian/Codex Panel setup for later, or pass `--obsidian-vault PATH` only for a different vault.
-- Zotero Integration and Pandoc Reference List are installed by default as Obsidian research plugins. Setup configures Zotero Integration to insert Pandoc-style citekeys such as `[@citekey]`. It points Pandoc Reference List at `./bibliography/references.bib`, uses an absolute path to the tracked IEEE CSL file at `bibliography/csl/ieee.csl`, and enables citekey completion. Type `@` plus at least two characters in a Markdown note to suggest citekeys from `bibliography/references.bib`; use `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux to insert `[@citekey]`. Zotero Integration can also import Zotero notes or annotations. Pandoc Reference List previews references for citekeys in the current note. Better BibTeX remains a Zotero-side prerequisite and keeps `bibliography/references.bib` current.
+- Zotero Integration and Pandoc Reference List are installed by default for citation work in Obsidian. Setup configures Zotero Integration to insert Pandoc-style citekeys such as `[@citekey]`. It points Pandoc Reference List at `./bibliography/references.bib`, uses an absolute path to the tracked IEEE CSL file at `bibliography/csl/ieee.csl`, and enables citekey completion. Type `@` plus at least two characters in a Markdown note to suggest citekeys from `bibliography/references.bib`; use `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux to insert `[@citekey]`. Zotero Integration can also import Zotero notes or annotations. Pandoc Reference List previews references for citekeys in the current note. Better BibTeX remains a Zotero-side prerequisite and keeps `bibliography/references.bib` current.
+- qmd as md is installed by default as the Quarto manuscript authoring plugin. Setup enables `.qmd` linking, points the plugin at `quarto` or the resolved Quarto executable when available, shows YAML files for `_quarto.yml`, enables the Quarto outline, and keeps plugin PDF auto-open disabled. Use it for Obsidian editing and preview, then use repository render targets and checks for export decisions.
 
 ## Optional external integrations
 
@@ -225,7 +228,7 @@ Available wrappers include local scaffold skills, `ars-*` Academic Research Skil
 
 External repositories stay optional. Review upstream files before use. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and marketplace exposure without executing the vendored installer or enabling hooks, project agents, global config, or global agents. Obsidian Skills are vendored and wrapped locally; this scaffold does not install them globally.
 
-Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel, Zotero Integration, and Pandoc Reference List from published release assets, adds their plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json`, and seeds safe citation-plugin settings. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
+Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel, Zotero Integration, Pandoc Reference List, and qmd as md from published release assets, adds their plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json`, and seeds safe citation and QMD plugin settings. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
 
 The external repositories under `vendor/` are Git submodules. `bash setup.sh` and `make install-external-skills` initialize them. To do that manually, run:
 
