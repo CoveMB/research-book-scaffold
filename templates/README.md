@@ -2,18 +2,19 @@
 
 Reusable templates for notes, research records, audits, and manuscript planning.
 
-Use these as starting points. Replace `{{PLACEHOLDER}}` markers with verified project material.
+Use these as starting points. Replace `{{PLACEHOLDER}}` markers with verified
+project material. Do not use a template to fill missing evidence from memory.
 
 ## Available templates
 
 - `source-note-template.md` for source-bound notes with compact traceability metadata. Use Zotero or
   `bibliography/references.bib` as the bibliographic source of truth.
-- `project-charter-template.md`
-- `concept-note-template.md`
-- `claim-note-template.md`
-- `source-matrix-template.md`
-- `audit-template.md`
-- `synthesis-memo-template.md`
+- `project-charter-template.md` for `notes/00-inbox/project-charter.md` during project setup.
+- `concept-note-template.md` for `notes/20-analysis/concept-notes/`.
+- `claim-note-template.md` for `notes/30-claims-and-argument/claim-ledger/`.
+- `source-matrix-template.md` for `research/source-matrices/`.
+- `audit-template.md` for `notes/90-audits/audits/`.
+- `synthesis-memo-template.md` for `notes/20-analysis/synthesis-memos/`.
 
 ## Plugin-owned templates
 

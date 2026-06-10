@@ -108,12 +108,15 @@ Use these paths for Obsidian-facing artifacts:
 - `research/views/` for `.base` files.
 - `research/canvases/` for generated `.canvas` files.
 - `research/web-ingest/` for Defuddle output and web-ingest notes.
-- `notes/01-source-notes/` for source notes.
-- `notes/02-literature-maps/` for literature maps and source relationships.
-- `notes/03-concept-notes/` for concept notes.
-- `notes/04-claim-ledger/` for claim notes.
-- `notes/07-chapter-briefs/` for chapter briefs.
-- `notes/08-audits/` for citation, claim, continuity, source-quality, and final checks.
+- `notes/10-evidence/source-notes/` for source notes.
+- `notes/10-evidence/case-studies/` for bounded case notes.
+- `notes/20-analysis/literature-maps/` for literature maps and source relationships.
+- `notes/20-analysis/concept-notes/` for concept notes.
+- `notes/20-analysis/synthesis-memos/` for provisional cross-source synthesis.
+- `notes/30-claims-and-argument/claim-ledger/` for claim notes.
+- `notes/30-claims-and-argument/argument-maps/` for argument structure and objections.
+- `notes/40-writing-bridge/chapter-briefs/` for chapter briefs.
+- `notes/90-audits/audits/` for citation, claim, continuity, source-quality, and final checks.
 
 Create the `research/views/`, `research/canvases/`, and `research/web-ingest/` folders when they are first needed. Keep polished manuscript prose in `manuscript/`, not in generated Obsidian artifacts.
 
@@ -124,7 +127,7 @@ Create the `research/views/`, `research/canvases/`, and `research/web-ingest/` f
 Use `obsidian-research-markdown` for Obsidian syntax, but use the project source-note template and citation rules as the source of truth.
 
 ```sh
-python3 scripts/research-writing/new_from_template.py templates/source-note-template.md notes/01-source-notes/example-source-note.md
+python3 scripts/research-writing/new_from_template.py templates/source-note-template.md notes/10-evidence/source-notes/example-source-note.md
 ```
 
 Before adding a citekey, verify it exists in Zotero or `bibliography/references.bib`. Page numbers or stable section locators are required when a claim depends on a specific passage. Point wikilinks only to existing or intentionally planned project notes.
@@ -136,7 +139,7 @@ Use `obsidian-research-bases` for `.base` syntax. Store claim-ledger views under
 ```yaml
 filters:
   and:
-    - 'file.inFolder("notes/04-claim-ledger")'
+    - 'file.inFolder("notes/30-claims-and-argument/claim-ledger")'
     - 'type == "claim-note"'
 views:
   - type: table
@@ -166,7 +169,7 @@ Use `obsidian-research-canvas` for JSON Canvas syntax. Store generated canvases 
       "y": 0,
       "width": 360,
       "height": 220,
-      "file": "notes/01-source-notes/example-source.md"
+      "file": "notes/10-evidence/source-notes/example-source-note.md"
     },
     {
       "id": "2222222222222222",
@@ -215,7 +218,7 @@ Use `obsidian-research-cli` only for narrow, explicit vault operations. Prefer r
 
 ```sh
 obsidian search query="evidence_status" limit=10
-obsidian read path="notes/01-source-notes/example-source.md"
+obsidian read path="notes/10-evidence/source-notes/example-source-note.md"
 ```
 
 When more than one vault may be open, include the vault parameter:

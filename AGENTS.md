@@ -18,12 +18,12 @@ This repository is for researching and writing a scholarly or research nonfictio
 | Folder | Responsibility |
 | --- | --- |
 | `bibliography/` | BibTeX source of truth and citation style notes |
-| `notes/01-source-notes/` | Notes tied to specific sources and citekeys |
-| `notes/02-literature-maps/` | Debates, schools of thought, gaps, and source relationships |
-| `notes/03-concept-notes/` | Definitions, boundaries, and risks of misuse |
-| `notes/04-claim-ledger/` | Claims, evidence status, confidence, and follow-up tasks |
-| `notes/07-chapter-briefs/` | Section purpose, argument sequence, sources, and gaps |
-| `notes/08-audits/` | Citation, claim, continuity, source-quality, and final checks |
+| `notes/00-inbox/` | Unsorted captures, imported fragments, reminders, and project setup notes |
+| `notes/10-evidence/` | Source notes and bounded case notes with visible source trails |
+| `notes/20-analysis/` | Literature maps, concept notes, synthesis memos, and cross-source interpretation |
+| `notes/30-claims-and-argument/` | Claim notes, argument maps, warrants, objections, and follow-up tasks |
+| `notes/40-writing-bridge/` | Chapter and section briefs that prepare research for drafting |
+| `notes/90-audits/` | Citation, claim, continuity, source-quality, release, and final checks |
 | `research/` | Search logs, matrices, extraction tables, and protocols |
 | `manuscript/` | Quarto manuscript source files |
 | `templates/` | Reusable note, claim, brief, audit, and memo templates |

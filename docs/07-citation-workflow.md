@@ -52,7 +52,7 @@ If Zotero Integration inserts a formatted prose citation instead of a Pandoc cit
 
 To insert a citekey from `bibliography/references.bib` instead of searching Zotero, use Pandoc Reference List citekey completion. Open a Markdown note, type `@` followed by at least two characters from the citekey or title, then choose from the suggestion list. Use `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux to insert the bracketed Pandoc form `[@citekey]`. Pressing `Enter` inserts the bare form `@citekey`.
 
-Imported Zotero notes, PDF annotations, and highlights are source material, not final evidence by themselves. Move useful material into `notes/01-source-notes/` with the source-note template, keep quotations distinct from paraphrase, and add page numbers or locators when a claim depends on a specific passage.
+Imported Zotero notes, PDF annotations, and highlights are source material, not final evidence by themselves. Move useful material into `notes/10-evidence/source-notes/` with the source-note template, keep quotations distinct from paraphrase, and add page numbers or locators when a claim depends on a specific passage.
 
 Pandoc Reference List is a preview aid. It can catch unresolved citekeys while writing, but `python3 scripts/research-writing/check_citations.py` is the repository check.
 
@@ -105,7 +105,7 @@ and `access_date:` fields when they contain values, so inaccurate placeholders
 can become false reference failures.
 
 Use status fields to keep uncertainty visible. The controlled vocabulary for
-source-note fields lives in `notes/01-source-notes/README.md`.
+source-note fields lives in `notes/10-evidence/source-notes/README.md`.
 
 ## Web sources
 

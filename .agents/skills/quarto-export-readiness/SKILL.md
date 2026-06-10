@@ -41,7 +41,7 @@ If the user does not specify an output target, default to readiness only and run
 - `manuscript/_quarto.yml`
 - `manuscript/`
 - `bibliography/references.bib`
-- `notes/08-audits/`
+- `notes/90-audits/audits/`
 
 Read other notes, research files, or source materials only when the user asks for evidence or claim verification.
 
@@ -49,7 +49,7 @@ Read other notes, research files, or source materials only when the user asks fo
 
 None by default.
 
-When explicitly asked, it may create or update a release-readiness audit in `notes/08-audits/`. It must not edit manuscript chapters, bibliography files, source notes, exports, or vendor files unless the user separately asks for those edits.
+When explicitly asked, it may create or update a release-readiness audit in `notes/90-audits/audits/`. It must not edit manuscript chapters, bibliography files, source notes, exports, or vendor files unless the user separately asks for those edits.
 
 ## Must not do
 
@@ -82,7 +82,7 @@ make render-docx
 ```
 
 7. Classify each failure by gate: placeholder, citation, internal link, external skill setup, render tooling, render output, or unresolved scholarly risk.
-8. If explicitly asked to document readiness, write an audit note in `notes/08-audits/` using the local audit template structure.
+8. If explicitly asked to document readiness, write an audit note in `notes/90-audits/audits/` using the local audit template structure.
 9. Report changed files, checks run, skipped checks with reasons, evidence gaps, unresolved risks, and recommended next step.
 
 ## Output format

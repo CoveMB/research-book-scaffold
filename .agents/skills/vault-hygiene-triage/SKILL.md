@@ -33,6 +33,7 @@ If the user only asks for a hygiene review, stay read-only and propose changes. 
 
 - `notes/README.md`
 - `notes/*/README.md`
+- `notes/*/*/README.md`
 - `research/README.md`
 - `research/*/README.md`
 - `templates/README.md`
@@ -52,7 +53,7 @@ When explicitly asked, it may:
 
 - Move notes into the correct local folder.
 - Update wiki links affected by approved moves.
-- Create a triage or hygiene audit note in `notes/08-audits/`.
+- Create a triage or hygiene audit note in `notes/90-audits/audits/`.
 
 It must not edit bibliography files, vendor files, upstream skills, source PDFs, or manuscript prose unless the user separately asks for that specific work.
 

@@ -17,10 +17,10 @@ Include:
 - Notes on disagreement, missing evidence, or sources that need checking.
 
 Use `templates/source-matrix-template.md` as the starting point when it fits. Keep
-source-specific summaries and quotations in `notes/01-source-notes/` or
-`research/extraction-tables/`; the matrix makes comparison easier, not
+source-specific summaries and quotations in `notes/10-evidence/source-notes/` or
+`research/extraction-tables/`. The matrix makes comparison easier; it does not
 replace the underlying notes.
 
 Do not turn a matrix into draft prose. If the comparison supports a claim, move
-that claim into `notes/04-claim-ledger/` with its evidence status and remaining
-risks.
+that claim into `notes/30-claims-and-argument/claim-ledger/` with its evidence
+status and remaining risks.

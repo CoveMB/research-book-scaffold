@@ -3,9 +3,9 @@
 Record source discovery work as it happens.
 
 Use this folder when searching databases, catalogs, archives, search engines,
-citation trails, bibliographies, indexes, or specialist websites. A search log
-Make the path visible enough that someone can rerun the search, understand
-what changed, and see what still needs attention.
+citation trails, bibliographies, indexes, or specialist websites. Make the path
+visible enough that someone can rerun the search, understand what changed, and
+see what still needs attention.
 
 Include:
 
@@ -18,8 +18,8 @@ Include:
 
 Use search logs before adding sources to Zotero or `bibliography/references.bib`
 when the discovery path matters. After a source is selected, create a source note
-in `notes/01-source-notes/` and keep the bibliographic record in the bibliography
-source of truth.
+in `notes/10-evidence/source-notes/` and keep the bibliographic record in the
+bibliography source of truth.
 
 Do not clean up the log until it hides the search path. Failed searches are useful
 because they show where the project already looked.

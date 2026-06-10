@@ -8,10 +8,10 @@ hard to reconstruct later: where a source came from, what search terms were
 tried, why a source was included or rejected, which passages were extracted, and
 what rules guided the research pass.
 
-Keep final source notes in `notes/01-source-notes/`, claims in
-`notes/04-claim-ledger/`, chapter planning in `notes/07-chapter-briefs/`, and
-draft prose in `manuscript/`. Use `research/` for the process records that make
-those later files auditable.
+Keep final source notes in `notes/10-evidence/source-notes/`, claims in
+`notes/30-claims-and-argument/claim-ledger/`, chapter planning in
+`notes/40-writing-bridge/chapter-briefs/`, and draft prose in `manuscript/`.
+Use `research/` for the process records that make those later files auditable.
 
 | Folder | What belongs here | Why it exists |
 | --- | --- | --- |

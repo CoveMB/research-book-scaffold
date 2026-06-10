@@ -1,6 +1,6 @@
 # Audit workflow
 
-Store audit notes in `notes/08-audits/`.
+Store audit notes in `notes/90-audits/audits/`.
 
 | Audit | Checks |
 | --- | --- |
@@ -13,6 +13,8 @@ Store audit notes in `notes/08-audits/`.
 | Continuity audit | Terms, claims, and sequence stay consistent |
 | Final manuscript audit | Placeholders, citations, claims, and exports are ready |
 
-Each audit includes scope, findings, severity, required fixes, decision, and follow-up.
+Each audit includes scope, files checked, checks run, skipped checks, findings,
+severity, required fixes, evidence gaps, unresolved risks, decision, and
+follow-up.
 
 Use `make check-external-references` only when a network-dependent reference check is useful for the audit scope. It is not part of the fast audit or release audit because network failures, rate limits, paywalls, and resolver outages can create noisy results.

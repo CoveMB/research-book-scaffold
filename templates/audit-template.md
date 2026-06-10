@@ -10,6 +10,18 @@ status: draft
 
 {{AUDIT_SCOPE}}
 
+## Files checked
+
+- {{FILE_CHECKED}}
+
+## Checks run
+
+- {{CHECK_RUN}}
+
+## Skipped checks
+
+- {{SKIPPED_CHECK_AND_REASON}}
+
 ## Findings
 
 - {{FINDING}}
@@ -29,6 +41,10 @@ status: draft
 ## Required fixes
 
 - {{REQUIRED_FIX}}
+
+## Evidence gaps or unresolved risks
+
+- {{EVIDENCE_GAP_OR_RISK}}
 
 ## Decision
 

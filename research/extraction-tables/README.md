@@ -5,7 +5,7 @@ Use extraction tables to pull comparable evidence out of sources.
 Use this folder when several sources need to be compared on the same fields, or
 when a single source contains many passages, cases, variables, events, or claims
 that need careful tracking. Keep general reading notes in
-`notes/01-source-notes/`.
+`notes/10-evidence/source-notes/`.
 
 Include:
 

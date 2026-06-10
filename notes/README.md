@@ -1,23 +1,30 @@
 # Notes
 
-Use notes for research material, not final manuscript prose.
+Use `notes/` for research thinking, not polished manuscript prose. Draft prose
+belongs in `manuscript/`. Search logs, extraction records, source matrices, and
+protocols belong in `research/`.
 
-Keep source notes, concept notes, claim notes, audits, and synthesis memos separate.
+The folder order follows the research workflow:
 
-These folders protect the evidence trail between source material, working analysis,
-claims, chapter planning, and manuscript drafting. Put material in the narrowest
-folder that matches its current use. If material is unsorted, place it in
-`00-inbox/` and move it once its purpose is clear.
+1. Capture rough material.
+2. Stabilize source-bound evidence.
+3. Analyze patterns across sources.
+4. Test claims and argument structure.
+5. Plan the move into manuscript sections.
+6. Audit what is weak, missing, or ready.
 
-| Folder | Containing intent |
-| --- | --- |
-| `00-inbox/` | Temporary holding area for unsorted captures, rough reminders, imported fragments, and notes that need triage. Do not treat anything here as stable evidence or final analysis until it is moved into the right folder. |
-| `01-source-notes/` | Source-bound notes tied to specific sources, citekeys, documents, interviews, archives, or web records. Use for summaries, paraphrases, direct quotations, page references, source metadata, and source-specific interpretation. Keep cross-source synthesis elsewhere. |
-| `02-literature-maps/` | Maps of debates, schools of thought, source clusters, disagreements, gaps, and relationships among sources. Use when the unit of analysis is a research field or conversation rather than one source. |
-| `03-concept-notes/` | Working definitions, concept boundaries, term histories, related sources, competing usages, and risks of misuse. Use to clarify what a term means in the project and what it cannot carry. |
-| `04-claim-ledger/` | Claim-centered notes that track proposed claims, evidence status, confidence, supporting sources, counterevidence, and follow-up research tasks. Use when deciding whether a claim is ready for draft prose. |
-| `05-case-studies/` | Bounded case notes with relevant context, chronology, evidence, interpretive limits, comparisons, and unresolved questions. Use for cases that may support claims, chapters, or examples, while keeping their source trail visible. |
-| `06-argument-maps/` | Argument structure, dependencies, warrants, objections, counterarguments, and pressure points. Use to test how claims connect before they are assigned to chapters or drafted as prose. |
-| `07-chapter-briefs/` | Chapter and section planning notes: purpose, argument sequence, evidence placement, likely sources, open gaps, and drafting constraints. Use these briefs as the bridge from research notes to manuscript files. |
-| `08-audits/` | Review records for citations, claims, continuity, source quality, placeholders, release readiness, and unresolved risks. Use audit notes to make weaknesses visible instead of silently rewriting around them. |
-| `09-synthesis-memos/` | Provisional cross-source synthesis, patterns, tensions, counterevidence, uncertainty, and next steps. Use when enough material exists to draw a cautious synthesis, but before converting it into claims, briefs, or draft prose. |
+Put each note in the narrowest folder that matches its current job. If the job is
+unclear, keep it in `00-inbox/` until it can be triaged without guessing.
+
+| Folder | What belongs here | Move material here when |
+| --- | --- | --- |
+| `00-inbox/` | Unsorted captures, imported fragments, reminders, and project setup notes. | You do not yet know whether the material is a source note, analysis note, claim, brief, or audit. |
+| `10-evidence/` | Source-bound notes and bounded case notes. | The material is tied to a source, citekey, document, interview, archive, web record, case, site, event, or example. |
+| `20-analysis/` | Literature maps, concept notes, and synthesis memos. | Several sources or ideas need comparison, definition, interpretation, or cautious synthesis. |
+| `30-claims-and-argument/` | Claim notes and argument maps. | A possible manuscript claim or argument sequence needs evidence status, warrants, objections, or pressure testing. |
+| `40-writing-bridge/` | Chapter and section briefs. | Research is ready to be planned into manuscript order, with gaps still visible. |
+| `90-audits/` | Citation, claim, continuity, source-quality, placeholder, release, and risk audits. | Something needs review, a decision record, or a visible follow-up task. |
+
+Do not promote material just because it sounds plausible. Source notes need
+source trails. Claims need citekeys and locators. Drafts need briefs and checked
+claims. When support is missing, mark the gap instead of filling it from memory.

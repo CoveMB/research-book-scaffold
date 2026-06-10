@@ -30,12 +30,12 @@ def create_disposable_project() -> Path:
     for directory in [
         "bibliography",
         "manuscript/chapters",
-        "notes/01-source-notes",
-        "notes/02-literature-maps",
-        "notes/03-concept-notes",
-        "notes/04-claim-ledger",
-        "notes/07-chapter-briefs",
-        "notes/08-audits",
+        "notes/10-evidence/source-notes",
+        "notes/20-analysis/literature-maps",
+        "notes/20-analysis/concept-notes",
+        "notes/30-claims-and-argument/claim-ledger",
+        "notes/40-writing-bridge/chapter-briefs",
+        "notes/90-audits/audits",
         "research/extraction-tables",
         "research/search-logs",
         "research/source-matrices",
@@ -128,7 +128,7 @@ class SeedReleaseQaTests(unittest.TestCase):
                 fixture_path = fixture_root / target
                 fixture_path.parent.mkdir(parents=True, exist_ok=True)
                 fixture_path.write_text(f"seeded {target}\n", encoding="utf-8")
-            seed_only_target = Path("notes/01-source-notes/custom-seed.md")
+            seed_only_target = Path("notes/10-evidence/source-notes/custom-seed.md")
             seed_only_path = fixture_root / seed_only_target
             seed_only_path.parent.mkdir(parents=True, exist_ok=True)
             seed_only_path.write_text("custom seed\n", encoding="utf-8")

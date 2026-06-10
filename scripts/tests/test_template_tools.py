@@ -46,8 +46,8 @@ SOURCE_NOTE_STATUS_FIELD = "source_status"
 OBSOLETE_SOURCE_NOTE_STATUS_FIELD = "reading" + "_status"
 SOURCE_NOTE_SCAFFOLD_FILES = [
     Path("templates/source-note-template.md"),
-    Path("notes/01-source-notes/README.md"),
-    Path("end-2-end-tests/fixtures/release_seed/project/notes/01-source-notes/qa-seed-source.md"),
+    Path("notes/10-evidence/source-notes/README.md"),
+    Path("end-2-end-tests/fixtures/release_seed/project/notes/10-evidence/source-notes/qa-seed-source.md"),
 ]
 
 
