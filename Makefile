@@ -93,19 +93,19 @@ update-skills-vendors:
 	bash scripts/operations/vendors/update-skills-vendors.sh
 
 check-obsidian-panel:
-	python3 scripts/operations/obsidian/check_obsidian_panel.py
+	python3 scripts/operations/obsidian/check_obsidian_panel.py .
 
 check-obsidian-research-plugins:
-	python3 scripts/operations/obsidian/obsidian_research_plugins.py check
+	python3 scripts/operations/obsidian/obsidian_research_plugins.py check .
 
 check-obsidian-artifacts:
 	python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 
 install-obsidian-panel:
-	bash scripts/operations/obsidian/install_obsidian_panel.sh
+	bash scripts/operations/obsidian/install_obsidian_panel.sh --obsidian-vault .
 
 install-obsidian-research-plugins:
-	bash scripts/operations/obsidian/install_obsidian_research_plugins.sh
+	bash scripts/operations/obsidian/install_obsidian_research_plugins.sh --obsidian-vault .
 
 install-hooks:
 	$(PRE_COMMIT) install --hook-type pre-commit

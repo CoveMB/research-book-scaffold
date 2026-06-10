@@ -7,9 +7,13 @@ This scaffold uses them through local wrapper skills under `.agents/skills/obsid
 For new users, the normal setup path is:
 
 ```sh
-git clone --recurse-submodules <repo-url>
-cd <repo-folder>
+git clone --recurse-submodules git@github.com:CoveMB/research-book-scaffold.git <book-repo>
+cd <book-repo>
+git remote rename origin upstream
+git remote add origin git@github.com:<account>/<book-repo>.git
+git push -u origin main
 bash setup.sh
+make doctor
 make check-obsidian-panel
 make check-obsidian-research-plugins
 make audit

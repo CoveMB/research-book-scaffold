@@ -11,16 +11,28 @@ Clean scaffold for source management, notes, manuscript drafting, citation check
 | Manuscript production | `manuscript/`, `exports/` | Quarto source files |
 | Agent orchestration | `AGENTS.md`, `.agents/skills/`, `docs/` | Repo-scoped instructions |
 
-## First setup after cloning
+## Default book-project setup
+
+For a serious book project, set up a separate book repository before running
+`setup.sh`. This preserves this scaffold as `upstream`, points `origin` at your
+book repository, and keeps later scaffold updates mergeable.
 
 ```sh
-git clone --recurse-submodules <repo-url>
-cd <repo-folder>
+git clone --recurse-submodules git@github.com:CoveMB/research-book-scaffold.git <book-repo>
+cd <book-repo>
+git remote rename origin upstream
+git remote add origin git@github.com:<account>/<book-repo>.git
+git push -u origin main
 bash setup.sh
+make doctor
 make check-obsidian-panel
 make check-obsidian-research-plugins
 make audit
 ```
+
+If you use GitHub's fork flow instead, fork
+`CoveMB/research-book-scaffold`, clone your fork with submodules, and keep the
+original scaffold remote available as `upstream` before running setup.
 
 If the repository was cloned without submodules, run:
 
@@ -31,6 +43,23 @@ git submodule update --init --recursive
 `bash setup.sh` treats the project root as the Obsidian vault root, installs Codex Panel unless skipped, installs the recommended Zotero/Pandoc Obsidian plugins unless skipped, initializes vendored external skills, refreshes repo-scoped wrappers under `.agents/skills`, and keeps plugin marketplace entries optional. Use `bash setup.sh --dry-run` first when you want a preview, or `bash setup.sh --skip-external-skills` when you only want local tool and Obsidian plugin setup.
 
 After setup, read `AGENTS.md`, add verified sources to Zotero or `bibliography/references.bib`, create notes from `templates/`, and draft in `manuscript/`. Obsidian is the recommended vault interface for local agent and citation workflows; pass `--skip-obsidian-panel --skip-obsidian-research-plugins` for CLI or Markdown-editor-only work.
+
+Pull scaffold improvements into the book repository at planned maintenance
+points:
+
+```sh
+git fetch upstream --prune
+git merge upstream/main
+git submodule update --init --recursive
+make audit
+```
+
+Keep book-specific material in `notes/`, `research/`, `bibliography/`,
+`manuscript/`, and `project-start.yml`. Keep scaffold-owned files such as
+`scripts/`, `.agents/`, `docs/`, `templates/`, and `vendor/` generic when
+possible so upstream merges stay small and reviewable. Packaging is better
+reserved for reusable tools or checks later; the full scaffold is a living file
+tree, not just an installable library.
 
 ## Common commands
 

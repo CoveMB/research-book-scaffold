@@ -57,6 +57,13 @@ def command_output(result: subprocess.CompletedProcess[str]) -> str:
     return result.stdout.strip() or result.stderr.strip()
 
 
+def success_summary(result: subprocess.CompletedProcess[str]) -> str:
+    output = command_output(result)
+    if not output:
+        return ""
+    return output.splitlines()[0]
+
+
 def run_codex_command(command: list[str], label: str) -> bool:
     try:
         result = subprocess.run(
@@ -70,7 +77,7 @@ def run_codex_command(command: list[str], label: str) -> bool:
         print(f"FAIL {label} failed: {error}")
         return False
     if result.returncode == 0:
-        output = command_output(result)
+        output = success_summary(result)
         if output:
             print(f"PASS {label}: {output}")
         else:

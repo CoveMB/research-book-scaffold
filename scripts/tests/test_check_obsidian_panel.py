@@ -177,6 +177,18 @@ class CheckObsidianCodexTests(unittest.TestCase):
         self.assertIn("PASS codex --version: codex-cli 0.130.0", output.getvalue())
         self.assertIn("PASS codex app-server --help", output.getvalue())
 
+    def test_successful_multiline_command_output_is_summarized(self) -> None:
+        result = make_completed_process(0, stdout="first line\nsecond line\n")
+        output = io.StringIO()
+
+        with mock.patch.object(check_obsidian_panel.subprocess, "run", return_value=result):
+            with contextlib.redirect_stdout(output):
+                success = check_obsidian_panel.run_codex_command(["codex", "example"], "codex example")
+
+        self.assertTrue(success)
+        self.assertIn("PASS codex example: first line", output.getvalue())
+        self.assertNotIn("second line", output.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -25,7 +25,7 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertNotIn("| Obsidian or Markdown vault | Project-root notes and local navigation | Optional |", tooling)
 
     def test_new_user_setup_docs_include_obsidian_plugin_checks(self) -> None:
-        setup_flow = "bash setup.sh\nmake check-obsidian-panel\nmake check-obsidian-research-plugins\nmake audit"
+        setup_flow = "bash setup.sh\nmake doctor\nmake check-obsidian-panel\nmake check-obsidian-research-plugins\nmake audit"
         docs = [
             ROOT / "README.md",
             ROOT / "docs" / "12-external-skills-and-plugins.md",

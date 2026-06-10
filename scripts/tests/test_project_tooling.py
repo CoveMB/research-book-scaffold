@@ -275,6 +275,30 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn("install-obsidian-research-plugins", makefile)
         self.assertIn("bash scripts/operations/obsidian/install_obsidian_research_plugins.sh", makefile)
 
+    def test_makefile_obsidian_targets_pin_project_root_vault(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "check-obsidian-panel:\n"
+            "\tpython3 scripts/operations/obsidian/check_obsidian_panel.py .",
+            makefile,
+        )
+        self.assertIn(
+            "check-obsidian-research-plugins:\n"
+            "\tpython3 scripts/operations/obsidian/obsidian_research_plugins.py check .",
+            makefile,
+        )
+        self.assertIn(
+            "install-obsidian-panel:\n"
+            "\tbash scripts/operations/obsidian/install_obsidian_panel.sh --obsidian-vault .",
+            makefile,
+        )
+        self.assertIn(
+            "install-obsidian-research-plugins:\n"
+            "\tbash scripts/operations/obsidian/install_obsidian_research_plugins.sh --obsidian-vault .",
+            makefile,
+        )
+
     def test_ci_target_uses_scaffold_audit_not_release_audit(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
