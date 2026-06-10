@@ -12,8 +12,6 @@ add_scripts_to_path()
 
 import check_citations
 
-ROOT = Path(__file__).resolve().parents[2]
-
 
 class CheckCitationsTests(unittest.TestCase):
     def test_scan_roots_can_include_research_notes(self) -> None:
@@ -51,14 +49,27 @@ class CheckCitationsTests(unittest.TestCase):
 
         self.assertEqual(check_citations.duplicate_bib_keys(text), ["smith2024"])
 
-    def test_default_scaffold_has_verified_citation_for_strict_release_audit(self) -> None:
-        bibliography_keys = check_citations.parse_bib_keys(ROOT / "bibliography" / "references.bib")
-        manuscript_files = check_citations.iter_supported_files(
-            [ROOT / "manuscript"],
-            check_citations.IGNORED_DIRS,
-            check_citations.SUPPORTED_SUFFIXES,
-        )
-        manuscript_keys = set().union(*(check_citations.parse_citations(path) for path in manuscript_files))
+    def test_scaffold_fixture_has_verified_citation_for_strict_release_audit(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "bibliography").mkdir()
+            (root / "manuscript").mkdir()
+            (root / "bibliography" / "references.bib").write_text(
+                "@misc{quartoPdfBasics,\n  title = {PDF Basics}\n}\n",
+                encoding="utf-8",
+            )
+            (root / "manuscript" / "index.qmd").write_text(
+                "PDF output depends on Quarto PDF basics [@quartoPdfBasics].\n",
+                encoding="utf-8",
+            )
+
+            bibliography_keys = check_citations.parse_bib_keys(root / "bibliography" / "references.bib")
+            manuscript_files = check_citations.iter_supported_files(
+                [root / "manuscript"],
+                check_citations.IGNORED_DIRS,
+                check_citations.SUPPORTED_SUFFIXES,
+            )
+            manuscript_keys = set().union(*(check_citations.parse_citations(path) for path in manuscript_files))
 
         self.assertTrue(bibliography_keys)
         self.assertTrue(manuscript_keys)

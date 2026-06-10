@@ -12,8 +12,6 @@ add_scripts_to_path()
 
 import check_manuscript_readiness
 
-ROOT = Path(__file__).resolve().parents[2]
-
 
 class CheckManuscriptReadinessTests(unittest.TestCase):
     def test_fixture_with_generic_scaffold_title_fails(self) -> None:
@@ -98,8 +96,26 @@ book:
 
         self.assertEqual(findings, [])
 
-    def test_default_scaffold_release_configuration_is_not_ready(self) -> None:
-        findings = check_manuscript_readiness.scan_release_manuscript(ROOT)
+    def test_scaffold_fixture_release_configuration_is_not_ready(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manuscript_dir = root / "manuscript"
+            manuscript_dir.mkdir()
+            (manuscript_dir / "_quarto.yml").write_text(
+                """
+book:
+  title: "Research Scaffold Verification Manuscript"
+  chapters:
+    - index.qmd
+""",
+                encoding="utf-8",
+            )
+            (manuscript_dir / "index.qmd").write_text(
+                "# Overview\n\nThis manuscript scaffold is generic.\n",
+                encoding="utf-8",
+            )
+
+            findings = check_manuscript_readiness.scan_release_manuscript(root)
 
         self.assertTrue(any(finding.phrase == "Research Scaffold Verification Manuscript" for finding in findings))
         self.assertTrue(any(finding.phrase == "This manuscript scaffold is generic." for finding in findings))
