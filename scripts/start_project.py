@@ -36,6 +36,7 @@ MANUSCRIPT_INDEX_PATH = Path("manuscript/index.qmd")
 FRONT_MATTER_PATH = Path("manuscript/chapters/00-front-matter.qmd")
 BACK_MATTER_PATH = Path("manuscript/chapters/99-back-matter.qmd")
 DEFAULT_BIBLIOGRAPHY_PATH = Path("bibliography/references.bib")
+IEEE_CSL_PATH = Path("bibliography/csl/ieee.csl")
 KNOWN_QUARTO_FORMATS = ("html", "pdf", "docx")
 UNKNOWN_VALUES = {"", "unknown", "unknown yet", "decide later", "undecided", "not sure", "n/a", "na"}
 PROJECT_TYPES = {"book", "article", "thesis-style manuscript", "mixed paper/book project"}
@@ -88,7 +89,7 @@ QUESTIONS = (
     Question("initial_research_tasks", "Initial research tasks (comma-separated)", multi=True),
     Question("output_formats", "Desired output formats: html, pdf, docx, other (comma-separated)", "html", multi=True),
     Question("chapter_names", "Initial chapter/section names, or blank for default placeholders", multi=True),
-    Question("citation_style", "Citation style if known, otherwise undecided", "undecided"),
+    Question("citation_style", "Citation style if known, otherwise undecided", "IEEE"),
     Question("target_venue", "Target venue/publisher if known, otherwise undecided", "undecided"),
     Question("bibliography_path", "Bibliography file path", DEFAULT_BIBLIOGRAPHY_PATH.as_posix()),
     Question("better_bibtex_auto_export", "Is Better BibTeX auto-export already configured? yes/no/not sure", "not sure"),
@@ -294,7 +295,7 @@ def normalize_answers(raw_answers: Mapping[str, object]) -> dict[str, object]:
     normalized["output_formats"] = normalize_output_formats(normalized["output_formats"])
     if not normalized["chapter_names"]:
         normalized["chapter_names"] = default_chapter_names(string_value(normalized["project_type"]))
-    normalized["citation_style"] = normalize_required_text(normalized["citation_style"], "undecided")
+    normalized["citation_style"] = normalize_citation_style(normalized["citation_style"])
     normalized["target_venue"] = normalize_required_text(normalized["target_venue"], "undecided")
     normalized["bibliography_path"] = normalize_required_text(
         normalized["bibliography_path"],
@@ -319,6 +320,11 @@ def normalize_project_type(value: str) -> str:
 def normalize_required_text(value: object, fallback: str) -> str:
     text = string_value(value).strip()
     return fallback if text.lower() in UNKNOWN_VALUES else text
+
+
+def normalize_citation_style(value: object) -> str:
+    text = string_value(value).strip()
+    return "IEEE" if not text else unresolved_text(text)
 
 
 def normalize_scalar(value: object, default: str) -> str:
@@ -514,10 +520,12 @@ def render_quarto_config(project_root: Path, answers: Mapping[str, object]) -> s
         [
             "",
             f"bibliography: ../{answers['bibliography_path']}",
-            "",
-            "format:",
         ]
     )
+    csl_path = quarto_csl_path(answers)
+    if csl_path:
+        lines.append(f"csl: ../{csl_path}")
+    lines.extend(["", "format:"])
     quarto_formats = [item for item in ensure_string_list(answers["output_formats"]) if item in KNOWN_QUARTO_FORMATS]
     if not quarto_formats:
         quarto_formats = ["html"]
@@ -525,6 +533,13 @@ def render_quarto_config(project_root: Path, answers: Mapping[str, object]) -> s
         lines.extend([f"  {output_format}:", "    toc: true"])
     lines.append("")
     return "\n".join(lines)
+
+
+def quarto_csl_path(answers: Mapping[str, object]) -> str:
+    citation_style = string_value(answers["citation_style"]).strip().lower()
+    if citation_style == "ieee":
+        return IEEE_CSL_PATH.as_posix()
+    return ""
 
 
 def quote_quarto_value(value: object) -> str:

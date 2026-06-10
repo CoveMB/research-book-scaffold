@@ -50,9 +50,9 @@ Default setup treats the repository root as the vault root:
 bash setup.sh
 ```
 
-This creates `.obsidian/` in the project root, installs Codex Panel at `.obsidian/plugins/codex-panel/`, installs Zotero Integration at `.obsidian/plugins/obsidian-zotero-desktop-connector/`, installs Pandoc Reference List at `.obsidian/plugins/obsidian-pandoc-reference-list/`, adds all three plugin IDs to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
+This creates `.obsidian/` in the project root, installs Codex Panel at `.obsidian/plugins/codex-panel/`, installs Zotero Integration at `.obsidian/plugins/obsidian-zotero-desktop-connector/`, installs Pandoc Reference List at `.obsidian/plugins/obsidian-pandoc-reference-list/`, adds all three plugin IDs to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available, seeds safe citation-plugin settings, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
 
-The downloaded plugin directories under `.obsidian/plugins/` are ignored because setup can recreate them and plugin settings may contain machine-specific paths. `.obsidian/community-plugins.json` is not ignored so a fork can intentionally commit vault-level plugin enablement defaults after review.
+The downloaded plugin directories under `.obsidian/plugins/` are ignored because setup can recreate them and plugin settings may contain absolute executable paths, Zotero library cache state, or local workflow choices. Setup still writes safe defaults there after the plugin payload is valid. It preserves existing plugin settings and fills only missing defaults, so rerunning setup should not overwrite a local Pandoc path, bibliography override, or Zotero group choice. `.obsidian/community-plugins.json` is not ignored so a fork can intentionally commit vault-level plugin enablement defaults after review. `.pandoc/` is ignored because Pandoc Reference List can cache Zotero bibliography data, CSL files, and locale files there.
 
 If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. The research plugin installer accepts existing Zotero Integration and Pandoc Reference List folders only after checking their required files and manifest IDs. When a stale or broken plugin folder is suspected, rerun setup with `--force`, then run the matching check.
 
@@ -103,6 +103,12 @@ Expected result:
 - research plugin files exist under `.obsidian/plugins/obsidian-zotero-desktop-connector/` and `.obsidian/plugins/obsidian-pandoc-reference-list/`
 - research plugin manifests have the expected IDs
 - `.obsidian/community-plugins.json` lists both research plugin IDs
+- Zotero Integration settings include a Pandoc citekey format
+- Zotero Integration autocomplete inserts `[@citekey]` citation syntax
+- Pandoc Reference List settings use `./bibliography/references.bib` unless a local override already existed
+- Pandoc Reference List settings use `bibliography/csl/ieee.csl` unless a local override already existed
+
+Changed citation-plugin settings are reported as warnings, not check failures. The check target should fail for broken or missing plugin installs, not for deliberate local citation-style changes.
 
 If the check fails:
 
@@ -163,8 +169,8 @@ Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, `docs
 
 ## Research Plugin Workflow
 
-Use Zotero Integration to search Zotero and insert Pandoc-style citations into notes or manuscript files. Keep the inserted form as `[@citekey]`, `[-@citekey]`, or `[@first; @second]` so Quarto and the citation checker can read it.
+Use Zotero Integration to search Zotero and insert Pandoc-style citations into notes or manuscript files. Setup adds a `Pandoc citekey` format and sets citation autocomplete to insert `[@citekey]` for this purpose. Keep the inserted form as `[@citekey]`, `[-@citekey]`, or `[@first; @second]` so Quarto and the citation checker can read it.
 
-Use Pandoc Reference List while drafting to preview the references for citekeys in the active note. Configure it with `bibliography/references.bib`; add a CSL path only when the project has selected a citation style.
+Use Pandoc Reference List while drafting to preview the references for citekeys in the active note. Setup points it at `./bibliography/references.bib` and the tracked IEEE CSL file at `bibliography/csl/ieee.csl`. Keep reviewed CSL files in `bibliography/csl/`, not `.pandoc/`. If the project later changes citation style, update the Pandoc Reference List custom CSL path and `manuscript/_quarto.yml` together.
 
 Imported annotations and Zotero notes belong in `notes/01-source-notes/` after review. Keep direct quotations, paraphrases, interpretation, and missing locators separate. Run `make check-citations` before treating inserted citekeys as manuscript-ready.

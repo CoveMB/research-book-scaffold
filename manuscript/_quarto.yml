@@ -10,6 +10,7 @@ book:
     - chapters/99-back-matter.qmd
 
 bibliography: ../bibliography/references.bib
+csl: ../bibliography/csl/ieee.csl
 
 format:
   html:

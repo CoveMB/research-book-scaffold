@@ -43,7 +43,7 @@ Use this workflow after Better BibTeX auto-export is configured:
 2. Confirm Zotero is open and Better BibTeX has exported the project collection to `bibliography/references.bib`.
 3. In Obsidian, confirm Zotero Integration and Pandoc Reference List are enabled in Community plugins.
 4. Configure Zotero Integration so inserted citations use Pandoc citekey syntax such as `[@citekey]`.
-5. Configure Pandoc Reference List with `bibliography/references.bib`. Add a CSL file or URL only after the citation style has been chosen.
+5. Confirm Pandoc Reference List uses `bibliography/references.bib` and `bibliography/csl/ieee.csl`. If the project later changes citation style, update the Obsidian CSL path and `manuscript/_quarto.yml` together.
 6. Insert citations from Zotero Integration while drafting notes or manuscript files.
 7. Open the Pandoc Reference List sidebar to check that each visible citekey resolves to a formatted reference.
 8. Run `make check-citations` before relying on the citation in a manuscript draft.

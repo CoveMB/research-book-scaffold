@@ -30,7 +30,7 @@ Do not store API keys or credentials in this repository.
 
 External repositories live under `vendor/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the vendored Research Book Skills submodule and the nested optional Subagent Orchestrator plugin path.
 
-`bash setup.sh` installs the Obsidian plugin files for Codex Panel, Zotero Integration, and Pandoc Reference List into `.obsidian/plugins/`. The plugin payload folders are ignored because setup can recreate them and local settings may be machine-specific. `.obsidian/community-plugins.json` is trackable so this scaffold can declare the recommended vault-level plugin set.
+`bash setup.sh` installs the Obsidian plugin files for Codex Panel, Zotero Integration, and Pandoc Reference List into `.obsidian/plugins/`. It also writes safe default settings for the citation plugins: Zotero Integration gets a Pandoc citekey format and autocomplete that inserts `[@citekey]`, and Pandoc Reference List points at `./bibliography/references.bib` plus `bibliography/csl/ieee.csl`. The plugin payload folders remain ignored because setup can recreate them and local settings may contain absolute executable paths, Zotero library cache state, or other machine-specific values. `.obsidian/community-plugins.json` is trackable so this scaffold can declare the recommended vault-level plugin set. `.pandoc/` is ignored because Pandoc Reference List can cache bibliography data, CSL files, and locale files there. Track reviewed CSL files under `bibliography/csl/` when a project changes citation style.
 
 ## Render tool verification
 

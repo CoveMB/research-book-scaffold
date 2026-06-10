@@ -73,6 +73,37 @@ RESEARCH_PLUGIN_SPECS = (
     ),
 )
 
+PANDOC_CITE_FORMAT = {"name": "Pandoc citekey", "format": "pandoc"}
+PANDOC_CITE_SUGGEST_TEMPLATE = "[@{{citekey}}]"
+IEEE_CSL_STYLE_PATH = "bibliography/csl/ieee.csl"
+
+RESEARCH_PLUGIN_DEFAULT_SETTINGS: dict[str, dict[str, object]] = {
+    ZOTERO_INTEGRATION_PLUGIN_ID: {
+        "database": "Zotero",
+        "noteImportFolder": "",
+        "pdfExportImageDPI": 120,
+        "pdfExportImageFormat": "jpg",
+        "pdfExportImageQuality": 90,
+        "citeFormats": [PANDOC_CITE_FORMAT],
+        "exportFormats": [],
+        "citeSuggestTemplate": PANDOC_CITE_SUGGEST_TEMPLATE,
+        "openNoteAfterImport": False,
+        "whichNotesToOpenAfterImport": "first-imported-note",
+        "exeOverridePath": "",
+    },
+    PANDOC_REFERENCE_LIST_PLUGIN_ID: {
+        "pathToPandoc": "",
+        "tooltipDelay": 400,
+        "zoteroGroups": [],
+        "renderCitations": True,
+        "renderCitationsReadingMode": True,
+        "renderLinkCitations": True,
+        "pathToBibliography": "./bibliography/references.bib",
+        "cslStylePath": IEEE_CSL_STYLE_PATH,
+        "pullFromZotero": False,
+    },
+}
+
 
 def add_install_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--dry-run", action="store_true")
@@ -170,6 +201,70 @@ def ensure_existing_research_plugin_is_usable(
     return True
 
 
+def read_research_plugin_settings(settings_path: Path) -> dict[str, object]:
+    if not settings_path.exists():
+        return {}
+    return read_json_object(settings_path)
+
+
+def merged_research_plugin_settings(plugin_id: str, existing_settings: dict[str, object]) -> dict[str, object]:
+    defaults = RESEARCH_PLUGIN_DEFAULT_SETTINGS.get(plugin_id, {})
+    settings = dict(existing_settings)
+    for key, value in defaults.items():
+        if key not in settings:
+            settings[key] = json.loads(json.dumps(value))
+
+    if plugin_id == ZOTERO_INTEGRATION_PLUGIN_ID:
+        cite_formats = settings.get("citeFormats")
+        if not isinstance(cite_formats, list):
+            cite_formats = []
+        has_pandoc_format = any(
+            isinstance(item, dict) and item.get("format") == "pandoc"
+            for item in cite_formats
+        )
+        if not has_pandoc_format:
+            cite_formats = [*cite_formats, dict(PANDOC_CITE_FORMAT)]
+        settings["citeFormats"] = cite_formats
+
+    if plugin_id == PANDOC_REFERENCE_LIST_PLUGIN_ID and not settings.get("pathToBibliography"):
+        settings["pathToBibliography"] = RESEARCH_PLUGIN_DEFAULT_SETTINGS[PANDOC_REFERENCE_LIST_PLUGIN_ID][
+            "pathToBibliography"
+        ]
+
+    return settings
+
+
+def ensure_research_plugin_settings(
+    destination_dir: Path,
+    spec: ObsidianResearchPluginSpec,
+    report: StatusReport,
+    dry_run: bool,
+) -> bool:
+    settings_path = destination_dir / "data.json"
+    try:
+        existing_settings = read_research_plugin_settings(settings_path)
+    except RuntimeError as error:
+        report.add("failed", str(error))
+        return False
+
+    updated_settings = merged_research_plugin_settings(spec.plugin_id, existing_settings)
+    if updated_settings == existing_settings:
+        report.add("already_present", f"{spec.label} settings already configured at {settings_path}")
+        return True
+
+    if dry_run:
+        report.add("skipped", f"dry-run would write {spec.label} settings to {settings_path}")
+        return True
+
+    try:
+        settings_path.write_text(json.dumps(updated_settings, indent=2) + "\n", encoding="utf-8")
+    except OSError as error:
+        report.add("failed", f"could not write {spec.label} settings: {error}")
+        return False
+    report.add("installed", f"configured {spec.label} settings at {settings_path}")
+    return True
+
+
 def enabled_plugins_with_research_plugins(enabled_plugins: list[str]) -> list[str]:
     updated_plugins: list[str] = []
     seen_plugins: set[str] = set()
@@ -264,6 +359,8 @@ def install_research_plugins(args: argparse.Namespace, report: StatusReport) -> 
     for spec in RESEARCH_PLUGIN_SPECS:
         if not install_one_research_plugin(spec, args, plugins_dir, report):
             return
+        if not ensure_research_plugin_settings(plugins_dir / spec.plugin_id, spec, report, args.dry_run):
+            return
 
     ensure_research_plugins_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
 
@@ -294,6 +391,10 @@ def print_pass(message: str) -> None:
     print(f"PASS {message}")
 
 
+def print_warn(message: str) -> None:
+    print(f"WARN {message}")
+
+
 def check_required_files(plugin_dir: Path, plugin_id: str, failures: list[str]) -> None:
     for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES):
         file_path = plugin_dir / file_name
@@ -310,6 +411,55 @@ def check_manifest(plugin_dir: Path, plugin_id: str, failures: list[str]) -> Non
         print_fail(f"{plugin_id} {error}", failures)
         return
     print_pass(f"{plugin_id} manifest id matches")
+
+
+def settings_has_pandoc_cite_format(settings: dict[str, object]) -> bool:
+    cite_formats = settings.get("citeFormats")
+    if not isinstance(cite_formats, list):
+        return False
+    return any(isinstance(item, dict) and item.get("format") == "pandoc" for item in cite_formats)
+
+
+def check_zotero_integration_settings(settings: dict[str, object], failures: list[str]) -> None:
+    if settings_has_pandoc_cite_format(settings):
+        print_pass("Zotero Integration settings include a Pandoc citekey format")
+    else:
+        print_warn("Zotero Integration settings do not include a Pandoc citekey format")
+
+    if settings.get("citeSuggestTemplate") == PANDOC_CITE_SUGGEST_TEMPLATE:
+        print_pass("Zotero Integration autocomplete inserts Pandoc citation syntax")
+    else:
+        print_warn("Zotero Integration autocomplete is not Pandoc citation syntax")
+
+
+def check_pandoc_reference_list_settings(settings: dict[str, object], failures: list[str]) -> None:
+    bibliography_path = settings.get("pathToBibliography")
+    if isinstance(bibliography_path, str) and bibliography_path.strip():
+        print_pass("Pandoc Reference List bibliography path configured")
+    else:
+        print_warn("Pandoc Reference List bibliography path missing")
+
+    if settings.get("cslStylePath") == IEEE_CSL_STYLE_PATH:
+        print_pass("Pandoc Reference List IEEE CSL path configured")
+    else:
+        print_warn("Pandoc Reference List IEEE CSL path is not configured")
+
+
+def check_research_plugin_settings(plugin_dir: Path, plugin_id: str, failures: list[str]) -> None:
+    settings_path = plugin_dir / "data.json"
+    try:
+        settings = read_research_plugin_settings(settings_path)
+    except RuntimeError as error:
+        print_fail(str(error), failures)
+        return
+    if not settings_path.exists():
+        print_warn(f"{plugin_id} settings missing: {settings_path}")
+        return
+
+    if plugin_id == ZOTERO_INTEGRATION_PLUGIN_ID:
+        check_zotero_integration_settings(settings, failures)
+    elif plugin_id == PANDOC_REFERENCE_LIST_PLUGIN_ID:
+        check_pandoc_reference_list_settings(settings, failures)
 
 
 def check_pandoc_available() -> None:
@@ -374,6 +524,7 @@ def check_research_plugins(argv: list[str] | None = None) -> int:
             print_pass(f"{plugin_id} enabled")
         else:
             print_fail(f"{plugin_id} not enabled in {community_plugins_path(obsidian_dir)}", failures)
+        check_research_plugin_settings(plugin_dir, plugin_id, failures)
 
     check_pandoc_available()
     return 1 if failures else 0

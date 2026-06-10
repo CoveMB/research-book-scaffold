@@ -359,7 +359,16 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn(".obsidian/plugins/codex-panel/", gitignore)
         self.assertIn(".obsidian/plugins/obsidian-zotero-desktop-connector/", gitignore)
         self.assertIn(".obsidian/plugins/obsidian-pandoc-reference-list/", gitignore)
+        self.assertIn(".pandoc/", gitignore)
         self.assertNotIn(".obsidian/community-plugins.json", gitignore)
+
+    def test_ieee_csl_is_tracked_and_used_by_default_quarto_config(self) -> None:
+        ieee_csl = ROOT / "bibliography" / "csl" / "ieee.csl"
+        quarto_config = (ROOT / "manuscript" / "_quarto.yml").read_text(encoding="utf-8")
+
+        self.assertTrue(ieee_csl.is_file())
+        self.assertIn("http://www.zotero.org/styles/ieee", ieee_csl.read_text(encoding="utf-8"))
+        self.assertIn("csl: ../bibliography/csl/ieee.csl", quarto_config)
 
     def test_obsidian_manual_refresh_docs_include_force(self) -> None:
         docs = (ROOT / "docs" / "15-obsidian-skills.md").read_text(encoding="utf-8")

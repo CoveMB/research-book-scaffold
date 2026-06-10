@@ -144,7 +144,7 @@ def example_answers() -> dict[str, object]:
         "initial_research_tasks": ["Build Zotero collection", "Draft search protocol"],
         "output_formats": ["html", "docx"],
         "chapter_names": ["Introduction", "Evidence Base"],
-        "citation_style": "undecided",
+        "citation_style": "IEEE",
         "target_venue": "undecided",
         "bibliography_path": "bibliography/references.bib",
         "better_bibtex_auto_export": "not yet",
@@ -484,6 +484,24 @@ class StartProjectTests(unittest.TestCase):
             self.assertTrue(any("outside the project root" in warning for warning in result.warnings))
             config = (root / "manuscript" / "_quarto.yml").read_text(encoding="utf-8")
             self.assertIn("bibliography: ../bibliography/references.bib", config)
+            self.assertIn("csl: ../bibliography/csl/ieee.csl", config)
+
+    def test_explicit_undecided_citation_style_remains_unresolved(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_scaffold(root)
+            answers = example_answers()
+            answers["citation_style"] = "undecided"
+
+            result = start_project.initialize_project(
+                root,
+                answers,
+                start_project.StartProjectOptions(skip_audit=True, skip_render=True),
+            )
+
+            config = (root / "manuscript" / "_quarto.yml").read_text(encoding="utf-8")
+            self.assertNotIn("csl: ../bibliography/csl/ieee.csl", config)
+            self.assertTrue(any("Choose a citation style" in step for step in result.next_steps))
 
     def test_strict_placeholder_detection_marks_unresolved_decisions_for_checks(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
