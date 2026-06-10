@@ -166,7 +166,7 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             "`make doctor`, `make lint`, `make test`, `make audit`, `make release-audit`, and `make ci`",
             self.runbook_text,
         )
-        self.assertIn("lint plus the normal scaffold audit", self.runbook_text)
+        self.assertIn("lint plus CI-safe checks", self.runbook_text)
         self.assertNotIn("lint plus release-audit", self.runbook_text)
 
     def test_runbook_distinguishes_uninitialized_scaffold_from_release_ready_manuscript(self) -> None:

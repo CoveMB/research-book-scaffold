@@ -38,9 +38,6 @@ jobs:
       - name: Run script and end-to-end tests
         run: make test
 
-      - name: Scan Markdown and Quarto placeholders
-        run: make check-placeholders
-
       - name: Check manuscript citations against bibliography
         run: make check-citations
 

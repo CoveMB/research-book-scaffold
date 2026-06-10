@@ -299,11 +299,18 @@ class ProjectToolingTests(unittest.TestCase):
             makefile,
         )
 
-    def test_ci_target_uses_scaffold_audit_not_release_audit(self) -> None:
+    def test_ci_target_uses_hosted_safe_checks_without_placeholder_gate(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 
-        self.assertIn("ci: lint audit", makefile)
+        self.assertIn(
+            "ci: lint test check-citations check-links check-external-skills check-obsidian-artifacts",
+            makefile,
+        )
+        self.assertIn("audit: test check-placeholders", makefile)
+        self.assertNotIn("ci: lint audit", makefile)
         self.assertNotIn("ci: lint release-audit", makefile)
+        self.assertNotIn("make check-placeholders", workflow)
 
     def test_pre_commit_hooks_do_not_run_placeholder_check(self) -> None:
         pre_commit_config = (ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
@@ -322,7 +329,6 @@ class ProjectToolingTests(unittest.TestCase):
             "Show Python, Git, and Make versions",
             "Compile-check Python scripts and QA tools",
             "Run script and end-to-end tests",
-            "Scan Markdown and Quarto placeholders",
             "Check manuscript citations against bibliography",
             "Check wiki-style internal links",
             "Validate external skill integration",

@@ -412,7 +412,7 @@ Expected result:
 | `make precommit-run` | Runs default pre-commit hooks across all files | Exits 0 after file hygiene, citation, link, and Python compile checks pass |
 | `make audit` | Runs normal scaffold health checks | Exits 0 |
 | `make release-audit` | Runs strict pre-release manuscript checks | Exits 0 and all blockers are resolved |
-| `make ci` | Runs hosted CI-safe lint and normal scaffold audit checks | Exits 0 on every supported Python version for a fresh scaffold |
+| `make ci` | Runs hosted CI-safe lint, tests, citation, link, external-skill, and Obsidian artifact checks | Exits 0 on every supported Python version for a fresh scaffold |
 
 Standard command sequence:
 
@@ -430,7 +430,7 @@ Expected result:
 - `make doctor`, `make lint`, `make test`, and `make audit` exit 0 for a fresh scaffold.
 - A fresh uninitialized scaffold fails manuscript readiness and `make release-audit` until generic manuscript identity is replaced by `make start-project` or project-specific manuscript files.
 - `make release-audit` exits 0 for an initialized production manuscript after all blockers are resolved.
-- `make ci` is the hosted-CI aggregate and can be used as the local one-command equivalent of lint plus the normal scaffold audit. It intentionally does not replace `make release-audit`.
+- `make ci` is the hosted-CI aggregate and can be used as the local one-command equivalent of lint plus CI-safe checks. It intentionally does not replace `make audit` or `make release-audit`.
 - A production manuscript still needs real project material, verified source notes, and manual scholarly QA even when scaffold release gates pass.
 
 ## Seeded Content Fixture QA
