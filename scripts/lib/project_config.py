@@ -23,7 +23,6 @@ PLUGIN_MARKETPLACE = Path(".agents/plugins/marketplace.json")
 MARKETPLACE_PLUGIN_PATH = "./vendor/research-book-skills"
 SUBAGENT_ORCHESTRATOR_PLUGIN_PATH = "./vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator"
 SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT = SUBAGENT_ORCHESTRATOR_VENDOR / "plugin" / "subagent-orchestrator"
-LEGACY_RBS_PLUGIN = Path("plugins/research-book-skills")
 RBS_MARKETPLACE_NAME = "research-book-skills"
 RBS_PLUGIN_JSON_NAME = "research-skills-plugin"
 SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME = "subagent-orchestrator"
@@ -189,7 +188,6 @@ OBSIDIAN_RESEARCH_PLUGIN_IDS = (
     ZOTERO_INTEGRATION_PLUGIN_ID,
     PANDOC_REFERENCE_LIST_PLUGIN_ID,
 )
-LEGACY_OBSIDIAN_PLUGIN_IDS = ("obsidian-" + "codex",)
 OBSIDIAN_DIR = Path(".obsidian")
 OBSIDIAN_PLUGINS_DIR = OBSIDIAN_DIR / "plugins"
 OBSIDIAN_PLUGIN_DIR = OBSIDIAN_PLUGINS_DIR / CODEX_PANEL_PLUGIN_ID

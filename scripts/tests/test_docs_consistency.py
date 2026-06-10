@@ -43,6 +43,28 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertIn("$obsidian-research-markdown", runbook)
         self.assertIn("without manual repo marketplace plugin installation", runbook)
 
+    def test_agent_checks_cover_notes_and_obsidian_artifacts(self) -> None:
+        agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+
+        self.assertIn("python3 scripts/research-writing/check_citations.py --include-notes", agents)
+        self.assertIn("python3 scripts/operations/obsidian/check_obsidian_artifacts.py", agents)
+        self.assertIn("when `.base` or `.canvas` files are created or changed", agents)
+
+    def test_research_readme_lists_optional_obsidian_artifact_folders(self) -> None:
+        research_readme = (ROOT / "research" / "README.md").read_text(encoding="utf-8")
+
+        for path in ("views/", "canvases/", "web-ingest/"):
+            with self.subTest(path=path):
+                self.assertIn(path, research_readme)
+        self.assertIn("docs/15-obsidian-skills.md", research_readme)
+
+    def test_vendor_template_guidance_keeps_local_safety_rules_visible(self) -> None:
+        templates_readme = (ROOT / "templates" / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("Inspect the relevant upstream file before using it", templates_readme)
+        self.assertIn("keep `vendor/` unchanged", templates_readme)
+        self.assertIn("local `AGENTS.md` source, citation, and evidence rules", templates_readme)
+
 
 if __name__ == "__main__":
     unittest.main()

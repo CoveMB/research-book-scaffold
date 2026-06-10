@@ -20,6 +20,16 @@ Use `research/` for the process records that make those later files auditable.
 | `source-matrices/` | Cross-source comparisons of claims, methods, evidence quality, strengths, limits, and relevance to project questions or claim IDs. | So patterns, disagreements, and gaps stay visible before they are turned into synthesis or draft prose. |
 | `protocols/` | Research procedures, inclusion and exclusion criteria, coding rules, review steps, and audit checks for a bounded research task. | So a research pass has clear rules and later readers can see how evidence was gathered and handled. |
 
+Optional Obsidian-facing artifacts can also live under `research/` when those
+workflows are used:
+
+- `views/` for `.base` files.
+- `canvases/` for generated `.canvas` files.
+- `web-ingest/` for Defuddle output and web-ingest notes.
+
+Create those folders only when they are needed. See
+`docs/15-obsidian-skills.md` for the Obsidian wrapper boundaries and checks.
+
 Do not use this folder for invented citations, unsourced claims, polished
 manuscript text, or generated bibliography entries. If evidence is missing, mark
 the gap plainly and leave a follow-up task.

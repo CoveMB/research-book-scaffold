@@ -156,11 +156,16 @@ Run checks that match the work:
 
 ```sh
 bash scripts/operations/health/doctor.sh
-python3 scripts/research-writing/check_citations.py
+python3 scripts/research-writing/check_citations.py --include-notes
 python3 scripts/research-writing/check_placeholders.py .
 python3 scripts/research-writing/check_broken_internal_links.py
+python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 python3 scripts/operations/vendors/check_external_skills.py
 ```
+
+Use `check_citations.py --include-notes` when the work touches notes, research
+logs, or manuscript files that may contain citekeys. Run the Obsidian artifact
+check when `.base` or `.canvas` files are created or changed.
 
 Before sharing or exporting a manuscript, run the strict release audit target:
 

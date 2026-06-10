@@ -20,6 +20,9 @@ project material. Do not use a template to fill missing evidence from memory.
 
 Use these from `vendor/research-book-skills/` directly so local copies do not drift:
 
+Inspect the relevant upstream file before using it, keep `vendor/` unchanged,
+and apply the local `AGENTS.md` source, citation, and evidence rules.
+
 - `skills/case-study-integration/assets/case-study-dossier-template.md`
 - `skills/chapter-architecture/assets/chapter-brief-template.md`
 - `skills/literature-review-mapper/assets/lit-map-template.md`

@@ -33,7 +33,7 @@ exports/epub/*
 config/*.local.*
 config/mcp.json
 
-# Local Obsidian state and plugin artifacts
+# Local Obsidian workspace state and caches
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/cache/

@@ -181,7 +181,6 @@ class CheckExternalSkillsTests(unittest.TestCase):
             mock.patch.object(check_external_skills, "VENDOR_SPECS_BY_KEY", {"rbs": vendor_spec}),
             mock.patch.object(check_external_skills, "RBS_PLUGIN_SPEC", plugin_spec),
             mock.patch.object(check_external_skills, "SKILLS_DIR", root / ".agents" / "skills"),
-            mock.patch.object(check_external_skills, "LEGACY_RBS_PLUGIN", root / "missing-legacy"),
             mock.patch.object(check_external_skills, "check_submodule"),
             mock.patch.object(check_external_skills, "git_origin", return_value="https://github.com/CoveMB/research-book-skills.git"),
         ):
@@ -255,7 +254,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
             root = Path(temp_dir)
             skills_dir = root / ".agents" / "skills"
             self.write_repo_skill(skills_dir, "expected-skill")
-            self.write_repo_skill(skills_dir, "stale-skill")
+            self.write_repo_skill(skills_dir, "extra-skill")
             failures: list[str] = []
 
             with (
@@ -265,7 +264,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
                 with contextlib.redirect_stdout(io.StringIO()):
                     check_external_skills.check_repo_scoped_skill_inventory(failures)
 
-        self.assertIn("repo-scoped skill directory not configured: stale-skill", failures)
+        self.assertIn("repo-scoped skill directory not configured: extra-skill", failures)
 
     def test_repo_scoped_skill_inventory_rejects_skill_directory_without_skill_file(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

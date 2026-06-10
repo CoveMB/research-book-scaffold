@@ -36,14 +36,6 @@ def direct_script_paths() -> list[str]:
     )
 
 
-def previous_obsidian_agent_terms() -> list[str]:
-    return [
-        "obsidian-" + "codex",
-        "Obsidian " + "Codex",
-        "A" + "Kin-" + "lvy" + "ifang",
-    ]
-
-
 class ProductionReleaseQaDocTests(unittest.TestCase):
     def setUp(self) -> None:
         self.assertTrue(RUNBOOK.exists(), f"missing QA runbook: {RUNBOOK}")
@@ -52,14 +44,7 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         self.qa_requirements_text = QA_REQUIREMENTS.read_text(encoding="utf-8")
 
     def test_runbook_lives_under_root_end_to_end_tests_folder(self) -> None:
-        legacy_runbook_name = "15-production-" + "release-qa.md"
-        legacy_nested_test_path = "test/" + "qa"
-
         self.assertIn("# Production Release QA Runbook", self.runbook_text)
-        self.assertFalse((ROOT / "docs" / legacy_runbook_name).exists())
-        self.assertFalse((ROOT / "test" / "qa").exists())
-        self.assertFalse((ROOT / "test").exists())
-        self.assertNotIn(legacy_nested_test_path, self.runbook_text)
 
     def test_runbook_mentions_every_make_target(self) -> None:
         for target in make_targets():
@@ -68,19 +53,6 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
     def test_runbook_mentions_every_direct_script(self) -> None:
         for script_path in direct_script_paths():
             self.assertIn(f"`{script_path}`", self.runbook_text, script_path)
-
-    def test_docs_and_qa_do_not_mention_previous_obsidian_agent_plugin(self) -> None:
-        checked_paths = [
-            ROOT / "AGENTS.md",
-            ROOT / "README.md",
-            ROOT / "Makefile",
-            *sorted((ROOT / "docs").glob("*.md")),
-            *sorted((END_TO_END_TESTS_ROOT / "docs").glob("*.md")),
-        ]
-        checked_text = "\n".join(path.read_text(encoding="utf-8") for path in checked_paths)
-
-        for term in previous_obsidian_agent_terms():
-            self.assertNotIn(term, checked_text)
 
     def test_runbook_mentions_external_skill_surfaces(self) -> None:
         for skill_name in project_config.ARS_SKILLS:

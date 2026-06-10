@@ -30,7 +30,6 @@ from project_config import (
     OBSIDIAN_PLUGIN_SETTINGS_FILE,
     OBSIDIAN_PLUGINS_DIR,
     REQUIRED_OBSIDIAN_PLUGIN_FILES,
-    LEGACY_OBSIDIAN_PLUGIN_IDS,
     resolve_obsidian_vault_path,
 )
 from script_utils import StatusReport
@@ -335,17 +334,11 @@ def ensure_requested_obsidian_vault_registration(
 def enabled_plugins_with_codex_panel(enabled_plugins: list[str]) -> list[str]:
     updated_plugins: list[str] = []
     panel_added = False
-    legacy_plugin_ids = set(LEGACY_OBSIDIAN_PLUGIN_IDS)
 
     for plugin_id in enabled_plugins:
         if plugin_id == CODEX_PANEL_PLUGIN_ID:
             if not panel_added:
                 updated_plugins.append(plugin_id)
-                panel_added = True
-            continue
-        if plugin_id in legacy_plugin_ids:
-            if not panel_added:
-                updated_plugins.append(CODEX_PANEL_PLUGIN_ID)
                 panel_added = True
             continue
         updated_plugins.append(plugin_id)

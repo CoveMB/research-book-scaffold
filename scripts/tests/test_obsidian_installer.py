@@ -17,10 +17,6 @@ from project_config import CODEX_PANEL_PLUGIN_ID, OBSIDIAN_PLUGIN_DIR
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def previous_agent_plugin_id() -> str:
-    return "obsidian-" + "codex"
-
-
 def install_with_plugin_release(
     temp_path: Path,
     *extra_args: str,
@@ -83,21 +79,6 @@ class ObsidianInstallerTests(unittest.TestCase):
 
             enabled_plugins = json.loads(community_plugins_path.read_text(encoding="utf-8"))
             self.assertEqual(enabled_plugins, ["existing-plugin", CODEX_PANEL_PLUGIN_ID])
-
-    def test_install_replaces_previous_agent_plugin_enablement(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-
-            obsidian_dir = temp_path / ".obsidian"
-            obsidian_dir.mkdir()
-            community_plugins_path = obsidian_dir / "community-plugins.json"
-            community_plugins_path.write_text(json.dumps(["existing-plugin", previous_agent_plugin_id()]), encoding="utf-8")
-
-            install_with_plugin_release(temp_path)
-
-            enabled_plugins = json.loads(community_plugins_path.read_text(encoding="utf-8"))
-            self.assertEqual(enabled_plugins, ["existing-plugin", CODEX_PANEL_PLUGIN_ID])
-            self.assertFalse((temp_path / ".obsidian" / "plugins" / previous_agent_plugin_id()).exists())
 
     def test_install_writes_codex_panel_settings_with_absolute_codex_path(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

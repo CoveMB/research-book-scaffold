@@ -399,7 +399,7 @@ Expected result:
 | `make check-external-references` | Checks external URLs and DOI resolution without archive lookup | Run only when network QA is in scope; warnings are reviewed without blocking ordinary writing |
 | `make external-reference-report` | Writes `reports/external-reference-check.json` for external-reference audit review | Run only when a generated report is useful; archive lookup still requires an explicit script flag |
 | `make check-manuscript-readiness` | Detects remaining scaffold manuscript entries | Exits 0 for production release |
-| `make check-external-skills` | Validates vendor submodules, wrappers, plugins, marketplace, and old repo references | Exits 0 with zero failures |
+| `make check-external-skills` | Validates vendor submodules, wrappers, plugins, and marketplace entries | Exits 0 with zero failures |
 | `make install-external-skills` | Vendors external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
 | `make install-subagent-orchestrator` | Refreshes only the optional guarded subagent wrappers and marketplace path | Keeps plugin exposure optional and does not activate global hooks, global config, or global agents |
 | `make update-skills-vendors` | Fast-forwards vendored skill repositories and refreshes integrations | Use only when the release includes vendor updates |

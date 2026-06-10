@@ -65,7 +65,7 @@ bash scripts/operations/vendors/update-skills-vendors.sh --skip-ars --skip-rbs -
 
 Review the resulting submodule pointer, wrapper diffs, and install report before committing. Do not edit files under `vendor/obsidian-skills/`.
 
-## Wrapper Skill List
+## Wrapper skill list
 
 | Wrapper | Upstream skill | Use |
 | --- | --- | --- |
@@ -101,7 +101,7 @@ git clone https://github.com/kepano/obsidian-skills.git ~/.opencode/skills/obsid
 
 Do not treat any of these commands as project setup requirements. They are optional user-level installs and are outside the local wrapper contract.
 
-## Folder Conventions
+## Folder conventions
 
 Use these paths for Obsidian-facing artifacts:
 
@@ -120,7 +120,7 @@ Use these paths for Obsidian-facing artifacts:
 
 Create the `research/views/`, `research/canvases/`, and `research/web-ingest/` folders when they are first needed. Keep polished manuscript prose in `manuscript/`, not in generated Obsidian artifacts.
 
-## Usage Recipes
+## Usage recipes
 
 ### Source note Markdown
 
@@ -132,7 +132,7 @@ python3 scripts/research-writing/new_from_template.py templates/source-note-temp
 
 Before adding a citekey, verify it exists in Zotero or `bibliography/references.bib`. Page numbers or stable section locators are required when a claim depends on a specific passage. Point wikilinks only to existing or intentionally planned project notes.
 
-### Claim-Ledger Base
+### Claim ledger `.base`
 
 Use `obsidian-research-bases` for `.base` syntax. Store claim-ledger views under `research/views/`.
 
@@ -155,7 +155,7 @@ views:
 
 Keep the `.base` view descriptive. It can surface claim metadata, but it cannot make an unsupported claim ready for manuscript use.
 
-### Literature-Map Canvas
+### Literature map `.canvas`
 
 Use `obsidian-research-canvas` for JSON Canvas syntax. Store generated canvases under `research/canvases/`.
 
@@ -201,7 +201,7 @@ python3 -m json.tool research/canvases/example-literature-map.canvas
 
 Canvas layouts can help organize interpretation, but source relationships still need citation-backed notes.
 
-### Defuddle Web Ingest
+### Defuddle web ingest
 
 Use `obsidian-research-defuddle` only when the user explicitly asks to extract a web page and network/tool access is appropriate. Store output under `research/web-ingest/`.
 

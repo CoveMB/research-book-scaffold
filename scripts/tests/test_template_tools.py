@@ -43,7 +43,6 @@ SOURCE_NOTE_REQUIRED_SECTIONS = [
 ]
 
 SOURCE_NOTE_STATUS_FIELD = "source_status"
-OBSOLETE_SOURCE_NOTE_STATUS_FIELD = "reading" + "_status"
 SOURCE_NOTE_SCAFFOLD_FILES = [
     Path("templates/source-note-template.md"),
     Path("notes/10-evidence/source-notes/README.md"),
@@ -97,17 +96,15 @@ class TemplateToolTests(unittest.TestCase):
             with self.subTest(field=empty_reference_field):
                 self.assertEqual("", metadata_value(template, empty_reference_field))
 
-    def test_source_note_template_uses_source_status_without_legacy_duplicate(self) -> None:
+    def test_source_note_template_uses_source_status_field(self) -> None:
         template = Path("templates/source-note-template.md").read_text(encoding="utf-8")
 
         self.assertIn(f"{SOURCE_NOTE_STATUS_FIELD}:", template)
-        self.assertNotIn(f"{OBSOLETE_SOURCE_NOTE_STATUS_FIELD}:", template)
 
-    def test_source_note_scaffold_files_do_not_use_obsolete_status_field(self) -> None:
+    def test_source_note_scaffold_files_include_source_status_field(self) -> None:
         for path in SOURCE_NOTE_SCAFFOLD_FILES:
             with self.subTest(path=path):
                 text = path.read_text(encoding="utf-8")
-                self.assertNotIn(OBSOLETE_SOURCE_NOTE_STATUS_FIELD, text)
                 if path.suffix == ".md":
                     self.assertIn(SOURCE_NOTE_STATUS_FIELD, text)
 

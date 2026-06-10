@@ -50,11 +50,19 @@ Default setup treats the repository root as the vault root:
 bash setup.sh
 ```
 
-This creates `.obsidian/` in the project root, installs Codex Panel at `.obsidian/plugins/codex-panel/`, installs Zotero Integration at `.obsidian/plugins/obsidian-zotero-desktop-connector/`, installs Pandoc Reference List at `.obsidian/plugins/obsidian-pandoc-reference-list/`, adds all three plugin IDs to `.obsidian/community-plugins.json`, removes any older agent-plugin enablement entry when present, writes `.obsidian/plugins/codex-panel/data.json` when an absolute Codex executable path is available, seeds safe citation-plugin settings, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
+This creates `.obsidian/` in the project root and installs:
 
-The downloaded plugin directories under `.obsidian/plugins/` are ignored because setup can recreate them and plugin settings may contain absolute executable paths, Zotero library cache state, or local workflow choices. Setup still writes safe defaults there after the plugin payload is valid. It preserves existing plugin settings and fills only missing defaults, so rerunning setup should not overwrite a local Pandoc path, bibliography override, or Zotero group choice. `.obsidian/community-plugins.json` is not ignored so a fork can intentionally commit vault-level plugin enablement defaults after review. `.pandoc/` is ignored because Pandoc Reference List can cache Zotero bibliography data, CSL files, and locale files there.
+- Codex Panel at `.obsidian/plugins/codex-panel/`
+- Zotero Integration at `.obsidian/plugins/obsidian-zotero-desktop-connector/`
+- Pandoc Reference List at `.obsidian/plugins/obsidian-pandoc-reference-list/`
 
-If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. The research plugin installer accepts existing Zotero Integration and Pandoc Reference List folders only after checking their required files and manifest IDs. When a stale or broken plugin folder is suspected, rerun setup with `--force`, then run the matching check.
+Setup also adds all three plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json` when it finds an absolute Codex executable path, seeds safe citation-plugin settings, and refreshes immediate-use wrappers in `.agents/skills`. It does not create a nested `obsidian-vault/` folder or write Obsidian workspace files. `--force` only allows replacing an existing plugin folder.
+
+The downloaded plugin directories under `.obsidian/plugins/` are not ignored by default. That lets a fork persist reviewed plugin configuration when it is useful. Review diffs before committing because plugin settings may contain absolute executable paths, Zotero library cache state, or local workflow choices. Setup still writes safe defaults after the plugin payload is valid. It preserves existing plugin settings and fills only missing defaults, so rerunning setup should not overwrite a local Pandoc path, bibliography override, or Zotero group choice.
+
+Keep `.obsidian/community-plugins.json` tracked so a fork can commit reviewed vault-level plugin defaults. Keep `.pandoc/` ignored because Pandoc Reference List can cache Zotero bibliography data, CSL files, and locale files there.
+
+If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. The research plugin installer accepts existing Zotero Integration and Pandoc Reference List folders only after checking their required files and manifest IDs. When a plugin folder is broken or has a manifest mismatch, rerun setup with `--force`, then run the matching check.
 
 By default, setup does not modify Obsidian's app-level vault registry. If Obsidian has never opened this project root as a vault, a direct `obsidian://open?path=...` launch can report that the vault is not found even though the vault-local `.obsidian/` files exist.
 
@@ -168,7 +176,7 @@ If Codex Panel does not see repo-scoped skills, verify that Obsidian opened the 
 
 Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, `docs/07-citation-workflow.md`, and `docs/15-obsidian-skills.md` before using it for edits that involve Obsidian-specific syntax, Bases, Canvas files, CLI operations, or web ingest.
 
-## Research Plugin Workflow
+## Research plugin workflow
 
 Use Zotero Integration to search Zotero and insert Pandoc-style citations into notes or manuscript files. Setup adds a `Pandoc citekey` format and sets citation autocomplete to insert `[@citekey]` for this purpose. Keep the inserted form as `[@citekey]`, `[-@citekey]`, or `[@first; @second]` so Quarto and the citation checker can read it.
 

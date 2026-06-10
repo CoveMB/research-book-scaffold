@@ -31,7 +31,6 @@ from project_config import (
     EXTERNAL_VENDOR_SPECS,
     ExternalPluginSpec,
     GITMODULES_PATH,
-    LEGACY_RBS_PLUGIN,
     OBSIDIAN_SKILLS,
     OBSIDIAN_SKILL_WRAPPERS,
     PLUGIN_MARKETPLACE,
@@ -45,7 +44,6 @@ from project_config import (
 )
 from script_utils import read_text
 
-OLD_ARS_REPO = "CoveMB/" + "academic-research-skills"
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(?P<body>.*?)\n---\s*", flags=re.DOTALL)
 VENDOR_SPECS_BY_KEY = {spec.key: spec for spec in EXTERNAL_VENDOR_SPECS}
 MARKETPLACE_PATHS_BY_NAME = {spec.marketplace_name: spec.plugin_path for spec in EXTERNAL_PLUGIN_SPECS}
@@ -449,7 +447,6 @@ def check_rbs(failures: list[str], warnings: list[str]) -> None:
         ),
         wrapper_names_by_skill=RBS_SKILL_WRAPPERS,
     )
-    check(not LEGACY_RBS_PLUGIN.exists(), "legacy RBS plugin copy absent", f"legacy RBS plugin copy should be removed: {LEGACY_RBS_PLUGIN}", failures)
     check((SKILLS_DIR / "RBS_INSTALLED.md").exists(), "RBS install report exists", "RBS install report missing", failures)
 
 
@@ -562,28 +559,6 @@ def check_marketplace(failures: list[str]) -> None:
         check_marketplace_entry(plugins, plugin_name, expected_path, failures)
 
 
-def check_old_repo_reference(failures: list[str]) -> None:
-    ignored_parts = {"__pycache__", ".git"}
-    roots = [Path("README.md"), Path("AGENTS.md"), Path("docs"), Path("scripts"), Path("config"), Path(".agents")]
-    matches: list[Path] = []
-    for root in roots:
-        if root.is_file():
-            files = [root]
-        elif root.exists():
-            files = [path for path in root.rglob("*") if path.is_file() and not (ignored_parts & set(path.parts))]
-        else:
-            files = []
-        for path in files:
-            if OLD_ARS_REPO in read_text(path):
-                matches.append(path)
-    if matches:
-        for path in matches:
-            print(f"FAIL old ARS repo reference remains: {path}")
-        failures.append("old ARS repo reference remains")
-    else:
-        print("PASS no old ARS repo references in local docs/scripts")
-
-
 def main() -> int:
     change_to_project_root()
     failures: list[str] = []
@@ -594,7 +569,6 @@ def main() -> int:
     check_subagent_orchestrator(failures, warnings)
     check_obsidian_skills(failures, warnings)
     check_marketplace(failures)
-    check_old_repo_reference(failures)
     print(f"\nSummary: {len(failures)} fail, {len(warnings)} warn")
     return 1 if failures else 0
 
