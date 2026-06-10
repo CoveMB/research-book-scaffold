@@ -1,6 +1,6 @@
 PRE_COMMIT ?= pre-commit
 
-.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run audit release-audit ci
+.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
 
 help:
 	@echo "Targets:"
@@ -30,8 +30,10 @@ help:
 	@echo "  install-obsidian-research-plugins Install Zotero/Pandoc Obsidian plugins"
 	@echo "  install-hooks          Install local pre-commit hooks"
 	@echo "  precommit-run          Run pre-commit hooks across the repository"
-	@echo "  audit                  Run repository checks"
-	@echo "  release-audit          Run strict manuscript readiness checks"
+	@echo "  scaffold-audit         Run base scaffold checks without manuscript readiness"
+	@echo "  audit                  Alias for scaffold-audit"
+	@echo "  release-audit          Run scaffold release checks without manuscript readiness"
+	@echo "  manuscript-release-audit Run initialized-manuscript readiness checks"
 	@echo "  ci                     Run checks suitable for hosted CI"
 
 start-project:
@@ -113,8 +115,12 @@ install-hooks:
 precommit-run:
 	$(PRE_COMMIT) run --all-files --show-diff-on-failure
 
-audit: test check-placeholders check-citations check-links check-external-skills check-obsidian-artifacts
+scaffold-audit: test check-placeholders check-citations check-links check-external-skills check-obsidian-artifacts
 
-release-audit: test check-placeholders check-citations-strict check-links check-manuscript-readiness check-external-skills check-obsidian-artifacts
+audit: scaffold-audit
+
+release-audit: test check-placeholders check-citations-strict check-links check-external-skills check-obsidian-artifacts
+
+manuscript-release-audit: release-audit check-manuscript-readiness
 
 ci: lint test check-citations check-links check-external-skills check-obsidian-artifacts

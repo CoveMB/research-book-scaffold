@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -20,10 +21,28 @@ configure_script_paths(__file__)
 
 CORE_TOOLS = ["git", "python3", "curl", "unzip", "codex"]
 OPTIONAL_TOOLS = ["node", "npm", "quarto", "pandoc"]
+MINIMUM_PYTHON_VERSION = (3, 11)
+MINIMUM_PYTHON_VERSION_TEXT = ".".join(str(part) for part in MINIMUM_PYTHON_VERSION)
+PYTHON_VERSION_CHECK = (
+    "import sys; "
+    f"raise SystemExit(0 if sys.version_info >= {MINIMUM_PYTHON_VERSION!r} else 1)"
+)
 
 
 def command_exists(command: str) -> bool:
     return shutil.which(command) is not None
+
+
+def command_runs(command: list[str]) -> bool:
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return result.returncode == 0
+
+
+def python3_meets_minimum() -> bool:
+    return command_runs(["python3", "-c", PYTHON_VERSION_CHECK])
 
 
 def ask_to_run(prompt: str, args: argparse.Namespace) -> bool:
@@ -140,7 +159,13 @@ def check_packages(args: argparse.Namespace, report: StatusReport) -> None:
 
     for tool in CORE_TOOLS:
         if command_exists(tool):
-            report.add("already_present", f"{tool} found")
+            if tool == "python3":
+                if python3_meets_minimum():
+                    report.add("already_present", f"python3 {MINIMUM_PYTHON_VERSION_TEXT}+ found")
+                else:
+                    report.add("failed", f"python3 {MINIMUM_PYTHON_VERSION_TEXT}+ required")
+            else:
+                report.add("already_present", f"{tool} found")
         elif tool == "codex":
             report.add("warnings", "codex missing")
             install_codex(args, report)

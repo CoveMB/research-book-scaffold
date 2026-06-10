@@ -4,10 +4,10 @@ Quarto book files live here.
 
 Keep manuscript prose separate from notes, source matrices, and audits.
 
-Run release checks before sharing manuscript output:
+Run the manuscript release gate before sharing manuscript output:
 
 ```sh
-make release-audit
+make manuscript-release-audit
 ```
 
 From the repository root, use the scaffold render targets:

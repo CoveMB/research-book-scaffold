@@ -16,7 +16,13 @@ from import_paths import configure_script_paths
 
 configure_script_paths(__file__)
 
-from environment_checks import CORE_TOOLS, OPTIONAL_TOOLS, command_exists
+from environment_checks import (
+    CORE_TOOLS,
+    MINIMUM_PYTHON_VERSION_TEXT,
+    OPTIONAL_TOOLS,
+    command_exists,
+    python3_meets_minimum,
+)
 from git_utils import git_stdout
 from project_config import change_to_project_root
 
@@ -42,6 +48,12 @@ def command_runs(command: list[str]) -> bool:
 def check_required_command(command: str, counts: dict[str, int]) -> None:
     if not command_exists(command):
         record("fail", f"{command} missing", counts)
+        return
+    if command == "python3":
+        if python3_meets_minimum():
+            record("pass", f"python3 {MINIMUM_PYTHON_VERSION_TEXT}+ found", counts)
+        else:
+            record("fail", f"python3 {MINIMUM_PYTHON_VERSION_TEXT}+ required", counts)
         return
     version_command = VERSION_CHECK_COMMANDS.get(command)
     if version_command and not command_runs(version_command):

@@ -25,6 +25,18 @@ class DoctorTests(unittest.TestCase):
 
         record_mock.assert_called_once_with("warn", "codex found but version check failed", counts)
 
+    def test_required_python_fails_when_version_is_too_old(self) -> None:
+        counts = {"pass": 0, "warn": 0, "fail": 0}
+
+        with (
+            mock.patch.object(doctor, "command_exists", return_value=True),
+            mock.patch.object(doctor, "python3_meets_minimum", return_value=False),
+            mock.patch.object(doctor, "record") as record_mock,
+        ):
+            doctor.check_required_command("python3", counts)
+
+        record_mock.assert_called_once_with("fail", "python3 3.11+ required", counts)
+
     def test_branch_without_upstream_reports_warning(self) -> None:
         self.assertEqual(
             doctor.branch_tracking_status("main", None, None),

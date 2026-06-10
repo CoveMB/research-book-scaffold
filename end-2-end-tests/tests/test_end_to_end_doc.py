@@ -143,7 +143,8 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
 
     def test_runbook_distinguishes_uninitialized_scaffold_from_release_ready_manuscript(self) -> None:
         self.assertIn("fresh uninitialized scaffold", self.runbook_text)
-        self.assertIn("fails manuscript readiness", self.runbook_text)
+        self.assertIn("`make release-audit` exit 0 for a fresh scaffold", self.runbook_text)
+        self.assertIn("fails manuscript readiness and `make manuscript-release-audit`", self.runbook_text)
         self.assertNotIn("for a fresh scaffold and for a production manuscript", self.runbook_text)
 
     def test_runbook_documents_tinytex_bibtex_obsidian_and_browser_qa_remediations(self) -> None:

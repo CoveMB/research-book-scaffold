@@ -16,7 +16,7 @@
 12. Trace major claims back to notes, citekeys, and locators.
 13. Draft chapter briefs in `notes/40-writing-bridge/chapter-briefs/`.
 14. Draft only from notes and briefs in `manuscript/`.
-15. Audit citations, placeholders, links, claims, continuity, and release risks before export with `make release-audit`.
+15. Audit citations, placeholders, links, claims, continuity, and release risks before manuscript export with `make manuscript-release-audit`.
 16. Render exports only after checks pass and known limitations are recorded.
 
 ## Full sequence
@@ -48,6 +48,6 @@
 | 23. Style revision | Improve prose | Audited draft | Revised draft | Editor | RBS prose editor workflow | Meaning preserved |
 | 24. Release-risk audit | Check external-sharing risks | Notes, drafts, exports | Release audit | Notes | RBS rights/privacy release workflow | Privacy, quote, license, and copied-text risks marked |
 | 25. Proposal comps verification | Check comparable titles | Proposal, comps | Comps table | Sources | RBS book-comps verifier workflow | Publication and positioning claims verified |
-| 26. Final manuscript check | Prepare export | Draft, audits | Readiness note | `make release-audit` | Local export readiness workflow | Checks pass |
+| 26. Final manuscript check | Prepare export | Draft, audits | Readiness note | `make manuscript-release-audit` | Local export readiness workflow | Checks pass |
 | 27. Export | Render output | Quarto source | HTML, PDF, DOCX | `make render-*` | Final check docs | Output reviewed |
 | 28. Version/archive | Preserve state | Final files | Commit or archive | Git | Project rules in `AGENTS.md` | Status clean |

@@ -266,8 +266,20 @@ class ProjectToolingTests(unittest.TestCase):
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
         self.assertNotIn("make-check-placeholders", pre_commit_config)
-        self.assertIn("audit: test check-placeholders", makefile)
+        self.assertIn("scaffold-audit: test check-placeholders", makefile)
+        self.assertIn("audit: scaffold-audit", makefile)
         self.assertIn("release-audit: test check-placeholders", makefile)
+
+    def test_manuscript_readiness_is_not_required_for_base_scaffold_audits(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "release-audit: test check-placeholders check-citations-strict check-links "
+            "check-external-skills check-obsidian-artifacts",
+            makefile,
+        )
+        self.assertIn("manuscript-release-audit: release-audit check-manuscript-readiness", makefile)
+        self.assertNotIn("release-audit: test check-placeholders check-citations-strict check-links check-manuscript-readiness", makefile)
 
     def test_github_workflow_uses_descriptive_scaffold_check_steps(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")

@@ -3,7 +3,7 @@
 | Problem | Fix |
 | --- | --- |
 | Missing Codex CLI | Install and log in before setup or Obsidian agent checks. Do not store credentials in repo. |
-| Missing Python | Install Python 3, then rerun setup or checks. |
+| Missing or old Python | Install Python 3.11 or newer, then rerun setup or checks. |
 | Missing Git | Install Git before relying on status, diff, or checkpoints. |
 | Missing Quarto | Install Quarto before rendering the manuscript. |
 | Missing Pandoc | Install Pandoc or use the Quarto bundle if available. |

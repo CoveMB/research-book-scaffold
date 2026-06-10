@@ -16,7 +16,7 @@ A production release is ready only when:
 - required render targets are generated and manually inspected
 - all skipped checks, warnings, and residual scholarly risks are recorded
 
-Warnings are not automatic failures, but each warning needs an explicit release decision. Failures from `make release-audit` are release blockers.
+Warnings are not automatic failures, but each warning needs an explicit release decision. Failures from `make release-audit` block scaffold release checks. Failures from `make manuscript-release-audit` block manuscript release checks.
 
 ## Prerequisites
 
@@ -383,7 +383,7 @@ Expected result:
 
 | Target | Purpose | Pass condition |
 | --- | --- | --- |
-| `make help` | Lists available targets | Includes setup, check, render, audit, and release-audit targets |
+| `make help` | Lists available targets | Includes setup, check, render, scaffold-audit, release-audit, and manuscript-release-audit targets |
 | `make start-project` | Runs the guided project initializer | Prints preflight status, resumes from `project-start.yml` when present, and preserves existing non-scaffold content unless force is intentionally used |
 | `make doctor` | Checks local tools, files, folders, and git tracking | Exits 0 and has no `FAIL` lines |
 | `make render` | Renders all enabled Quarto formats | Exits 0 and all required outputs are present |
@@ -398,7 +398,7 @@ Expected result:
 | `make check-links` | Checks wiki-style internal links | Exits 0 and reports no broken or ambiguous links |
 | `make check-external-references` | Checks external URLs and DOI resolution without archive lookup | Run only when network QA is in scope; warnings are reviewed without blocking ordinary writing |
 | `make external-reference-report` | Writes `reports/external-reference-check.json` for external-reference audit review | Run only when a generated report is useful; archive lookup still requires an explicit script flag |
-| `make check-manuscript-readiness` | Detects remaining scaffold manuscript entries | Exits 0 for production release |
+| `make check-manuscript-readiness` | Detects remaining scaffold manuscript entries | Exits 0 for initialized production manuscripts and exits nonzero for a fresh uninitialized scaffold |
 | `make check-external-skills` | Validates vendor submodules, wrappers, plugins, and marketplace entries | Exits 0 with zero failures |
 | `make install-external-skills` | Vendors external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
 | `make install-subagent-orchestrator` | Refreshes only the optional guarded subagent wrappers and marketplace path | Keeps plugin exposure optional and does not activate global hooks, global config, or global agents |
@@ -410,8 +410,10 @@ Expected result:
 | `make install-obsidian-research-plugins` | Installs Zotero Integration and Pandoc Reference List plugins | Use only in disposable QA or intentional local setup |
 | `make install-hooks` | Installs the configured local pre-commit hook | Use after `pre-commit` is installed; hook installation does not run release-only checks |
 | `make precommit-run` | Runs default pre-commit hooks across all files | Exits 0 after file hygiene, citation, link, and Python compile checks pass |
-| `make audit` | Runs normal scaffold health checks | Exits 0 |
-| `make release-audit` | Runs strict pre-release manuscript checks | Exits 0 and all blockers are resolved |
+| `make scaffold-audit` | Runs base scaffold health checks without manuscript readiness | Exits 0 for a fresh scaffold |
+| `make audit` | Alias for `make scaffold-audit` | Exits 0 for a fresh scaffold |
+| `make release-audit` | Runs scaffold release checks without manuscript readiness | Exits 0 for a fresh scaffold |
+| `make manuscript-release-audit` | Runs scaffold release checks plus strict manuscript readiness | Exits 0 after manuscript identity is initialized and all manuscript blockers are resolved |
 | `make ci` | Runs hosted CI-safe lint, tests, citation, link, external-skill, and Obsidian artifact checks | Exits 0 on every supported Python version for a fresh scaffold |
 
 Standard command sequence:
@@ -427,10 +429,10 @@ make release-audit
 
 Expected result:
 
-- `make doctor`, `make lint`, `make test`, and `make audit` exit 0 for a fresh scaffold.
-- A fresh uninitialized scaffold fails manuscript readiness and `make release-audit` until generic manuscript identity is replaced by `make start-project` or project-specific manuscript files.
-- `make release-audit` exits 0 for an initialized production manuscript after all blockers are resolved.
-- `make ci` is the hosted-CI aggregate and can be used as the local one-command equivalent of lint plus CI-safe checks. It intentionally does not replace `make audit` or `make release-audit`.
+- `make doctor`, `make lint`, `make test`, `make audit`, and `make release-audit` exit 0 for a fresh scaffold.
+- A fresh uninitialized scaffold fails manuscript readiness and `make manuscript-release-audit` until generic manuscript identity is replaced by `make start-project` or project-specific manuscript files.
+- `make manuscript-release-audit` exits 0 for an initialized production manuscript after all blockers are resolved.
+- `make ci` is the hosted-CI aggregate and can be used as the local one-command equivalent of lint plus CI-safe checks. It intentionally does not replace `make audit`, `make release-audit`, or `make manuscript-release-audit`.
 - A production manuscript still needs real project material, verified source notes, and manual scholarly QA even when scaffold release gates pass.
 
 ## Seeded Content Fixture QA
@@ -486,6 +488,7 @@ python3 scripts/research-writing/check_broken_internal_links.py
 python3 scripts/research-writing/check_manuscript_readiness.py
 make audit
 make release-audit
+make manuscript-release-audit
 ```
 
 Expected result:
@@ -582,7 +585,7 @@ bash scripts/research-writing/render.sh --to html
 
 Expected result:
 
-- Non-mutating checks exit 0 where prerequisites and initialized manuscript state exist; manuscript readiness exits nonzero on a fresh uninitialized scaffold.
+- Non-mutating checks exit 0 where prerequisites and initialized manuscript state exist; manuscript readiness and `make manuscript-release-audit` exit nonzero on a fresh uninitialized scaffold.
 - Missing optional render tooling is reported as a tooling blocker, not a manuscript failure.
 - Vendor checks fail if submodule pointers differ from the parent index, are uninitialized, conflicted, dirty, or from an unexpected origin.
 
@@ -1012,7 +1015,8 @@ Release is ready when:
 
 - `git status --short --branch` matches the intended release state.
 - `git submodule status --recursive` has no `+`, `-`, or `U` markers.
-- `make release-audit` passes.
+- `make release-audit` passes for scaffold release checks.
+- `make manuscript-release-audit` passes for manuscript release checks.
 - All required render targets pass and are manually inspected.
 - External integrations required by the release pass `make check-external-skills`.
 - Codex Panel setup required by the release passes `make check-obsidian-panel`.

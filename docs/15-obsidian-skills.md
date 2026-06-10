@@ -252,7 +252,7 @@ python3 -m unittest discover scripts/tests
 Before sharing or exporting a manuscript, run:
 
 ```sh
-make release-audit
+make manuscript-release-audit
 ```
 
 Troubleshooting rules:

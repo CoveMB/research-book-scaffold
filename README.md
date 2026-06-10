@@ -11,6 +11,12 @@ Clean scaffold for source management, notes, manuscript drafting, citation check
 | Manuscript production | `manuscript/`, `exports/` | Quarto source files |
 | Agent orchestration | `AGENTS.md`, `.agents/skills/`, `docs/` | Repo-scoped instructions |
 
+## Documentation map
+
+Use `docs/README.md` as the short route through the documentation. It points to
+the setup, workflow, citation, audit, Obsidian, external-skill, and pre-commit
+docs without repeating every command from the Makefile.
+
 ## Default book-project setup
 
 For a serious book project, set up a separate book repository before running
@@ -40,7 +46,18 @@ If the repository was cloned without submodules, run:
 git submodule update --init --recursive
 ```
 
-`bash setup.sh` treats the project root as the Obsidian vault root, installs Codex Panel unless skipped, installs the recommended Zotero/Pandoc Obsidian plugins unless skipped, initializes vendored external skills, refreshes repo-scoped wrappers under `.agents/skills`, and keeps plugin marketplace entries optional. Use `bash setup.sh --dry-run` first when you want a preview, or `bash setup.sh --skip-external-skills` when you only want local tool and Obsidian plugin setup.
+`bash setup.sh` requires Python 3.11 or newer. It treats the project root as the
+Obsidian vault root, installs Codex Panel unless skipped, installs the
+recommended Zotero/Pandoc Obsidian plugins unless skipped, initializes vendored
+external skills, refreshes repo-scoped wrappers under `.agents/skills`, and
+keeps plugin marketplace entries optional.
+
+Default setup uses network access for submodules and Obsidian plugin release
+assets. Use `bash setup.sh --dry-run` first when you want a preview,
+`bash setup.sh --skip-external-skills` when you only want local tool and
+Obsidian plugin setup, or
+`bash setup.sh --skip-external-skills --skip-obsidian-panel --skip-obsidian-research-plugins`
+for an offline or CLI-only pass.
 
 ### Manual setup after `setup.sh`
 
@@ -120,8 +137,10 @@ make doctor
 make start-project
 make install-hooks
 make precommit-run
+make scaffold-audit
 make audit
 make release-audit
+make manuscript-release-audit
 make render
 make render-html
 make render-pdf
@@ -234,7 +253,7 @@ make install-hooks
 make precommit-run
 ```
 
-The hooks wrap existing Makefile checks and avoid Quarto renders, network checks, vendor refresh workflows, and release-only manuscript readiness enforcement during normal commits. Use `SKIP=<hook-id> git commit` or `git commit --no-verify` for intentional bypasses. See `docs/16-pre-commit-hooks.md` for hook scope, blocking behavior, manual runs, and release-only checks.
+The hooks wrap existing Makefile checks and avoid Quarto renders, network checks, vendor refresh workflows, and manuscript readiness enforcement during normal commits. Use `SKIP=<hook-id> git commit` or `git commit --no-verify` for intentional bypasses. See `docs/16-pre-commit-hooks.md` for hook scope, blocking behavior, manual runs, and release-only checks.
 
 ## Do not automate
 

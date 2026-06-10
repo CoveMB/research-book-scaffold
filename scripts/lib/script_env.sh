@@ -15,4 +15,9 @@ require_python3() {
     printf '%s\n' "python3 is required to ${action}."
     exit 1
   fi
+  if ! python3 -c \
+    'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
+    printf '%s\n' "python3 3.11 or newer is required to ${action}."
+    exit 1
+  fi
 }

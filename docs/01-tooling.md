@@ -11,7 +11,7 @@
 | Quarto | Book rendering | Optional until export |
 | Pandoc | Format conversion and Pandoc Reference List rendering | Optional until export; needed for live reference preview |
 | Git | Version history, submodules, and checkpoints | Required for setup and vendor checks |
-| Python 3 | Local scripts, checks, setup, and tests | Required |
+| Python 3.11+ | Local scripts, checks, setup, and tests | Required |
 | pre-commit | Lightweight local commit hooks for file hygiene, Python syntax, citations, and internal links | Optional |
 | curl | Core command checked by setup and health checks for download workflows | Required by setup and doctor checks |
 | unzip | Core command checked by setup and health checks for archive workflows | Required by setup and doctor checks |
@@ -29,6 +29,10 @@ Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help f
 Do not store API keys or credentials in this repository.
 
 External repositories live under `vendor/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the vendored Research Book Skills submodule and the nested optional Subagent Orchestrator plugin path.
+
+`bash setup.sh` uses network access when it initializes vendor submodules or
+downloads Obsidian plugin release assets. For offline or CLI-only setup, use
+`bash setup.sh --skip-external-skills --skip-obsidian-panel --skip-obsidian-research-plugins`.
 
 `bash setup.sh` installs Codex Panel, Zotero Integration, and Pandoc Reference List under `.obsidian/plugins/`. It also writes safe default settings for the citation plugins:
 

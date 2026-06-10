@@ -44,7 +44,9 @@
 
 - Use the repository root as the default vault root; pass an explicit vault path only for a separate vault.
 - Do not create nested vault folders inside the repository.
-- Do not write workspace files or modify existing Obsidian settings.
+- Do not write Obsidian workspace files. Do not silently overwrite unrelated or
+  personal Obsidian settings; setup may write the documented project-local
+  plugin defaults under `.obsidian/`.
 - Use `--force` only when intentionally replacing the plugin folder.
 - Review plugin source or release contents when practical.
 - Keep command and write approval enabled.
