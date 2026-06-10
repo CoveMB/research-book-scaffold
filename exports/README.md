@@ -11,6 +11,7 @@ Folders:
 - `html/`
 - `epub/`
 
-The current Quarto configuration writes rendered outputs to `exports/html/`.
-The other folders are reserved for workflows that later sort or copy final
-artifacts by format.
+Quarto writes rendered manuscript files to `manuscript/_book/` by default.
+Use the repository render targets to mirror generated files into the matching
+`html/`, `pdf/`, and `docx/` folders here. The `epub/` folder is reserved for a
+future export target.

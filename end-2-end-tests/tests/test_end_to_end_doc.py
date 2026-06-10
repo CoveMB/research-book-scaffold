@@ -174,8 +174,8 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             "Skill smoke tests are part of full release QA",
             "Loadability checks are not the same as live behavioral smoke tests",
             "No skill output is treated as scholarly evidence",
-            "refusing to remove `site_libs` outside the project directory",
-            "render internally, such as to `manuscript/_book`, then copy final artifacts into `exports/`",
+            "Quarto writes rendered files to `manuscript/_book`, and the render wrapper mirrors them into `exports/`",
+            "Update `manuscript/_quarto.yml` to `output-dir: _book`",
             "unable to open database file",
         ]
         for phrase in expected_phrases:

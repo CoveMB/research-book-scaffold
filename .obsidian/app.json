@@ -1,0 +1,16 @@
+{
+  "alwaysUpdateLinks": true,
+  "userIgnoreFilters": [
+    ".agents/",
+    ".codex/",
+    ".github/",
+    "bibliography/",
+    "end-2-end-tests/",
+    "exports/",
+    "scripts/",
+    "AGENTS.md",
+    "TODO.md",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}

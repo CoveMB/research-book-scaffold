@@ -1,0 +1,15 @@
+/* Hide repository infrastructure and non-note project folders from Obsidian File Explorer.
+   app.json userIgnoreFilters handles Search, Graph View, and link suggestions. */
+.nav-folder:has(> .nav-folder-title[data-path=".agents"]),
+.nav-folder:has(> .nav-folder-title[data-path=".codex"]),
+.nav-folder:has(> .nav-folder-title[data-path=".github"]),
+.nav-folder:has(> .nav-folder-title[data-path="bibliography"]),
+.nav-folder:has(> .nav-folder-title[data-path="end-2-end-tests"]),
+.nav-folder:has(> .nav-folder-title[data-path="exports"]),
+.nav-folder:has(> .nav-folder-title[data-path="scripts"]),
+.nav-file:has(> .nav-file-title[data-path="AGENTS.md"]),
+.nav-file:has(> .nav-file-title[data-path="CHANGELOG.md"]),
+.nav-file:has(> .nav-file-title[data-path="README.md"]),
+.nav-file:has(> .nav-file-title[data-path="TODO.md"]) {
+  display: none !important;
+}

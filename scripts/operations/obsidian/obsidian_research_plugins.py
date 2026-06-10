@@ -100,10 +100,24 @@ RESEARCH_PLUGIN_DEFAULT_SETTINGS: dict[str, dict[str, object]] = {
         "renderLinkCitations": True,
         "enableCiteKeyCompletion": True,
         "pathToBibliography": "./bibliography/references.bib",
-        "cslStylePath": IEEE_CSL_STYLE_PATH,
         "pullFromZotero": False,
     },
 }
+
+
+# Pandoc Reference List resolves bibliography paths from the vault root, but it
+# checks cslStylePath directly through Node's filesystem APIs.
+def default_ieee_csl_style_path(vault_path: Path) -> str:
+    return str((vault_path / IEEE_CSL_STYLE_PATH).resolve())
+
+
+def is_default_ieee_csl_style_path(style_path: object, vault_path: Path) -> bool:
+    if not isinstance(style_path, str) or not style_path.strip():
+        return False
+    resolved_style_path = Path(style_path).expanduser()
+    return resolved_style_path.is_absolute() and resolved_style_path.resolve() == Path(
+        default_ieee_csl_style_path(vault_path)
+    )
 
 
 def add_install_args(parser: argparse.ArgumentParser) -> None:
@@ -208,7 +222,11 @@ def read_research_plugin_settings(settings_path: Path) -> dict[str, object]:
     return read_json_object(settings_path)
 
 
-def merged_research_plugin_settings(plugin_id: str, existing_settings: dict[str, object]) -> dict[str, object]:
+def merged_research_plugin_settings(
+    plugin_id: str,
+    existing_settings: dict[str, object],
+    vault_path: Path,
+) -> dict[str, object]:
     defaults = RESEARCH_PLUGIN_DEFAULT_SETTINGS.get(plugin_id, {})
     settings = dict(existing_settings)
     for key, value in defaults.items():
@@ -231,6 +249,12 @@ def merged_research_plugin_settings(plugin_id: str, existing_settings: dict[str,
         settings["pathToBibliography"] = RESEARCH_PLUGIN_DEFAULT_SETTINGS[PANDOC_REFERENCE_LIST_PLUGIN_ID][
             "pathToBibliography"
         ]
+    if plugin_id == PANDOC_REFERENCE_LIST_PLUGIN_ID:
+        has_csl_style_path = isinstance(settings.get("cslStylePath"), str) and bool(
+            str(settings["cslStylePath"]).strip()
+        )
+        if not has_csl_style_path:
+            settings["cslStylePath"] = default_ieee_csl_style_path(vault_path)
 
     return settings
 
@@ -240,6 +264,7 @@ def ensure_research_plugin_settings(
     spec: ObsidianResearchPluginSpec,
     report: StatusReport,
     dry_run: bool,
+    vault_path: Path,
 ) -> bool:
     settings_path = destination_dir / "data.json"
     try:
@@ -248,7 +273,7 @@ def ensure_research_plugin_settings(
         report.add("failed", str(error))
         return False
 
-    updated_settings = merged_research_plugin_settings(spec.plugin_id, existing_settings)
+    updated_settings = merged_research_plugin_settings(spec.plugin_id, existing_settings, vault_path)
     if updated_settings == existing_settings:
         report.add("already_present", f"{spec.label} settings already configured at {settings_path}")
         return True
@@ -360,7 +385,7 @@ def install_research_plugins(args: argparse.Namespace, report: StatusReport) -> 
     for spec in RESEARCH_PLUGIN_SPECS:
         if not install_one_research_plugin(spec, args, plugins_dir, report):
             return
-        if not ensure_research_plugin_settings(plugins_dir / spec.plugin_id, spec, report, args.dry_run):
+        if not ensure_research_plugin_settings(plugins_dir / spec.plugin_id, spec, report, args.dry_run, vault_path):
             return
 
     ensure_research_plugins_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)
@@ -433,14 +458,14 @@ def check_zotero_integration_settings(settings: dict[str, object], failures: lis
         print_warn("Zotero Integration autocomplete is not Pandoc citation syntax")
 
 
-def check_pandoc_reference_list_settings(settings: dict[str, object], failures: list[str]) -> None:
+def check_pandoc_reference_list_settings(settings: dict[str, object], failures: list[str], vault_path: Path) -> None:
     bibliography_path = settings.get("pathToBibliography")
     if isinstance(bibliography_path, str) and bibliography_path.strip():
         print_pass("Pandoc Reference List bibliography path configured")
     else:
         print_warn("Pandoc Reference List bibliography path missing")
 
-    if settings.get("cslStylePath") == IEEE_CSL_STYLE_PATH:
+    if is_default_ieee_csl_style_path(settings.get("cslStylePath"), vault_path):
         print_pass("Pandoc Reference List IEEE CSL path configured")
     else:
         print_warn("Pandoc Reference List IEEE CSL path is not configured")
@@ -451,7 +476,7 @@ def check_pandoc_reference_list_settings(settings: dict[str, object], failures: 
         print_warn("Pandoc Reference List citekey completion is not enabled")
 
 
-def check_research_plugin_settings(plugin_dir: Path, plugin_id: str, failures: list[str]) -> None:
+def check_research_plugin_settings(plugin_dir: Path, plugin_id: str, failures: list[str], vault_path: Path) -> None:
     settings_path = plugin_dir / "data.json"
     try:
         settings = read_research_plugin_settings(settings_path)
@@ -465,7 +490,7 @@ def check_research_plugin_settings(plugin_dir: Path, plugin_id: str, failures: l
     if plugin_id == ZOTERO_INTEGRATION_PLUGIN_ID:
         check_zotero_integration_settings(settings, failures)
     elif plugin_id == PANDOC_REFERENCE_LIST_PLUGIN_ID:
-        check_pandoc_reference_list_settings(settings, failures)
+        check_pandoc_reference_list_settings(settings, failures, vault_path)
 
 
 def check_pandoc_available() -> None:
@@ -530,7 +555,7 @@ def check_research_plugins(argv: list[str] | None = None) -> int:
             print_pass(f"{plugin_id} enabled")
         else:
             print_fail(f"{plugin_id} not enabled in {community_plugins_path(obsidian_dir)}", failures)
-        check_research_plugin_settings(plugin_dir, plugin_id, failures)
+        check_research_plugin_settings(plugin_dir, plugin_id, failures, vault_path)
 
     check_pandoc_available()
     return 1 if failures else 0

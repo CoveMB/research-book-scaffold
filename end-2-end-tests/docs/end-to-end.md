@@ -256,8 +256,9 @@ Obsidian opens the scaffold project root as a vault:
 
 1. If setup used `--register-obsidian-vault`, open the project with `obsidian://open?path=<release-qa-clone-root>` or from Obsidian's vault list.
 2. If setup did not use `--register-obsidian-vault`, open Obsidian and choose the release QA clone root with `Open folder as vault`.
-3. Confirm `AGENTS.md`, `notes/`, `research/`, `manuscript/`, and `end-2-end-tests/docs/end-to-end.md` are visible.
-4. Open a note from `notes/` and a manuscript file from `manuscript/`.
+3. Confirm `notes/`, `research/`, and `manuscript/` are visible.
+4. Confirm selected repository infrastructure, including `AGENTS.md` and `end-2-end-tests/`, is hidden by the default visibility settings.
+5. Open a note from `notes/` and a manuscript file from `manuscript/`.
 
 Expected result:
 
@@ -942,10 +943,10 @@ Expected result:
 - Missing Quarto, Pandoc, or TeX is a blocker only for releases that claim rendered artifacts.
 - HTML and DOCX targets do not require a PDF engine.
 - PDF and all-format render require the configured PDF engine, defaulting to `lualatex`.
-- Rendered outputs appear under the configured Quarto output location in `exports/`.
+- Quarto writes rendered files to `manuscript/_book`, and the render wrapper mirrors them into `exports/`.
 - Generated files are manually inspected for title, table of contents, citations, bibliography, internal links, figures, tables, page breaks, headings, and absence of scaffold sample content.
 - If sandboxed automation fails with `unable to open database file` but the same render passes with normal user permissions or a writable Quarto cache, record the sandbox failure as an environment constraint and keep the normal render log as evidence.
-- If Quarto warns that it is refusing to remove `site_libs` outside the project directory, record it as non-blocking only when all expected outputs exist and manual inspection passes. The warning means the scaffold renders from the `manuscript/` Quarto project into `exports/html`, outside that Quarto project root. If warning-free logs become a release requirement, change the render workflow to render internally, such as to `manuscript/_book`, then copy final artifacts into `exports/`.
+- A `site_libs` warning usually means an older project still renders directly to `../exports/html`. Update `manuscript/_quarto.yml` to `output-dir: _book` and rerun through the scaffold render wrapper.
 
 ## Manual Scholarly QA
 

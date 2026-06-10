@@ -505,7 +505,7 @@ def render_quarto_config(project_root: Path, answers: Mapping[str, object]) -> s
         f"# {GENERATED_MARKER}",
         "project:",
         "  type: book",
-        "  output-dir: ../exports/html",
+        "  output-dir: _book",
         "",
         "book:",
         f"  title: {quote_quarto_value(answers['working_title'])}",

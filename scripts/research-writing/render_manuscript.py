@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Callable
 
 _SCRIPTS_ROOT = next(parent for parent in Path(__file__).resolve().parents if parent.name == "scripts")
 _LIB_DIR = _SCRIPTS_ROOT / "lib"
@@ -22,8 +23,14 @@ configure_script_paths(__file__)
 
 MANUSCRIPT_DIR = Path("manuscript")
 QUARTO_CONFIG = MANUSCRIPT_DIR / "_quarto.yml"
+QUARTO_OUTPUT_DIR = MANUSCRIPT_DIR / "_book"
 DEFAULT_PDF_ENGINE = "lualatex"
 SUPPORTED_FORMATS = {"html", "pdf", "docx"}
+EXPORT_DIRS = {
+    "html": Path("exports/html"),
+    "pdf": Path("exports/pdf"),
+    "docx": Path("exports/docx"),
+}
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -64,6 +71,38 @@ def quarto_command(output_format: str | None) -> list[str]:
     return command
 
 
+def replace_directory(source: Path, destination: Path) -> None:
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(source, destination)
+    (destination / ".gitkeep").write_text("\n", encoding="utf-8")
+
+
+def copy_rendered_files(source: Path, destination: Path, suffix: str, required: bool) -> None:
+    destination.mkdir(parents=True, exist_ok=True)
+    for stale_file in destination.glob(f"*{suffix}"):
+        stale_file.unlink()
+    rendered_files = sorted(source.glob(f"*{suffix}"))
+    if required and not rendered_files:
+        raise FileNotFoundError(f"no rendered {suffix} file found in {source}")
+    for rendered_file in rendered_files:
+        shutil.copy2(rendered_file, destination / rendered_file.name)
+
+
+def mirror_render_outputs(output_format: str | None, project_root: Path = Path(".")) -> None:
+    source = project_root / QUARTO_OUTPUT_DIR
+    if not source.is_dir():
+        raise FileNotFoundError(f"Quarto output directory not found: {source}")
+
+    if output_format in {None, "html"}:
+        replace_directory(source, project_root / EXPORT_DIRS["html"])
+    if output_format in {None, "pdf"}:
+        copy_rendered_files(source, project_root / EXPORT_DIRS["pdf"], ".pdf", required=output_format == "pdf")
+    if output_format in {None, "docx"}:
+        copy_rendered_files(source, project_root / EXPORT_DIRS["docx"], ".docx", required=output_format == "docx")
+
+
 def check_preconditions(output_format: str | None) -> int:
     if not shutil.which("quarto"):
         print("Quarto is not installed.")
@@ -94,13 +133,33 @@ def check_preconditions(output_format: str | None) -> int:
     return 0
 
 
+def run_citation_preflight(
+    command_runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
+) -> int:
+    return command_runner(
+        [sys.executable, "scripts/research-writing/check_citations.py"],
+        check=False,
+    ).returncode
+
+
 def main(argv: list[str]) -> int:
     change_to_project_root()
     args = parse_args(argv)
     preflight_exit = check_preconditions(args.to)
     if preflight_exit:
         return preflight_exit
-    return subprocess.run(quarto_command(args.to), check=False).returncode
+    citation_exit = run_citation_preflight()
+    if citation_exit:
+        return citation_exit
+    render = subprocess.run(quarto_command(args.to), check=False)
+    if render.returncode:
+        return render.returncode
+    try:
+        mirror_render_outputs(args.to)
+    except OSError as error:
+        print(f"Failed to mirror rendered output into exports/: {error}")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

@@ -80,7 +80,7 @@ def write_minimal_scaffold(root: Path) -> None:
             [
                 "project:",
                 "  type: book",
-                "  output-dir: ../exports/html",
+                "  output-dir: _book",
                 "",
                 "book:",
                 '  title: "Research Scaffold Verification Manuscript"',

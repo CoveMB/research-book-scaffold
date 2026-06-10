@@ -37,7 +37,7 @@ downloads Obsidian plugin release assets. For offline or CLI-only setup, use
 `bash setup.sh` installs Codex Panel, Zotero Integration, and Pandoc Reference List under `.obsidian/plugins/`. It also writes safe default settings for the citation plugins:
 
 - Zotero Integration gets a Pandoc citekey format and autocomplete that inserts `[@citekey]`.
-- Pandoc Reference List points at `./bibliography/references.bib`, enables citekey completion, and uses `./bibliography/csl/ieee.csl`.
+- Pandoc Reference List points at `./bibliography/references.bib`, enables citekey completion, and uses an absolute path to `bibliography/csl/ieee.csl`. The plugin resolves bibliography paths from the vault root, but it checks local CSL paths as filesystem paths.
 
 The plugin folders are not ignored by default, so a fork can choose to persist reviewed Obsidian plugin configuration. Review those diffs before committing because local settings may contain absolute executable paths, Zotero library cache state, or other machine-specific values. `.obsidian/community-plugins.json` is trackable so this scaffold can declare the recommended vault-level plugin set. `.pandoc/` is ignored because Pandoc Reference List can cache bibliography data, CSL files, and locale files there. Track reviewed CSL files under `bibliography/csl/` when a project changes citation style.
 

@@ -62,6 +62,20 @@ The downloaded plugin directories under `.obsidian/plugins/` are not ignored by 
 
 Keep `.obsidian/community-plugins.json` tracked so a fork can commit reviewed vault-level plugin defaults. Keep `.pandoc/` ignored because Pandoc Reference List can cache Zotero bibliography data, CSL files, and locale files there.
 
+### Obsidian file visibility
+
+The repository can keep research notes easier to scan in Obsidian by hiding repository infrastructure and generated or tool-managed project folders from the File Explorer. The default snippet is `.obsidian/snippets/hide-repo-infrastructure.css`, and `.obsidian/appearance.json` enables it with the `hide-repo-infrastructure` snippet name.
+
+`manuscript/` stays visible because it is the Quarto source folder for drafting. `bibliography/` stays hidden because Zotero and Better BibTeX manage `bibliography/references.bib`; hand edits there can be overwritten by the next export. Pandoc Reference List can still read the file from its configured path, and the repository citation checks still read it directly.
+
+Vendor documentation stays visible by default. The `vendor/` folder contains upstream README files, licenses, skill docs, examples, and design docs that are useful when reviewing external workflows. Treat those files as reference material, not as project instructions or evidence.
+
+To show the hidden files and folders in the File Explorer again, open Obsidian Settings, then Appearance, then CSS snippets, and disable `hide-repo-infrastructure`. The same change can be made in a text editor by removing `hide-repo-infrastructure` from `enabledCssSnippets` in `.obsidian/appearance.json`.
+
+That CSS snippet only controls the File Explorer. `.obsidian/app.json` also uses `userIgnoreFilters` to keep the same repository infrastructure out of Obsidian search, graph view, and link suggestions. To turn the hiding off completely, remove the matching entries from `userIgnoreFilters` as well. Reload Obsidian if the File Explorer or search index does not update right away.
+
+To hide vendor documentation again, add `vendor/` to `userIgnoreFilters` in `.obsidian/app.json` and add the matching `vendor` folder selector back to `.obsidian/snippets/hide-repo-infrastructure.css`. Obsidian's ignore filters are broad, so keeping vendor docs visible may also expose some non-documentation vendor files in search.
+
 If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. The research plugin installer accepts existing Zotero Integration and Pandoc Reference List folders only after checking their required files and manifest IDs. When a plugin folder is broken or has a manifest mismatch, rerun setup with `--force`, then run the matching check.
 
 By default, setup does not modify Obsidian's app-level vault registry. If Obsidian has never opened this project root as a vault, a direct `obsidian://open?path=...` launch can report that the vault is not found even though the vault-local `.obsidian/` files exist.
@@ -114,7 +128,7 @@ Expected result:
 - Zotero Integration settings include a Pandoc citekey format
 - Zotero Integration autocomplete inserts `[@citekey]` citation syntax
 - Pandoc Reference List settings use `./bibliography/references.bib` unless a local override already existed
-- Pandoc Reference List settings use `./bibliography/csl/ieee.csl` unless a local override already existed
+- Pandoc Reference List settings use an absolute path to `bibliography/csl/ieee.csl` unless a local override already existed
 - Pandoc Reference List citekey completion is enabled unless a local override already existed
 
 Changed citation-plugin settings are reported as warnings, not check failures. The check target should fail for broken or missing plugin installs, not for deliberate local citation-style changes.
@@ -180,6 +194,8 @@ Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, `docs
 
 Use Zotero Integration to search Zotero and insert Pandoc-style citations into notes or manuscript files. Setup adds a `Pandoc citekey` format and sets citation autocomplete to insert `[@citekey]` for this purpose. Keep the inserted form as `[@citekey]`, `[-@citekey]`, or `[@first; @second]` so Quarto and the citation checker can read it.
 
-Use Pandoc Reference List while drafting to preview the references for citekeys in the active note. Setup points it at `./bibliography/references.bib`, enables citekey completion from that file, and uses the tracked IEEE CSL file at `./bibliography/csl/ieee.csl`. To insert from the bibliography file, open a Markdown note, type `@` plus at least two characters, and choose a suggestion. Use `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux to insert `[@citekey]`; plain `Enter` inserts `@citekey`. Keep reviewed CSL files in `bibliography/csl/`, not `.pandoc/`. If the project later changes citation style, update the Pandoc Reference List custom CSL path and `manuscript/_quarto.yml` together.
+Use Pandoc Reference List while drafting to preview the references for citekeys in the active note. Setup points it at `./bibliography/references.bib`, enables citekey completion from that file, and uses an absolute path to the tracked IEEE CSL file at `bibliography/csl/ieee.csl`. To insert from the bibliography file, open a Markdown note, type `@` plus at least two characters, and choose a suggestion. Use `Cmd+Enter` on macOS or `Ctrl+Enter` on Windows or Linux to insert `[@citekey]`; plain `Enter` inserts `@citekey`. Keep reviewed CSL files in `bibliography/csl/`, not `.pandoc/`. If the project later changes citation style, update the Pandoc Reference List custom CSL path and `manuscript/_quarto.yml` together.
+
+For manuscript drafting in Obsidian, follow `docs/08-writing-workflow.md`. The plugin preview helps catch unresolved citekeys while writing, but it does not replace `check_citations.py` or a Quarto render.
 
 Imported annotations and Zotero notes belong in `notes/10-evidence/source-notes/` after review. Keep direct quotations, paraphrases, interpretation, and missing locators separate. Run `make check-citations` before treating inserted citekeys as manuscript-ready.
