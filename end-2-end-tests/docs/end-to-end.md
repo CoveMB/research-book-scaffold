@@ -409,7 +409,7 @@ Expected result:
 | `make install-obsidian-panel` | Installs Codex Panel plugin | Use only in disposable QA or intentional local setup |
 | `make install-obsidian-research-plugins` | Installs Zotero Integration and Pandoc Reference List plugins | Use only in disposable QA or intentional local setup |
 | `make install-hooks` | Installs the configured local pre-commit hook | Use after `pre-commit` is installed; hook installation does not run release-only checks |
-| `make precommit-run` | Runs default pre-commit hooks across all files | Exits 0 after file hygiene, citation, placeholder, link, and Python compile checks pass |
+| `make precommit-run` | Runs default pre-commit hooks across all files | Exits 0 after file hygiene, citation, link, and Python compile checks pass |
 | `make audit` | Runs normal scaffold health checks | Exits 0 |
 | `make release-audit` | Runs strict pre-release manuscript checks | Exits 0 and all blockers are resolved |
 | `make ci` | Runs hosted CI-safe lint and normal scaffold audit checks | Exits 0 on every supported Python version for a fresh scaffold |

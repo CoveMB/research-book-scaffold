@@ -28,13 +28,6 @@ repos:
         pass_filenames: false
         types_or: [python]
 
-      - id: make-check-placeholders
-        name: Placeholder and scaffold marker check
-        entry: make check-placeholders
-        language: system
-        pass_filenames: false
-        files: \.(md|qmd)$
-
       - id: make-check-citations
         name: Manuscript citation check
         entry: make check-citations

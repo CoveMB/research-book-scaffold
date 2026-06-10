@@ -305,6 +305,14 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn("ci: lint audit", makefile)
         self.assertNotIn("ci: lint release-audit", makefile)
 
+    def test_pre_commit_hooks_do_not_run_placeholder_check(self) -> None:
+        pre_commit_config = (ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertNotIn("make-check-placeholders", pre_commit_config)
+        self.assertIn("audit: test check-placeholders", makefile)
+        self.assertIn("release-audit: test check-placeholders", makefile)
+
     def test_github_workflow_uses_descriptive_scaffold_check_steps(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 

@@ -12,7 +12,7 @@
 | Pandoc | Format conversion and Pandoc Reference List rendering | Optional until export; needed for live reference preview |
 | Git | Version history, submodules, and checkpoints | Required for setup and vendor checks |
 | Python 3 | Local scripts, checks, setup, and tests | Required |
-| pre-commit | Lightweight local commit hooks for hygiene and scaffold checks | Optional |
+| pre-commit | Lightweight local commit hooks for file hygiene, Python syntax, citations, and internal links | Optional |
 | curl | Core command checked by setup and health checks for download workflows | Required by setup and doctor checks |
 | unzip | Core command checked by setup and health checks for archive workflows | Required by setup and doctor checks |
 | Codex CLI | Local agent workflows | Required |

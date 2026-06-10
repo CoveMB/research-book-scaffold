@@ -1,6 +1,6 @@
 # Pre-commit hooks
 
-Pre-commit hooks catch obvious scaffold, citation, formatting, and link issues before a commit. They are a writing hygiene aid, not a release gate and not a substitute for source review.
+Pre-commit hooks catch obvious citation, formatting, Python syntax, and link issues before a commit. They are a writing hygiene aid, not a release gate and not a substitute for source review.
 
 ## Install
 
@@ -43,7 +43,6 @@ These hooks block a commit when they fail:
 
 - Basic file hygiene from `pre-commit-hooks`: trailing whitespace with Markdown/Quarto hard line breaks preserved, end-of-file fixer, YAML/TOML/JSON syntax checks, merge-conflict marker detection, private-key detection, and a 5 MB large-file guard outside `vendor/` and `exports/`.
 - Python compile check: `make lint`.
-- Placeholder and scaffold marker check: `make check-placeholders`.
 - Manuscript citation check: `make check-citations`.
 - Internal wiki link check: `make check-links`.
 
@@ -74,6 +73,7 @@ Use skips for intentional checkpoint commits, work-in-progress manuscript setup,
 These checks stay out of normal pre-commit runs to keep writing commits fast:
 
 - Full release audit: `make release-audit`.
+- Placeholder and scaffold marker check: `make check-placeholders`, which remains part of `make audit` and `make release-audit`.
 - Strict citation pass: `make check-citations-strict`.
 - Blocking manuscript readiness enforcement through `make check-manuscript-readiness`, which remains part of `make release-audit`.
 - Quarto renders: `make render`, `make render-html`, `make render-pdf`, and `make render-docx`.

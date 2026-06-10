@@ -172,7 +172,7 @@ See `docs/15-obsidian-skills.md` for Obsidian Skills usage, wrapper boundaries, 
 
 ## Pre-commit hooks
 
-Use lightweight hooks to catch obvious file hygiene, scaffold, citation, and internal-link issues before commits:
+Use lightweight hooks to catch obvious file hygiene, Python syntax, citation, and internal-link issues before commits:
 
 ```sh
 python3 -m pip install pre-commit
