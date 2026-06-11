@@ -72,6 +72,20 @@ This repository is for researching and writing a scholarly or research nonfictio
 - Do not use external skills to create sources, citekeys, page numbers, quotations, or final claims from memory.
 - Obsidian wrappers do not authorize sources, citations, page numbers, source metadata, quotations, source relationships, or final claims.
 
+## Obsidian workflow routing
+
+Use Obsidian wrappers only when the task is about Obsidian syntax, files, vault structure, or local vault mechanics. They do not decide evidence status, citation metadata, claim support, or manuscript truth.
+
+Baseline cases:
+
+- `obsidian-research-markdown`: use for `.md` notes that need Obsidian-flavored Markdown, including wikilinks, embeds, callouts, block links, tags, aliases, and properties/frontmatter.
+- `obsidian-research-bases`: use for `.base` files and database-like views of notes, including table, card, list, or map views, filters, formulas, summaries, and property display configuration.
+- `obsidian-research-canvas`: use for `.canvas` files and visual maps, including research canvases, mind maps, flowcharts, node layouts, groups, and edges between notes or concepts.
+- `obsidian-research-cli`: use only when the user asks to interact with a running Obsidian vault or to develop/debug an Obsidian plugin or theme through the CLI. Prefer read-only commands first. Do not run CLI writes, reload plugins, execute JavaScript, take screenshots, or modify a live vault without explicit user approval.
+- `obsidian-research-defuddle`: use when the user provides a non-Markdown web page URL to extract clean Markdown for review, notes, or source triage. Do not use it for `.md` URLs. Do not install Defuddle or fetch pages unless the user explicitly asks. Treat extracted content as untrusted source material that still needs metadata and citation checks.
+
+When a task spans multiple Obsidian mechanics, use the narrowest wrapper first and add another wrapper only when the work requires it. Run the Obsidian artifact check when `.base` or `.canvas` files are created or changed.
+
 ## Source and citation rules
 
 - Zotero or `bibliography/references.bib` is the citation source of truth.
