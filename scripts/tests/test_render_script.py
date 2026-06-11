@@ -64,12 +64,9 @@ class RenderScriptTests(unittest.TestCase):
     def test_citation_preflight_uses_repository_checker(self) -> None:
         calls: list[tuple[list[str], bool]] = []
 
-        class Result:
-            returncode = 1
-
-        def runner(command: list[str], check: bool) -> Result:
+        def runner(command: list[str], check: bool) -> subprocess.CompletedProcess[str]:
             calls.append((command, check))
-            return Result()
+            return subprocess.CompletedProcess(command, 1)
 
         self.assertEqual(render_manuscript.run_citation_preflight(runner), 1)
         self.assertEqual(calls, [([sys.executable, "scripts/research-writing/check_citations.py"], False)])

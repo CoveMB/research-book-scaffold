@@ -38,6 +38,9 @@ jobs:
       - name: Lint Python scripts and QA tools
         run: make lint
 
+      - name: Type-check Python scripts and QA tools
+        run: make typecheck
+
       - name: Run script and end-to-end tests
         run: make test
 

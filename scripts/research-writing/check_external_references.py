@@ -16,6 +16,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import Protocol
 
 _SCRIPTS_ROOT = next(parent for parent in Path(__file__).resolve().parents if parent.name == "scripts")
 _LIB_DIR = _SCRIPTS_ROOT / "lib"
@@ -118,6 +119,17 @@ class Finding:
     message: str
     checked_url: str | None = None
     status_code: int | None = None
+
+
+class HttpClient(Protocol):
+    def request(
+        self,
+        method: str,
+        url: str,
+        timeout: float,
+        headers: dict[str, str],
+    ) -> HttpResponse:
+        ...
 
 
 class UrlLibHttpClient:
@@ -467,7 +479,7 @@ def iter_reference_files(paths: list[Path]) -> list[Path]:
 
 def request_status(
     url: str,
-    client: UrlLibHttpClient,
+    client: HttpClient,
     timeout: float,
     dns_attempts: int,
 ) -> HttpResponse:
@@ -519,7 +531,7 @@ def finding_for_http_error(reference: Reference, error: ReferenceCheckError, che
     return Finding("warning", reference, f"Network error: {error}", checked_url=checked_url)
 
 
-def check_url(reference: Reference, client: UrlLibHttpClient, timeout: float, dns_attempts: int) -> Finding:
+def check_url(reference: Reference, client: HttpClient, timeout: float, dns_attempts: int) -> Finding:
     if not is_valid_url(reference.target):
         return Finding("malformed_url", reference, "Malformed URL")
     try:
@@ -536,7 +548,7 @@ def check_url(reference: Reference, client: UrlLibHttpClient, timeout: float, dn
     )
 
 
-def check_doi(reference: Reference, client: UrlLibHttpClient, timeout: float, dns_attempts: int) -> Finding:
+def check_doi(reference: Reference, client: HttpClient, timeout: float, dns_attempts: int) -> Finding:
     normalized_doi = normalize_doi(reference.target)
     doi_reference = Reference(
         reference.kind,
@@ -582,7 +594,7 @@ def archive_snapshot_available(response_body: str) -> bool:
 
 def check_archive_availability(
     reference: Reference,
-    client: UrlLibHttpClient,
+    client: HttpClient,
     timeout: float,
     allow_private_archive_submission: bool,
 ) -> Finding | None:
@@ -613,7 +625,7 @@ def check_archive_availability(
 
 def create_archive_snapshot(
     reference: Reference,
-    client: UrlLibHttpClient,
+    client: HttpClient,
     timeout: float,
     allow_private_archive_submission: bool,
 ) -> Finding:
@@ -649,7 +661,7 @@ def should_check_archive(reference: Reference) -> bool:
 
 def check_reference(
     reference: Reference,
-    client: UrlLibHttpClient,
+    client: HttpClient,
     *,
     timeout: float = DEFAULT_TIMEOUT_SECONDS,
     dns_attempts: int = DEFAULT_DNS_ATTEMPTS,
@@ -689,7 +701,7 @@ def check_reference(
 
 def check_references(
     references: list[Reference],
-    client: UrlLibHttpClient,
+    client: HttpClient,
     *,
     timeout: float,
     dns_attempts: int,

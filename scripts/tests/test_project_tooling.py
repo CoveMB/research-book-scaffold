@@ -64,7 +64,7 @@ class ProjectToolingTests(unittest.TestCase):
         pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
         self.assertIn("[project.optional-dependencies]", pyproject)
-        self.assertIn('dev = ["ruff==0.15.16"]', pyproject)
+        self.assertIn('dev = ["ruff==0.15.16", "pyright==1.1.410"]', pyproject)
         self.assertIn("[build-system]", pyproject)
         self.assertIn('build-backend = "setuptools.build_meta"', pyproject)
         self.assertIn("[tool.setuptools]", pyproject)
@@ -73,6 +73,17 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn('target-version = "py311"', pyproject)
         self.assertIn("[tool.ruff.lint]", pyproject)
         self.assertIn('ignore = ["E402"]', pyproject)
+        self.assertIn("[tool.pyright]", pyproject)
+        self.assertIn('pythonVersion = "3.11"', pyproject)
+        self.assertIn('typeCheckingMode = "standard"', pyproject)
+        self.assertIn('include = ["scripts", "end-2-end-tests/tools", "end-2-end-tests/tests"]', pyproject)
+        self.assertIn('extraPaths = [', pyproject)
+        self.assertIn('"scripts/lib"', pyproject)
+        self.assertIn('"scripts/research-writing"', pyproject)
+        self.assertIn('"scripts/operations/health"', pyproject)
+        self.assertIn('"scripts/operations/obsidian"', pyproject)
+        self.assertIn('"scripts/operations/setup"', pyproject)
+        self.assertIn('"scripts/operations/skill_plugins"', pyproject)
         self.assertNotIn("[tool.unittest]", pyproject)
 
     def test_external_source_specs_are_canonical(self) -> None:
@@ -234,6 +245,18 @@ class ProjectToolingTests(unittest.TestCase):
             makefile,
         )
 
+    def test_makefile_exposes_pyright_typecheck(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("typecheck", makefile)
+        self.assertIn(".require-pyright:", makefile)
+        self.assertIn("Pyright is not installed in $(VENV). Run: make install-dev", makefile)
+        self.assertIn(
+            "typecheck: .require-pyright\n"
+            "\t$(VENV_PYTHON) -m pyright",
+            makefile,
+        )
+
     def test_makefile_exposes_python_dev_tool_install(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
@@ -285,7 +308,7 @@ class ProjectToolingTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 
         self.assertIn(
-            "ci: lint test check-citations check-links check-external-skills check-obsidian-artifacts",
+            "ci: lint typecheck test check-citations check-links check-external-skills check-obsidian-artifacts",
             makefile,
         )
         self.assertIn("audit: test check-placeholders", makefile)
@@ -322,6 +345,7 @@ class ProjectToolingTests(unittest.TestCase):
             "Show Python, Git, and Make versions",
             "Install Python dev tools",
             "Lint Python scripts and QA tools",
+            "Type-check Python scripts and QA tools",
             "Run script and end-to-end tests",
             "Check manuscript citations against bibliography",
             "Check wiki-style internal links",
@@ -335,6 +359,7 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn("uses: actions/checkout@v6", workflow)
         self.assertIn("uses: actions/setup-python@v6", workflow)
         self.assertIn("run: make install-dev", workflow)
+        self.assertIn("run: make typecheck", workflow)
         self.assertNotIn("Run CI checks", workflow)
 
     def test_github_workflow_uses_single_declared_python_floor(self) -> None:

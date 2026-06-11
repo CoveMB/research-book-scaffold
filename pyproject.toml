@@ -5,7 +5,7 @@ description = "Scholarly research and writing scaffold."
 requires-python = ">=3.11"
 
 [project.optional-dependencies]
-dev = ["ruff==0.15.16"]
+dev = ["ruff==0.15.16", "pyright==1.1.410"]
 
 [build-system]
 requires = ["setuptools>=61"]
@@ -21,3 +21,24 @@ src = ["scripts"]
 
 [tool.ruff.lint]
 ignore = ["E402"]
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "standard"
+include = ["scripts", "end-2-end-tests/tools", "end-2-end-tests/tests"]
+exclude = [
+  ".venv",
+  ".quarto",
+  "exports",
+  "manuscript/_book",
+  "research_book_boilerplate.egg-info",
+  "skill-plugins",
+]
+extraPaths = [
+  "scripts/lib",
+  "scripts/research-writing",
+  "scripts/operations/health",
+  "scripts/operations/obsidian",
+  "scripts/operations/setup",
+  "scripts/operations/skill_plugins",
+]

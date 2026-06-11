@@ -32,8 +32,8 @@ from script_utils import StatusReport, read_text
 
 
 class Report(StatusReport):
-    def print_summary(self) -> None:
-        super().print_summary("Final setup report")
+    def print_summary(self, title: str = "Final setup report") -> None:
+        super().print_summary(title)
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

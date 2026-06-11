@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import contextlib
 import io
 import json
@@ -30,7 +31,7 @@ def write_research_plugin_releases(temp_path: Path) -> dict[str, str]:
     return release_urls
 
 
-def setup_args_with_releases(release_urls: dict[str, str], *extra_args: str) -> object:
+def setup_args_with_releases(release_urls: dict[str, str], *extra_args: str) -> argparse.Namespace:
     return setup_environment.parse_args(
         [
             "--zotero-integration-release-url",

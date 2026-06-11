@@ -394,6 +394,7 @@ Expected result:
 | `make test` | Runs script tests and root QA tests | Exits 0 with all tests passing |
 | `make install-dev` | Installs pinned Python dev tools | Creates `.venv` and installs the project dev extra there |
 | `make lint` | Runs Ruff and compile-checks Python scripts and QA tools | Exits 0 |
+| `make typecheck` | Runs Pyright static type checks for scripts and QA tools | Exits 0 with zero Pyright errors |
 | `make check-placeholders` | Scans Markdown and QMD files for unresolved markers | Exits 0 and reports no unresolved markers |
 | `make check-citations` | Checks manuscript citekeys against `bibliography/references.bib` | Exits 0 and missing citekey count is zero |
 | `make check-citations-strict` | Checks manuscript, notes, and research citekeys and requires at least one citation | Exits 0 for production release |
@@ -405,7 +406,7 @@ Expected result:
 | `make install-external-skills` | Prepares external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
 | `make install-subagent-orchestrator` | Refreshes only the optional guarded subagent wrappers and marketplace path | Keeps plugin exposure optional and does not activate global hooks, global config, or global agents |
 | `make update-skill-plugins` | Fast-forwards external skill repositories and refreshes integrations | Use only when the release includes source updates |
-| `make check-obsidian-panel` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
+| `make check-obsidian-codex` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
 | `make check-obsidian-research-plugins` | Verifies Zotero Integration and Pandoc Reference List plugin installs | Exits 0 after plugin files, manifests, and enablement are present |
 | `make check-obsidian-artifacts` | Validates project-local `.base` and `.canvas` artifacts | Exits 0 |
 | `make install-obsidian-panel` | Installs Codex Panel plugin | Use only in disposable QA or intentional local setup |
@@ -416,7 +417,7 @@ Expected result:
 | `make audit` | Alias for `make scaffold-audit` | Exits 0 for a fresh scaffold |
 | `make release-audit` | Runs scaffold release checks without manuscript readiness | Exits 0 for a fresh scaffold |
 | `make manuscript-release-audit` | Runs scaffold release checks plus strict manuscript readiness | Exits 0 after manuscript identity is initialized and all manuscript blockers are resolved |
-| `make ci` | Runs hosted CI-safe lint, tests, citation, link, external-skill, and Obsidian artifact checks | Exits 0 on every supported Python version for a fresh scaffold |
+| `make ci` | Runs hosted CI-safe lint, typecheck, tests, citation, link, external-skill, and Obsidian artifact checks | Exits 0 on every supported Python version for a fresh scaffold |
 
 Standard command sequence:
 
@@ -424,6 +425,7 @@ Standard command sequence:
 make doctor
 make install-dev
 make lint
+make typecheck
 make test
 make precommit-run
 make audit
@@ -432,7 +434,7 @@ make release-audit
 
 Expected result:
 
-- `make doctor`, `make lint`, `make test`, `make audit`, and `make release-audit` exit 0 for a fresh scaffold.
+- `make doctor`, `make lint`, `make typecheck`, `make test`, `make audit`, and `make release-audit` exit 0 for a fresh scaffold.
 - A fresh uninitialized scaffold fails manuscript readiness and `make manuscript-release-audit` until generic manuscript identity is replaced by `make start-project` or project-specific manuscript files.
 - `make manuscript-release-audit` exits 0 for an initialized production manuscript after all blockers are resolved.
 - `make ci` is the hosted-CI aggregate and can be used as the local one-command equivalent of lint plus CI-safe checks. It intentionally does not replace `make audit`, `make release-audit`, or `make manuscript-release-audit`.
@@ -555,12 +557,14 @@ Run support coverage:
 python3 -m unittest discover scripts/tests
 python3 -m unittest discover end-2-end-tests/tests
 python3 -m compileall -q scripts end-2-end-tests/tools end-2-end-tests/tests
+.venv/bin/python -m pyright
 ```
 
 Expected result:
 
 - Unit tests cover package detection, Obsidian install safety, git helpers, script utilities, render preflights, external skill checks, setup behavior, template creation, seeded QA, docs consistency, and direct QA runbook coverage.
 - Compile check exits 0.
+- Pyright exits 0.
 
 Targeted script checks:
 
@@ -1022,7 +1026,7 @@ Release is ready when:
 - `make manuscript-release-audit` passes for manuscript release checks.
 - All required render targets pass and are manually inspected.
 - External integrations required by the release pass `make check-external-skills`.
-- Codex Panel setup required by the release passes `make check-obsidian-panel`.
+- Codex Panel setup required by the release passes `make check-obsidian-codex`.
 - Scholarly QA has no unresolved blockers.
 - The release evidence log records commands, versions, skipped checks, and remaining risks.
 

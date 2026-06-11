@@ -14,7 +14,13 @@ import check_external_references
 
 
 class FakeHttpClient:
-    def __init__(self, responses: dict[tuple[str, str], object]) -> None:
+    def __init__(
+        self,
+        responses: dict[
+            tuple[str, str],
+            check_external_references.HttpResponse | check_external_references.ReferenceCheckError,
+        ],
+    ) -> None:
         self.responses = responses
         self.requests: list[tuple[str, str]] = []
 

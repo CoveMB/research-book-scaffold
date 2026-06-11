@@ -3,7 +3,7 @@ PYTHON ?= python3
 VENV ?= .venv
 VENV_PYTHON := $(VENV)/bin/python
 
-.PHONY: help start-project doctor render render-html render-pdf render-docx test install-dev .require-ruff lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skill-plugins check-obsidian-codex check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
+.PHONY: help start-project doctor render render-html render-pdf render-docx test install-dev .require-ruff .require-pyright lint typecheck check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skill-plugins check-obsidian-codex check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
 
 help:
 	@echo "Targets:"
@@ -16,6 +16,7 @@ help:
 	@echo "  test                   Run script unit tests"
 	@echo "  install-dev            Create .venv and install Python dev tools"
 	@echo "  lint                   Run Ruff and compile-check local Python scripts"
+	@echo "  typecheck              Run Pyright static type checks"
 	@echo "  check-placeholders     Scan Markdown/QMD placeholders"
 	@echo "  check-citations        Check manuscript citekeys"
 	@echo "  check-citations-strict Check manuscript citekeys and require at least one citation"
@@ -76,9 +77,22 @@ install-dev:
 		exit 1; \
 	}
 
+.require-pyright:
+	@test -x "$(VENV_PYTHON)" || { \
+		echo "Project virtual environment missing. Run: make install-dev"; \
+		exit 1; \
+	}
+	@$(VENV_PYTHON) -m pyright --version >/dev/null 2>&1 || { \
+		echo "Pyright is not installed in $(VENV). Run: make install-dev"; \
+		exit 1; \
+	}
+
 lint: .require-ruff
 	$(VENV_PYTHON) -m compileall -q scripts end-2-end-tests/tools end-2-end-tests/tests
 	$(VENV_PYTHON) -m ruff check scripts end-2-end-tests/tools end-2-end-tests/tests
+
+typecheck: .require-pyright
+	$(VENV_PYTHON) -m pyright
 
 check-placeholders:
 	python3 scripts/research-writing/check_placeholders.py .
@@ -142,4 +156,4 @@ release-audit: test check-placeholders check-citations-strict check-links check-
 
 manuscript-release-audit: release-audit check-manuscript-readiness
 
-ci: lint test check-citations check-links check-external-skills check-obsidian-artifacts
+ci: lint typecheck test check-citations check-links check-external-skills check-obsidian-artifacts

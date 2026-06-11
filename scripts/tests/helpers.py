@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import argparse
 import contextlib
 import hashlib
 import io
 import json
 import os
 import sys
+import unittest
 from collections.abc import Callable, Iterator
 from pathlib import Path
 
@@ -40,7 +42,7 @@ def add_tests_to_path() -> None:
 
 
 def assert_parse_args_rejects(
-    test_case: object,
+    test_case: unittest.TestCase,
     parse_args: Callable[[list[str]], object],
     argv: list[str],
 ) -> None:
@@ -111,6 +113,6 @@ def write_obsidian_plugin(
     return plugin_dir
 
 
-def install_in_directory(work_dir: Path, args: object, report: setup_environment.Report) -> None:
+def install_in_directory(work_dir: Path, args: argparse.Namespace, report: setup_environment.Report) -> None:
     with working_directory(work_dir):
         setup_environment.install_codex_panel(args, report)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import contextlib
 import io
 import unittest
@@ -46,7 +47,7 @@ class UpdateSkillPluginsTests(unittest.TestCase):
 
     def run_update_and_capture_commands(
         self,
-        args: object,
+        args: argparse.Namespace,
     ) -> tuple[list[update_skill_plugins.SkillPluginUpdate], list[tuple[str, ...]]]:
         calls: list[tuple[str, ...]] = []
 
