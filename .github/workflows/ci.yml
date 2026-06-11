@@ -32,7 +32,10 @@ jobs:
           git --version
           make --version
 
-      - name: Compile-check Python scripts and QA tools
+      - name: Install Python dev tools
+        run: make install-dev
+
+      - name: Lint Python scripts and QA tools
         run: make lint
 
       - name: Run script and end-to-end tests

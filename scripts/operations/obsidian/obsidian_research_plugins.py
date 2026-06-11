@@ -13,7 +13,6 @@ import tempfile
 import urllib.error
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import urlparse
 
 _SCRIPTS_ROOT = next(parent for parent in Path(__file__).resolve().parents if parent.name == "scripts")
 _LIB_DIR = _SCRIPTS_ROOT / "lib"
@@ -80,6 +79,29 @@ RESEARCH_PLUGIN_SPECS = (
         "qmd_as_md_release_url",
     ),
 )
+
+# Older GitHub release assets can return digest: null. These exact URL pins keep
+# install verification strict without accepting unverified downloads.
+PINNED_RESEARCH_PLUGIN_ASSET_SHA256 = {
+    "https://github.com/obsidian-community/obsidian-zotero-integration/releases/download/3.2.1/main.js": (
+        "41582448d790d7b9a4691c00ff46dda09b0f3bbea02c89d093cc4018dfc14032"
+    ),
+    "https://github.com/obsidian-community/obsidian-zotero-integration/releases/download/3.2.1/manifest.json": (
+        "c18f252a1f921085467ba823d7d272a369e65e3f30011f6f9558ae420191395c"
+    ),
+    "https://github.com/obsidian-community/obsidian-zotero-integration/releases/download/3.2.1/styles.css": (
+        "3ea6988aab6c45183dc69c85d5873787dcbbd0d76264f211c07b8400f9dbc06a"
+    ),
+    "https://github.com/obsidian-community/obsidian-pandoc-reference-list/releases/download/2.0.25/main.js": (
+        "6ca0d01e3927011c01277c0776de52ecdd2af2a6cb029b503950a8d536252edb"
+    ),
+    "https://github.com/obsidian-community/obsidian-pandoc-reference-list/releases/download/2.0.25/manifest.json": (
+        "ec3f3a129b80cac0d8e49c0fd713b58c27833fa63805653fd444ef96830ab434"
+    ),
+    "https://github.com/obsidian-community/obsidian-pandoc-reference-list/releases/download/2.0.25/styles.css": (
+        "587b002748cd8798deb9c0236285e707bd54cfb7cc4f077f1b5d099aae15086a"
+    ),
+}
 
 PANDOC_CITE_FORMAT = {"name": "Pandoc citekey", "format": "pandoc"}
 PANDOC_CITE_SUGGEST_TEMPLATE = "[@{{citekey}}]"
@@ -190,7 +212,11 @@ def release_url_for_spec(spec: ObsidianResearchPluginSpec, args: argparse.Namesp
 
 
 def latest_plugin_release_asset_urls(spec: ObsidianResearchPluginSpec, release_url: str) -> dict[str, ReleaseAsset]:
-    return required_release_asset_urls(release_url, spec.label)
+    return required_release_asset_urls(
+        release_url,
+        spec.label,
+        sha256_fallbacks=PINNED_RESEARCH_PLUGIN_ASSET_SHA256,
+    )
 
 
 def ensure_required_research_plugin_files(plugin_dir: Path, label: str, context: str = "Downloaded release") -> None:
@@ -373,6 +399,17 @@ def install_one_research_plugin(
     return True
 
 
+def report_skipped_research_plugin_batch(
+    specs: tuple[ObsidianResearchPluginSpec, ...],
+    start_index: int,
+    report: StatusReport,
+    reason: str,
+) -> None:
+    for skipped_spec in specs[start_index:]:
+        report.add("skipped", f"{skipped_spec.label} install skipped because {reason}")
+    report.add("skipped", f"Obsidian research plugin enablement skipped because {reason}")
+
+
 def install_research_plugins(args: argparse.Namespace, report: StatusReport) -> None:
     vault_path = vault_path_from_args(args)
     if not vault_path.exists():
@@ -389,10 +426,22 @@ def install_research_plugins(args: argparse.Namespace, report: StatusReport) -> 
         report.add("failed", str(error))
         return
 
-    for spec in RESEARCH_PLUGIN_SPECS:
+    for index, spec in enumerate(RESEARCH_PLUGIN_SPECS):
         if not install_one_research_plugin(spec, args, plugins_dir, report):
+            report_skipped_research_plugin_batch(
+                RESEARCH_PLUGIN_SPECS,
+                index + 1,
+                report,
+                f"{spec.label} install failed",
+            )
             return
         if not ensure_research_plugin_settings(plugins_dir / spec.plugin_id, spec, report, args.dry_run, vault_path):
+            report_skipped_research_plugin_batch(
+                RESEARCH_PLUGIN_SPECS,
+                index + 1,
+                report,
+                f"{spec.label} settings configuration failed",
+            )
             return
 
     ensure_research_plugins_enabled(obsidian_dir, enabled_plugins, report, args.dry_run)

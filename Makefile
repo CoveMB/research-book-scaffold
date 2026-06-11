@@ -1,6 +1,9 @@
 PRE_COMMIT ?= pre-commit
+PYTHON ?= python3
+VENV ?= .venv
+VENV_PYTHON := $(VENV)/bin/python
 
-.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skill-plugins check-obsidian-panel check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
+.PHONY: help start-project doctor render render-html render-pdf render-docx test install-dev .require-ruff lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skill-plugins check-obsidian-panel check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
 
 help:
 	@echo "Targets:"
@@ -11,7 +14,8 @@ help:
 	@echo "  render-pdf             Render manuscript PDF only"
 	@echo "  render-docx            Render manuscript DOCX only"
 	@echo "  test                   Run script unit tests"
-	@echo "  lint                   Compile-check local Python scripts"
+	@echo "  install-dev            Create .venv and install Python dev tools"
+	@echo "  lint                   Run Ruff and compile-check local Python scripts"
 	@echo "  check-placeholders     Scan Markdown/QMD placeholders"
 	@echo "  check-citations        Check manuscript citekeys"
 	@echo "  check-citations-strict Check manuscript citekeys and require at least one citation"
@@ -58,8 +62,23 @@ test:
 	python3 -m unittest discover scripts/tests
 	python3 -m unittest discover end-2-end-tests/tests
 
-lint:
-	python3 -m compileall -q scripts end-2-end-tests/tools end-2-end-tests/tests
+install-dev:
+	$(PYTHON) -m venv $(VENV)
+	$(VENV_PYTHON) -m pip install ".[dev]"
+
+.require-ruff:
+	@test -x "$(VENV_PYTHON)" || { \
+		echo "Project virtual environment missing. Run: make install-dev"; \
+		exit 1; \
+	}
+	@$(VENV_PYTHON) -m ruff --version >/dev/null 2>&1 || { \
+		echo "Ruff is not installed in $(VENV). Run: make install-dev"; \
+		exit 1; \
+	}
+
+lint: .require-ruff
+	$(VENV_PYTHON) -m compileall -q scripts end-2-end-tests/tools end-2-end-tests/tests
+	$(VENV_PYTHON) -m ruff check scripts end-2-end-tests/tools end-2-end-tests/tests
 
 check-placeholders:
 	python3 scripts/research-writing/check_placeholders.py .

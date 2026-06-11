@@ -392,7 +392,8 @@ Expected result:
 | `make render-pdf` | Renders PDF only | Exits 0 and generated PDF is present under `exports/` |
 | `make render-docx` | Renders DOCX only | Exits 0 and generated DOCX is present under `exports/` |
 | `make test` | Runs script tests and root QA tests | Exits 0 with all tests passing |
-| `make lint` | Compile-checks Python scripts and QA tools | Exits 0 |
+| `make install-dev` | Installs pinned Python dev tools | Creates `.venv` and installs the project dev extra there |
+| `make lint` | Runs Ruff and compile-checks Python scripts and QA tools | Exits 0 |
 | `make check-placeholders` | Scans Markdown and QMD files for unresolved markers | Exits 0 and reports no unresolved markers |
 | `make check-citations` | Checks manuscript citekeys against `bibliography/references.bib` | Exits 0 and missing citekey count is zero |
 | `make check-citations-strict` | Checks manuscript, notes, and research citekeys and requires at least one citation | Exits 0 for production release |
@@ -421,6 +422,7 @@ Standard command sequence:
 
 ```sh
 make doctor
+make install-dev
 make lint
 make test
 make precommit-run

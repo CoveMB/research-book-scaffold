@@ -109,6 +109,7 @@ def required_release_asset_urls(
     release_url: str,
     plugin_label: str,
     metadata_label: str | None = None,
+    sha256_fallbacks: dict[str, str] | None = None,
 ) -> dict[str, ReleaseAsset]:
     if is_zip_url(release_url):
         raise RuntimeError(f"{plugin_label} installs from individual release assets, not zip archives")
@@ -128,6 +129,8 @@ def required_release_asset_urls(
             if is_zip_url(download_url):
                 raise RuntimeError(f"{plugin_label} release asset {name} points to a zip archive")
             sha256 = normalize_sha256_digest(asset.get("digest") or asset.get("sha256"))
+            if sha256 is None and sha256_fallbacks:
+                sha256 = normalize_sha256_digest(sha256_fallbacks.get(download_url))
             if sha256 is None:
                 raise RuntimeError(f"{plugin_label} release asset {name} missing sha256 digest")
             asset_urls[name] = ReleaseAsset(name, download_url, sha256)

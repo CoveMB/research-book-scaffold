@@ -63,8 +63,16 @@ class ProjectToolingTests(unittest.TestCase):
     def test_pyproject_declares_python_tooling_defaults(self) -> None:
         pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
+        self.assertIn("[project.optional-dependencies]", pyproject)
+        self.assertIn('dev = ["ruff==0.15.16"]', pyproject)
+        self.assertIn("[build-system]", pyproject)
+        self.assertIn('build-backend = "setuptools.build_meta"', pyproject)
+        self.assertIn("[tool.setuptools]", pyproject)
+        self.assertIn("packages = []", pyproject)
         self.assertIn("[tool.ruff]", pyproject)
         self.assertIn('target-version = "py311"', pyproject)
+        self.assertIn("[tool.ruff.lint]", pyproject)
+        self.assertIn('ignore = ["E402"]', pyproject)
         self.assertNotIn("[tool.unittest]", pyproject)
 
     def test_external_source_specs_are_canonical(self) -> None:
@@ -216,6 +224,29 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn("check-obsidian-artifacts", makefile)
         self.assertIn("python3 scripts/operations/obsidian/check_obsidian_artifacts.py", makefile)
 
+    def test_lint_target_runs_compileall_and_ruff(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "lint: .require-ruff\n"
+            "\t$(VENV_PYTHON) -m compileall -q scripts end-2-end-tests/tools end-2-end-tests/tests\n"
+            "\t$(VENV_PYTHON) -m ruff check scripts end-2-end-tests/tools end-2-end-tests/tests",
+            makefile,
+        )
+
+    def test_makefile_exposes_python_dev_tool_install(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("PYTHON ?= python3", makefile)
+        self.assertIn("VENV ?= .venv", makefile)
+        self.assertIn("VENV_PYTHON := $(VENV)/bin/python", makefile)
+        self.assertIn("install-dev", makefile)
+        self.assertIn("$(PYTHON) -m venv $(VENV)", makefile)
+        self.assertIn('$(VENV_PYTHON) -m pip install ".[dev]"', makefile)
+        self.assertIn(".require-ruff:", makefile)
+        self.assertIn("Project virtual environment missing. Run: make install-dev", makefile)
+        self.assertIn("Ruff is not installed in $(VENV). Run: make install-dev", makefile)
+
     def test_makefile_exposes_obsidian_research_plugin_commands(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
@@ -288,7 +319,8 @@ class ProjectToolingTests(unittest.TestCase):
             "Check out repository and skill/plugin submodules",
             f"Set up Python {CI_PYTHON_VERSION}",
             "Show Python, Git, and Make versions",
-            "Compile-check Python scripts and QA tools",
+            "Install Python dev tools",
+            "Lint Python scripts and QA tools",
             "Run script and end-to-end tests",
             "Check manuscript citations against bibliography",
             "Check wiki-style internal links",
@@ -301,6 +333,7 @@ class ProjectToolingTests(unittest.TestCase):
 
         self.assertIn("uses: actions/checkout@v6", workflow)
         self.assertIn("uses: actions/setup-python@v6", workflow)
+        self.assertIn("run: make install-dev", workflow)
         self.assertNotIn("Run CI checks", workflow)
 
     def test_github_workflow_uses_single_declared_python_floor(self) -> None:
@@ -322,6 +355,8 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertNotIn(".obsidian/plugins/obsidian-pandoc-reference-list/", gitignore)
         self.assertIn(".pandoc/", gitignore)
         self.assertNotIn(".obsidian/community-plugins.json", gitignore)
+        self.assertIn(".venv/", gitignore)
+        self.assertIn("*.egg-info/", gitignore)
 
     def test_ieee_csl_is_tracked_and_used_by_default_quarto_config(self) -> None:
         ieee_csl = ROOT / "bibliography" / "csl" / "ieee.csl"

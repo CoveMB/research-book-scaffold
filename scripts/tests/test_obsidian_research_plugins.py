@@ -158,6 +158,88 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             self.assertTrue(any("sha256 mismatch" in message for message in report.failed))
             self.assertFalse((temp_path / ".obsidian" / "plugins" / ZOTERO_INTEGRATION_PLUGIN_ID).exists())
 
+    def test_install_research_plugins_reports_plugins_skipped_after_install_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            release_urls = write_research_plugin_releases(temp_path)
+            release_path = temp_path / f"{ZOTERO_INTEGRATION_PLUGIN_ID}-release.json"
+            payload = json.loads(release_path.read_text(encoding="utf-8"))
+            payload["assets"][0]["digest"] = f"sha256:{'0' * 64}"
+            release_path.write_text(json.dumps(payload), encoding="utf-8")
+            obsidian_dir = temp_path / ".obsidian"
+            obsidian_dir.mkdir()
+            community_plugins_path = obsidian_dir / "community-plugins.json"
+            community_plugins_path.write_text("[]\n", encoding="utf-8")
+
+            report = SilentReport()
+            with working_directory(temp_path):
+                obsidian_research_plugins.install_research_plugins(setup_args_with_releases(release_urls), report)
+
+            self.assertTrue(any("Zotero Integration install failed" in message for message in report.failed))
+            self.assertIn(
+                "Pandoc Reference List install skipped because Zotero Integration install failed",
+                report.skipped,
+            )
+            self.assertIn(
+                "qmd as md install skipped because Zotero Integration install failed",
+                report.skipped,
+            )
+            self.assertIn(
+                "Obsidian research plugin enablement skipped because Zotero Integration install failed",
+                report.skipped,
+            )
+            self.assertFalse((temp_path / ".obsidian" / "plugins" / PANDOC_REFERENCE_LIST_PLUGIN_ID).exists())
+            self.assertFalse((temp_path / ".obsidian" / "plugins" / QMD_AS_MD_PLUGIN_ID).exists())
+            self.assertEqual(json.loads(community_plugins_path.read_text(encoding="utf-8")), [])
+
+    def test_research_plugin_release_uses_pinned_sha256_fallback_for_known_urls(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            release_path = temp_path / "release.json"
+            base_url = "https://github.com/obsidian-community/obsidian-zotero-integration/releases/download/3.2.1"
+            release_path.write_text(
+                json.dumps(
+                    {
+                        "assets": [
+                            {"name": file_name, "browser_download_url": f"{base_url}/{file_name}"}
+                            for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES)
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            spec = obsidian_research_plugins.RESEARCH_PLUGIN_SPECS[0]
+
+            asset_urls = obsidian_research_plugins.latest_plugin_release_asset_urls(spec, release_path.as_uri())
+
+            self.assertEqual(
+                asset_urls["main.js"].sha256,
+                "41582448d790d7b9a4691c00ff46dda09b0f3bbea02c89d093cc4018dfc14032",
+            )
+
+    def test_research_plugin_release_rejects_missing_sha256_without_exact_pin(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            release_path = temp_path / "release.json"
+            release_path.write_text(
+                json.dumps(
+                    {
+                        "assets": [
+                            {
+                                "name": file_name,
+                                "browser_download_url": f"https://example.invalid/releases/unknown/{file_name}",
+                            }
+                            for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES)
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            spec = obsidian_research_plugins.RESEARCH_PLUGIN_SPECS[0]
+
+            with self.assertRaisesRegex(RuntimeError, "Zotero Integration release asset main.js missing sha256 digest"):
+                obsidian_research_plugins.latest_plugin_release_asset_urls(spec, release_path.as_uri())
+
     def test_existing_research_plugin_settings_are_preserved_and_missing_defaults_are_added(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)

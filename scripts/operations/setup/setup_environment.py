@@ -21,8 +21,8 @@ import obsidian_research_plugins
 from environment_checks import check_packages
 from obsidian_agent import (
     install_codex_panel,
-    obsidian_next_steps,
-    vault_path_from_args,
+    obsidian_next_steps as obsidian_next_steps,
+    vault_path_from_args as vault_path_from_args,
 )
 from project_config import (
     SETUP_RECOMMENDED_CHECKS,
