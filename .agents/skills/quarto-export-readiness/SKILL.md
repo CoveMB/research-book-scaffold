@@ -49,7 +49,7 @@ Read other notes, research files, or source materials only when the user asks fo
 
 None by default.
 
-When explicitly asked, it may create or update a release-readiness audit in `notes/90-audits/audits/`. It must not edit manuscript chapters, bibliography files, source notes, exports, or vendor files unless the user separately asks for those edits.
+When explicitly asked, it may create or update a release-readiness audit in `notes/90-audits/audits/`. It must not edit manuscript chapters, bibliography files, source notes, exports, or skill/plugin source files unless the user separately asks for those edits.
 
 ## Must not do
 

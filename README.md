@@ -48,8 +48,8 @@ git submodule update --init --recursive
 
 `bash setup.sh` requires Python 3.11 or newer. It treats the project root as the
 Obsidian vault root, installs Codex Panel unless skipped, installs the
-recommended Zotero/Pandoc/QMD Obsidian plugins unless skipped, initializes vendored
-external skills, refreshes repo-scoped wrappers under `.agents/skills`, and
+recommended Zotero/Pandoc/QMD Obsidian plugins unless skipped, initializes
+external skill/plugin sources, refreshes repo-scoped wrappers under `.agents/skills`, and
 keeps plugin marketplace entries optional.
 
 Default setup uses network access for submodules and Obsidian plugin release
@@ -70,7 +70,7 @@ The setup script writes project-local files, but a few GUI and tool settings sti
 2. Open the correct Obsidian vault.
    - If setup was run with `--register-obsidian-vault`, open the project from Obsidian's vault list or with an `obsidian://open?path=...` URL.
    - Otherwise open Obsidian, select the vault switcher, choose `Manage Vaults...`, then use `Open folder as vault` and select this repository root.
-   - Confirm `notes/`, `research/`, and `manuscript/` are visible. The default Obsidian visibility settings may hide selected repository infrastructure and `bibliography/` from the File Explorer, while keeping vendor documentation visible. See `docs/11-obsidian-panel.md` to change that behavior. If those working folders are not visible, Obsidian is probably showing a different vault.
+   - Confirm `notes/`, `research/`, and `manuscript/` are visible. The default Obsidian visibility settings may hide selected repository infrastructure and `bibliography/` from the File Explorer, while keeping skill/plugin source documentation visible. See `docs/11-obsidian-panel.md` to change that behavior. If those working folders are not visible, Obsidian is probably showing a different vault.
 
 3. Confirm the Obsidian plugins are visible and enabled.
    - In Obsidian, open `Settings -> Community plugins`.
@@ -127,7 +127,7 @@ make audit
 
 Keep book-specific material in `notes/`, `research/`, `bibliography/`,
 `manuscript/`, and `project-start.yml`. Keep scaffold-owned files such as
-`scripts/`, `.agents/`, `docs/`, `templates/`, and `vendor/` generic when
+`scripts/`, `.agents/`, `docs/`, `templates/`, and `skill-plugins/` generic when
 possible so upstream merges stay small and reviewable. Packaging is better
 reserved for reusable tools or checks later; the full scaffold is a living file
 tree, not an installable library alone.
@@ -207,7 +207,7 @@ Immediate Codex skill availability comes from wrapper skills in `.agents/skills/
 
 The external layers are separate:
 
-- `vendor/` stores upstream source copies pinned as submodules.
+- `skill-plugins/` stores upstream source copies pinned as submodules.
 - `.agents/skills/` stores safe local wrappers that are immediately usable after setup.
 - `.agents/plugins/marketplace.json` keeps optional plugin exposure for users who choose to install repo marketplace plugins later.
 
@@ -221,22 +221,22 @@ Available wrappers include local scaffold skills, `ars-*` Academic Research Skil
 
 ## Optional external integrations
 
-- Academic Research Skills can be vendored from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
-- Research Book Skills can be vendored from `CoveMB/research-book-skills`, exposed through immediate `rbs-*` wrappers, and optionally exposed as a repo marketplace plugin from `vendor/research-book-skills/`.
-- Subagent Orchestrator can be vendored from `CoveMB/subagent-orchestration-plugin` and exposed from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`.
-- Obsidian Skills can be vendored from `kepano/obsidian-skills` and exposed through local wrappers for Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle guidance.
+- Academic Research Skills can be added from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
+- Research Book Skills can be added from `CoveMB/research-book-skills`, exposed through immediate `rbs-*` wrappers, and optionally exposed as a repo marketplace plugin from `skill-plugins/research-book-skills/`.
+- Subagent Orchestrator can be added from `CoveMB/subagent-orchestration-plugin` and exposed from `skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/`.
+- Obsidian Skills can be added from `kepano/obsidian-skills` and exposed through local wrappers for Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle guidance.
 
-External repositories stay optional. Review upstream files before use. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and marketplace exposure without executing the vendored installer or enabling hooks, project agents, global config, or global agents. Obsidian Skills are vendored and wrapped locally; this scaffold does not install them globally.
+External repositories stay optional. Review upstream files before use. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and marketplace exposure without executing the external installer or enabling hooks, project agents, global config, or global agents. Obsidian Skills are checked out and wrapped locally; this scaffold does not install them globally.
 
 Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel, Zotero Integration, Pandoc Reference List, and qmd as md from published release assets, adds their plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json`, and seeds safe citation and QMD plugin settings. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
 
-The external repositories under `vendor/` are Git submodules. `bash setup.sh` and `make install-external-skills` initialize them. To do that manually, run:
+The external repositories under `skill-plugins/` are Git submodules. `bash setup.sh` and `make install-external-skills` initialize them. To do that manually, run:
 
 ```sh
 git submodule update --init --recursive
 ```
 
-Use `bash setup.sh --skip-obsidian-panel --skip-obsidian-research-plugins` when all Obsidian plugin coverage is out of scope. Use `bash setup.sh --skip-external-skills` only when you do not want vendor initialization or wrapper refresh during setup.
+Use `bash setup.sh --skip-obsidian-panel --skip-obsidian-research-plugins` when all Obsidian plugin coverage is out of scope. Use `bash setup.sh --skip-external-skills` only when you do not want source initialization or wrapper refresh during setup.
 
 In Codex Panel, verify repo-scoped skills with a read-only prompt:
 
@@ -256,7 +256,7 @@ make install-hooks
 make precommit-run
 ```
 
-The hooks wrap existing Makefile checks and avoid Quarto renders, network checks, vendor refresh workflows, and manuscript readiness enforcement during normal commits. Use `SKIP=<hook-id> git commit` or `git commit --no-verify` for intentional bypasses. See `docs/16-pre-commit-hooks.md` for hook scope, blocking behavior, manual runs, and release-only checks.
+The hooks wrap existing Makefile checks and avoid Quarto renders, network checks, source refresh workflows, and manuscript readiness enforcement during normal commits. Use `SKIP=<hook-id> git commit` or `git commit --no-verify` for intentional bypasses. See `docs/16-pre-commit-hooks.md` for hook scope, blocking behavior, manual runs, and release-only checks.
 
 ## Do not automate
 
@@ -264,8 +264,8 @@ The hooks wrap existing Makefile checks and avoid Quarto renders, network checks
 - Citation creation from memory.
 - Whole-vault rewrites.
 - System installs without explicit permission.
-- Execution of unreviewed vendored scripts.
+- Execution of unreviewed external source scripts.
 
 ## License
 
-This scaffold is MIT licensed. Vendored integrations keep their upstream licenses; review `vendor/README.md` before redistribution or commercial use.
+This scaffold is MIT licensed. External integrations keep their upstream licenses; review `skill-plugins/README.md` before redistribution or commercial use.

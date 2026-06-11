@@ -3,8 +3,8 @@
 - Repo: `https://github.com/CoveMB/research-book-skills.git`
 - Ref: `default branch`
 - Commit: `6d000633f73f368f352e1bc937300322d40148d0`
-- Vendor path: `vendor/research-book-skills`
-- License note: MIT License verified from `vendor/research-book-skills/LICENSE`.
+- Source path: `skill-plugins/research-book-skills`
+- License note: MIT License verified from `skill-plugins/research-book-skills/LICENSE`.
 - Upstream files edited: no.
 
 ## Wrappers
@@ -39,12 +39,12 @@
 - `.agents/skills/rbs-book-comps-verifier/SKILL.md`
 
 ## Plugin
-- Plugin source path: `vendor/research-book-skills`
+- Plugin source path: `skill-plugins/research-book-skills`
 - Marketplace path: `.agents/plugins/marketplace.json`
 
 ## Warnings
 - Use wrappers for immediate Codex availability.
 - Keep marketplace exposure optional.
-- Do not run vendored scripts automatically.
+- Do not run external source scripts automatically.
 - Use the plugin as extended capability.
 - Upstream files were not edited.

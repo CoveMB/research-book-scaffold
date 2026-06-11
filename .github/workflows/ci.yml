@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository and vendored submodules
+      - name: Check out repository and skill/plugin submodules
         uses: actions/checkout@v6
         with:
           submodules: recursive

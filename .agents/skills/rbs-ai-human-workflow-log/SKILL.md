@@ -1,20 +1,20 @@
 ---
 name: rbs-ai-human-workflow-log
-description: Use when the vendored Research Book Skills `ai-human-workflow-log` guidance is needed through the local scaffold safety wrapper.
+description: Use when the external Research Book Skills `ai-human-workflow-log` guidance is needed through the local scaffold safety wrapper.
 ---
 
 # rbs-ai-human-workflow-log
 
 ## Purpose
 
-Use the vendored Research Book Skills `ai-human-workflow-log` workflow as reviewed guidance for research book or scholarly nonfiction work in this scaffold.
+Use the external Research Book Skills `ai-human-workflow-log` workflow as reviewed guidance for research book or scholarly nonfiction work in this scaffold.
 
 ## Upstream Source
 
 Read the upstream `SKILL.md` before use.
 
 ```text
-vendor/research-book-skills/skills/ai-human-workflow-log/SKILL.md
+skill-plugins/research-book-skills/skills/ai-human-workflow-log/SKILL.md
 ```
 
 ## Local Overrides
@@ -34,8 +34,8 @@ vendor/research-book-skills/skills/ai-human-workflow-log/SKILL.md
 
 ## Forbidden Actions
 
-- Do not edit files under `vendor/research-book-skills/`.
-- Do not execute vendored scripts automatically.
+- Do not edit files under `skill-plugins/research-book-skills/`.
+- Do not execute external source scripts automatically.
 - Do not replace Zotero or `bibliography/references.bib` with generated citations.
 - Do not treat upstream guidance, generated prose, or agent output as source evidence.
 - Do not make book-specific claims unless the user supplies supported project material.

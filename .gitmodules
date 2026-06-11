@@ -1,12 +1,12 @@
-[submodule "vendor/academic-research-skills"]
-	path = vendor/academic-research-skills
+[submodule "skill-plugins/academic-research-skills"]
+	path = skill-plugins/academic-research-skills
 	url = https://github.com/Imbad0202/academic-research-skills.git
-[submodule "vendor/research-book-skills"]
-	path = vendor/research-book-skills
+[submodule "skill-plugins/research-book-skills"]
+	path = skill-plugins/research-book-skills
 	url = https://github.com/CoveMB/research-book-skills.git
-[submodule "vendor/subagent-orchestration-plugin"]
-	path = vendor/subagent-orchestration-plugin
+[submodule "skill-plugins/subagent-orchestration-plugin"]
+	path = skill-plugins/subagent-orchestration-plugin
 	url = https://github.com/CoveMB/subagent-orchestration-plugin.git
-[submodule "vendor/obsidian-skills"]
-	path = vendor/obsidian-skills
+[submodule "skill-plugins/obsidian-skills"]
+	path = skill-plugins/obsidian-skills
 	url = https://github.com/kepano/obsidian-skills.git

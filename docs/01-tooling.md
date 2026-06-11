@@ -11,7 +11,7 @@
 | Markdown editor | Direct file editing outside Obsidian | Optional |
 | Quarto | Book rendering | Optional until export |
 | Pandoc | Format conversion and Pandoc Reference List rendering | Optional until export; needed for live reference preview |
-| Git | Version history, submodules, and checkpoints | Required for setup and vendor checks |
+| Git | Version history, submodules, and checkpoints | Required for setup and source checks |
 | Python 3.11+ | Local scripts, checks, setup, and tests | Required |
 | pre-commit | Lightweight local commit hooks for file hygiene, Python syntax, citations, and internal links | Optional |
 | curl | Core command checked by setup and health checks for download workflows | Required by setup and doctor checks |
@@ -20,18 +20,18 @@
 | Repo-scoped skills | Task-specific agent procedures | Optional |
 | MCP | Controlled access to tools and data | Optional |
 | Codex Panel Obsidian plugin | Agent work inside Obsidian | Recommended; setup default unless skipped |
-| Academic Research Skills vendor repo | External academic paper and pipeline workflows | Optional |
+| Academic Research Skills skill/plugin source repo | External academic paper and pipeline workflows | Optional |
 | Research Book Skills plugin | External research book workflows | Optional |
 | Subagent Orchestrator plugin | Optional execution-shape guidance for bounded subagents | Optional |
-| Obsidian Skills vendor repo | Obsidian Markdown, Bases, Canvas, CLI, and Defuddle wrapper guidance | Optional |
+| Obsidian Skills skill/plugin source repo | Obsidian Markdown, Bases, Canvas, CLI, and Defuddle wrapper guidance | Optional |
 
 Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help find candidate sources. Import and verify useful sources in Zotero or `bibliography/references.bib` before citing them.
 
 Do not store API keys or credentials in this repository.
 
-External repositories live under `vendor/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the vendored Research Book Skills submodule and the nested optional Subagent Orchestrator plugin path.
+External repositories live under `skill-plugins/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the Research Book Skills source submodule and the nested optional Subagent Orchestrator plugin path.
 
-`bash setup.sh` uses network access when it initializes vendor submodules or
+`bash setup.sh` uses network access when it initializes skill/plugin source submodules or
 downloads Obsidian plugin release assets. For offline or CLI-only setup, use
 `bash setup.sh --skip-external-skills --skip-obsidian-panel --skip-obsidian-research-plugins`.
 

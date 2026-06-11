@@ -30,7 +30,7 @@ docs explain when and why to run those commands.
 ## Agents and external skills
 
 - `03-agent-orchestration.md` covers local agent boundaries and subagent limits.
-- `12-external-skills-and-plugins.md` explains vendor repos, wrappers, marketplace exposure, and licenses.
+- `12-external-skills-and-plugins.md` explains skill/plugin source repos, wrappers, marketplace exposure, and licenses.
 - `13-academic-research-skills.md` covers Academic Research Skills wrappers.
 - `14-research-book-skills.md` covers Research Book Skills wrappers.
 - `15-obsidian-skills.md` covers Obsidian Skills wrappers, Bases, Canvas, CLI, and Defuddle boundaries.

@@ -41,7 +41,7 @@ pre-commit run make-check-manuscript-readiness --hook-stage manual --all-files
 
 These hooks block a commit when they fail:
 
-- Basic file hygiene from `pre-commit-hooks`: trailing whitespace with Markdown/Quarto hard line breaks preserved, end-of-file fixer, YAML/TOML/JSON syntax checks, merge-conflict marker detection, private-key detection, and a 5 MB large-file guard outside `vendor/` and `exports/`.
+- Basic file hygiene from `pre-commit-hooks`: trailing whitespace with Markdown/Quarto hard line breaks preserved, end-of-file fixer, YAML/TOML/JSON syntax checks, merge-conflict marker detection, private-key detection, and a 5 MB large-file guard outside `skill-plugins/` and `exports/`.
 - Python compile check: `make lint`.
 - Manuscript citation check: `make check-citations`.
 - Internal wiki link check: `make check-links`.
@@ -79,6 +79,6 @@ These checks stay out of normal pre-commit runs to keep writing commits fast:
 - Manuscript readiness enforcement through `make check-manuscript-readiness`, which is included in `make manuscript-release-audit` and available as a manual hook.
 - Quarto renders: `make render`, `make render-html`, `make render-pdf`, and `make render-docx`.
 - Network-dependent external reference checks: `make check-external-references` and `make external-reference-report`.
-- Vendor, external skill, and integration refresh workflows such as `make install-external-skills`, `make update-skills-vendors`, and setup commands.
+- Source, external skill, and integration refresh workflows such as `make install-external-skills`, `make update-skill-plugins`, and setup commands.
 
 Run `make audit` during normal local review, `make release-audit` before scaffold release checks, and `make manuscript-release-audit` before sharing or exporting initialized manuscript work.

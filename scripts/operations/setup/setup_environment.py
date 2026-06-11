@@ -50,7 +50,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--skip-external-skills",
         action="store_true",
-        help="Skip vendored external skill initialization and local wrapper refresh.",
+        help="Skip external skill/plugin source initialization and local wrapper refresh.",
     )
     parser.add_argument(
         "--with-external-skills",
@@ -170,7 +170,7 @@ def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespac
         no_subagent_orchestrator_plugin=args.no_subagent_orchestrator_plugin,
         update=args.update,
         no_update=args.no_update,
-        preserve_vendor_checkouts=False,
+        preserve_skill_plugin_checkouts=False,
     )
 
 

@@ -1,6 +1,6 @@
 PRE_COMMIT ?= pre-commit
 
-.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skills-vendors check-obsidian-panel check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
+.PHONY: help start-project doctor render render-html render-pdf render-docx test lint check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skill-plugins check-obsidian-panel check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
 
 help:
 	@echo "Targets:"
@@ -20,9 +20,9 @@ help:
 	@echo "  external-reference-report Write an external-reference JSON report"
 	@echo "  check-manuscript-readiness Check release manuscript files for scaffold entries"
 	@echo "  check-external-skills  Check external skill/plugin integration"
-	@echo "  install-external-skills Vendor external skills and update marketplace"
+	@echo "  install-external-skills Prepare external skills and update marketplace"
 	@echo "  install-subagent-orchestrator Refresh guarded subagent wrappers and marketplace"
-	@echo "  update-skills-vendors  Fast-forward skill vendors and refresh integrations"
+	@echo "  update-skill-plugins  Fast-forward skill/plugin sources and refresh integrations"
 	@echo "  check-obsidian-panel   Check Codex Panel install in the project root vault"
 	@echo "  check-obsidian-research-plugins Check Zotero/Pandoc/QMD Obsidian plugin installs"
 	@echo "  check-obsidian-artifacts Check .base and .canvas Obsidian artifacts"
@@ -83,16 +83,16 @@ check-manuscript-readiness:
 	python3 scripts/research-writing/check_manuscript_readiness.py
 
 check-external-skills:
-	python3 scripts/operations/vendors/check_external_skills.py
+	python3 scripts/operations/skill_plugins/check_external_skills.py
 
 install-external-skills:
-	python3 scripts/operations/vendors/install_external_skills.py --yes
+	python3 scripts/operations/skill_plugins/install_external_skills.py --yes
 
 install-subagent-orchestrator:
-	python3 scripts/operations/vendors/install_external_skills.py --yes --skip-ars --skip-rbs --skip-obsidian-skills
+	python3 scripts/operations/skill_plugins/install_external_skills.py --yes --skip-ars --skip-rbs --skip-obsidian-skills
 
-update-skills-vendors:
-	bash scripts/operations/vendors/update-skills-vendors.sh
+update-skill-plugins:
+	bash scripts/operations/skill_plugins/update-skill-plugins.sh
 
 check-obsidian-panel:
 	python3 scripts/operations/obsidian/check_obsidian_panel.py .

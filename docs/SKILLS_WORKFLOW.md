@@ -1,6 +1,6 @@
 # Skills workflow
 
-Keep this file next to the upstream playbook when you need a prompt for a specific Research Book Skill. The upstream workflow remains in `vendor/research-book-skills/docs/user/WORKFLOW_PLAYBOOK.md`; this project file gives one practical example per skill without editing vendored docs.
+Keep this file next to the upstream playbook when you need a prompt for a specific Research Book Skill. The upstream workflow remains in `skill-plugins/research-book-skills/docs/user/WORKFLOW_PLAYBOOK.md`; this project file gives one practical example per skill without editing upstream docs.
 
 Treat every prompt below as a way to organize work, not as evidence. Sources, citekeys, page numbers, quotations, and bibliographic metadata still need to come from Zotero, `bibliography/references.bib`, source notes, or material the user supplied.
 

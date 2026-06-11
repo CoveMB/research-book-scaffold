@@ -6,16 +6,16 @@ repos:
     hooks:
       - id: trailing-whitespace
         args: ["--markdown-linebreak-ext=md", "--markdown-linebreak-ext=qmd"]
-        exclude: ^(vendor|exports)/
+        exclude: ^(skill-plugins|exports)/
       - id: end-of-file-fixer
-        exclude: ^(vendor|exports)/
+        exclude: ^(skill-plugins|exports)/
       - id: check-yaml
-        exclude: ^vendor/
+        exclude: ^skill-plugins/
       - id: check-toml
       - id: check-json
       - id: check-added-large-files
         args: ["--maxkb=5120"]
-        exclude: ^(vendor|exports)/
+        exclude: ^(skill-plugins|exports)/
       - id: check-merge-conflict
       - id: detect-private-key
 

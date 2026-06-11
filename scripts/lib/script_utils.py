@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 DOCUMENT_SUFFIXES = {".md", ".qmd"}
-DEFAULT_IGNORED_DIRS = {".git", ".quarto", "_book", "vendor"}
+DEFAULT_IGNORED_DIRS = {".git", ".quarto", "_book", "skill-plugins"}
 PLACEHOLDER_RE = re.compile(r"\{\{\s*[A-Za-z][A-Za-z0-9_ -]{0,80}\s*\}\}")
 
 

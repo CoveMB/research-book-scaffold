@@ -109,14 +109,14 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
         for phrase in expected_phrases:
             self.assertIn(phrase, self.runbook_text)
 
-    def test_vendor_update_is_not_in_routine_targeted_checks(self) -> None:
+    def test_skill_plugin_update_is_not_in_routine_targeted_checks(self) -> None:
         targeted_start = self.runbook_text.index("Targeted script checks:")
-        targeted_end = self.runbook_text.index("## Vendor Update QA")
+        targeted_end = self.runbook_text.index("## Skill/Plugin Source Update QA")
         targeted_section = self.runbook_text[targeted_start:targeted_end]
 
-        self.assertNotIn("bash scripts/operations/vendors/update-skills-vendors.sh --skip-checks", targeted_section)
-        self.assertIn("## Vendor Update QA", self.runbook_text)
-        self.assertIn("Only run this section when the release intentionally updates vendored skill repositories.", self.runbook_text)
+        self.assertNotIn("bash scripts/operations/skill_plugins/update-skill-plugins.sh --skip-checks", targeted_section)
+        self.assertIn("## Skill/Plugin Source Update QA", self.runbook_text)
+        self.assertIn("Only run this section when the release intentionally updates external skill repositories.", self.runbook_text)
 
     def test_render_qa_is_scoped_to_export_targets(self) -> None:
         expected_phrases = [

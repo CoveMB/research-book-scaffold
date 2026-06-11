@@ -7,19 +7,19 @@ description: Use only when guarded Subagent Orchestrator guidance can help choos
 
 ## Purpose
 
-Use the vendored Subagent Orchestrator `subagent-orchestrator` workflow only as an execution-shape helper for this repository.
+Use the external Subagent Orchestrator `subagent-orchestrator` workflow only as an execution-shape helper for this repository.
 
 ## Upstream Source
 
 Read the upstream `SKILL.md` before use.
 
 ```text
-vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/skills/subagent-orchestrator/SKILL.md
+skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/skills/subagent-orchestrator/SKILL.md
 ```
 
 ## Local Overrides
 
-- `AGENTS.md`, project, citation, manuscript, audit, and vendor rules win over upstream guidance whenever they conflict.
+- `AGENTS.md`, project, citation, manuscript, audit, and skill/plugin source rules win over upstream guidance whenever they conflict.
 - Use only when bounded orchestration materially helps with a complex, separable, or review-heavy task.
 - Do not use automatically for every research task.
 - Subagent output is not evidence.
@@ -35,8 +35,8 @@ vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/skills/subagen
 
 ## Forbidden Actions
 
-- Do not edit files under `vendor/subagent-orchestration-plugin/`.
-- Do not execute vendored scripts automatically.
+- Do not edit files under `skill-plugins/subagent-orchestration-plugin/`.
+- Do not execute external source scripts automatically.
 - Do not let subagents invent citations, citekeys, page numbers, quotations, studies, metadata, claims, or source relationships.
 - Do not treat orchestration guidance as permission to bypass repository checks, user approval rules, privacy rules, or safety constraints.
 

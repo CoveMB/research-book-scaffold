@@ -170,7 +170,7 @@ class SetupEnvironmentTests(unittest.TestCase):
         self.assertTrue(external_args.no_rbs_plugin)
         self.assertTrue(external_args.no_subagent_orchestrator_plugin)
         self.assertTrue(external_args.no_update)
-        self.assertFalse(external_args.preserve_vendor_checkouts)
+        self.assertFalse(external_args.preserve_skill_plugin_checkouts)
 
 
 if __name__ == "__main__":

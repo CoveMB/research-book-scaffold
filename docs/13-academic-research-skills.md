@@ -21,10 +21,10 @@ This repository is Claude Code and Claude plugin oriented. Do not assume its plu
 
 ## Local handling
 
-- Vendor upstream under `vendor/academic-research-skills/` as a Git submodule.
+- Source upstream under `skill-plugins/academic-research-skills/` as a Git submodule.
 - Preserve upstream files unchanged.
 - Create wrappers under `.agents/skills/ars-*/`.
-- Each wrapper points to the vendored upstream `SKILL.md`.
+- Each wrapper points to the upstream `SKILL.md`.
 - Each wrapper warns when an upstream step depends on Claude-specific behavior.
 
 ## Use
@@ -41,5 +41,5 @@ This repository is Claude Code and Claude plugin oriented. Do not assume its plu
 - Creating final citations from memory.
 - Creating unverified sources.
 - Running Claude-specific plugin commands here.
-- Running vendored scripts before inspection.
+- Running external source scripts before inspection.
 - Commercial workflows unless license compatibility is confirmed.

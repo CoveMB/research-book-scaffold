@@ -38,8 +38,8 @@ config/mcp.json
 .obsidian/workspace-mobile.json
 .obsidian/cache/
 
-# Nested vendor repository internals
-vendor/*/.git/
+# Nested skill/plugin source repository internals
+skill-plugins/*/.git/
 
 # Local Zotero storage exports
 zotero-storage/

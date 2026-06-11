@@ -17,7 +17,7 @@ add_scripts_to_path()
 import check_external_skills
 from project_config import (
     ExternalPluginSpec,
-    ExternalVendorSpec,
+    ExternalSourceSpec,
     OBSIDIAN_SKILL_WRAPPERS,
     RBS_PLUGIN_JSON_NAME,
     SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME,
@@ -25,28 +25,28 @@ from project_config import (
 
 
 class CheckExternalSkillsTests(unittest.TestCase):
-    def obsidian_spec(self, root: Path) -> ExternalVendorSpec:
-        return ExternalVendorSpec(
+    def obsidian_spec(self, root: Path) -> ExternalSourceSpec:
+        return ExternalSourceSpec(
             "obsidian-skills",
             "Obsidian Skills",
-            root / "vendor" / "obsidian-skills",
+            root / "skill-plugins" / "obsidian-skills",
             "https://github.com/kepano/obsidian-skills.git",
         )
 
-    def write_obsidian_upstream_skills(self, vendor: Path) -> None:
+    def write_obsidian_upstream_skills(self, source: Path) -> None:
         for skill_name in OBSIDIAN_SKILL_WRAPPERS:
-            skill_path = vendor / "skills" / skill_name / "SKILL.md"
+            skill_path = source / "skills" / skill_name / "SKILL.md"
             skill_path.parent.mkdir(parents=True, exist_ok=True)
             skill_path.write_text(
                 f"---\nname: {skill_name}\ndescription: Upstream skill.\n---\n",
                 encoding="utf-8",
             )
 
-    def write_obsidian_wrappers(self, skills_dir: Path, vendor: Path) -> None:
+    def write_obsidian_wrappers(self, skills_dir: Path, source: Path) -> None:
         for skill_name, wrapper_name in OBSIDIAN_SKILL_WRAPPERS.items():
             wrapper_path = skills_dir / wrapper_name / "SKILL.md"
             wrapper_path.parent.mkdir(parents=True, exist_ok=True)
-            upstream_path = vendor / "skills" / skill_name / "SKILL.md"
+            upstream_path = source / "skills" / skill_name / "SKILL.md"
             wrapper_path.write_text(
                 (
                     "---\n"
@@ -54,7 +54,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
                     "description: Safe Obsidian wrapper.\n"
                     "---\n\n"
                     f"Read `{upstream_path}`.\n"
-                    "AGENTS.md controls local use. Do not execute vendored scripts automatically.\n"
+                    "AGENTS.md controls local use. Do not execute external source scripts automatically.\n"
                 ),
                 encoding="utf-8",
             )
@@ -102,12 +102,12 @@ class CheckExternalSkillsTests(unittest.TestCase):
         return skill_path
 
     def write_obsidian_fixture(self, root: Path) -> tuple[Path, Path]:
-        vendor = self.obsidian_spec(root).path
+        source = self.obsidian_spec(root).path
         skills_dir = root / ".agents" / "skills"
-        self.write_obsidian_upstream_skills(vendor)
-        self.write_obsidian_wrappers(skills_dir, vendor)
+        self.write_obsidian_upstream_skills(source)
+        self.write_obsidian_wrappers(skills_dir, source)
         self.write_obsidian_install_report(root)
-        return vendor, skills_dir
+        return source, skills_dir
 
     def run_obsidian_check(
         self,
@@ -119,7 +119,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
         warnings: list[str] = []
 
         with (
-            mock.patch.object(check_external_skills, "VENDOR_SPECS_BY_KEY", {"obsidian-skills": spec}),
+            mock.patch.object(check_external_skills, "SOURCE_SPECS_BY_KEY", {"obsidian-skills": spec}),
             mock.patch.object(check_external_skills, "SKILLS_DIR", root / ".agents" / "skills"),
             mock.patch.object(check_external_skills, "check_submodule"),
             mock.patch.object(check_external_skills, "git_origin", return_value=origin),
@@ -130,25 +130,25 @@ class CheckExternalSkillsTests(unittest.TestCase):
         self.assertEqual(warnings, [])
         return failures
 
-    def rbs_plugin_spec(self, vendor: Path, skill_names: tuple[str, ...]) -> ExternalPluginSpec:
+    def rbs_plugin_spec(self, source: Path, skill_names: tuple[str, ...]) -> ExternalPluginSpec:
         return ExternalPluginSpec(
             "rbs",
             "RBS",
             "research-book-skills",
-            "./vendor/research-book-skills",
-            vendor,
+            "./skill-plugins/research-book-skills",
+            source,
             "scholarly-research-book",
-            vendor / "skills",
+            source / "skills",
             skill_names,
         )
 
-    def subagent_plugin_spec(self, vendor: Path, skill_names: tuple[str, ...]) -> ExternalPluginSpec:
-        plugin_root = vendor / "plugin" / "subagent-orchestrator"
+    def subagent_plugin_spec(self, source: Path, skill_names: tuple[str, ...]) -> ExternalPluginSpec:
+        plugin_root = source / "plugin" / "subagent-orchestrator"
         return ExternalPluginSpec(
             "subagent-orchestrator",
             "Subagent Orchestrator",
             "subagent-orchestrator",
-            "./vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator",
+            "./skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator",
             plugin_root,
             "subagent-orchestrator",
             plugin_root / "skills",
@@ -170,7 +170,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
     def run_rbs_check(self, root: Path, plugin_spec: ExternalPluginSpec) -> list[str]:
         failures: list[str] = []
         warnings: list[str] = []
-        vendor_spec = ExternalVendorSpec(
+        source_spec = ExternalSourceSpec(
             "rbs",
             "RBS",
             plugin_spec.plugin_root,
@@ -178,7 +178,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
         )
 
         with (
-            mock.patch.object(check_external_skills, "VENDOR_SPECS_BY_KEY", {"rbs": vendor_spec}),
+            mock.patch.object(check_external_skills, "SOURCE_SPECS_BY_KEY", {"rbs": source_spec}),
             mock.patch.object(check_external_skills, "RBS_PLUGIN_SPEC", plugin_spec),
             mock.patch.object(check_external_skills, "SKILLS_DIR", root / ".agents" / "skills"),
             mock.patch.object(check_external_skills, "check_submodule"),
@@ -190,21 +190,21 @@ class CheckExternalSkillsTests(unittest.TestCase):
         self.assertEqual(warnings, [])
         return failures
 
-    def run_subagent_check(self, root: Path, vendor: Path, plugin_spec: ExternalPluginSpec) -> list[str]:
+    def run_subagent_check(self, root: Path, source: Path, plugin_spec: ExternalPluginSpec) -> list[str]:
         failures: list[str] = []
         warnings: list[str] = []
-        vendor_spec = ExternalVendorSpec(
+        source_spec = ExternalSourceSpec(
             "subagent-orchestrator",
             "Subagent Orchestrator",
-            vendor,
+            source,
             "https://github.com/CoveMB/subagent-orchestration-plugin.git",
         )
 
         with (
             mock.patch.object(
                 check_external_skills,
-                "VENDOR_SPECS_BY_KEY",
-                {"subagent-orchestrator": vendor_spec},
+                "SOURCE_SPECS_BY_KEY",
+                {"subagent-orchestrator": source_spec},
             ),
             mock.patch.object(check_external_skills, "SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC", plugin_spec),
             mock.patch.object(check_external_skills, "SKILLS_DIR", root / ".agents" / "skills"),
@@ -302,33 +302,33 @@ class CheckExternalSkillsTests(unittest.TestCase):
         self.assertEqual(
             check_external_skills.submodule_status_message(
                 "RBS",
-                Path("vendor/research-book-skills"),
-                "+6289f6f vendor/research-book-skills (remotes/origin/HEAD)\n",
+                Path("skill-plugins/research-book-skills"),
+                "+6289f6f skill-plugins/research-book-skills (remotes/origin/HEAD)\n",
                 0,
             ),
-            "RBS submodule pointer differs from parent index: vendor/research-book-skills",
+            "RBS submodule pointer differs from parent index: skill-plugins/research-book-skills",
         )
 
     def test_uninitialized_submodule_is_actionable(self) -> None:
         self.assertEqual(
             check_external_skills.submodule_status_message(
                 "ARS",
-                Path("vendor/academic-research-skills"),
-                "-153203d vendor/academic-research-skills\n",
+                Path("skill-plugins/academic-research-skills"),
+                "-153203d skill-plugins/academic-research-skills\n",
                 0,
             ),
-            "ARS submodule is not initialized: vendor/academic-research-skills",
+            "ARS submodule is not initialized: skill-plugins/academic-research-skills",
         )
 
     def test_conflicted_submodule_is_actionable(self) -> None:
         self.assertEqual(
             check_external_skills.submodule_status_message(
                 "Subagent Orchestrator",
-                Path("vendor/subagent-orchestration-plugin"),
-                "Uf2185e5 vendor/subagent-orchestration-plugin\n",
+                Path("skill-plugins/subagent-orchestration-plugin"),
+                "Uf2185e5 skill-plugins/subagent-orchestration-plugin\n",
                 0,
             ),
-            "Subagent Orchestrator submodule has merge conflicts: vendor/subagent-orchestration-plugin",
+            "Subagent Orchestrator submodule has merge conflicts: skill-plugins/subagent-orchestration-plugin",
         )
 
     def test_expected_rbs_plugin_name_matches_upstream(self) -> None:
@@ -352,7 +352,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
         ):
             with contextlib.redirect_stdout(io.StringIO()):
                 check_external_skills.check_submodule(
-                    Path("vendor/example"),
+                    Path("skill-plugins/example"),
                     "https://example.invalid/repo.git",
                     "Example",
                     failures,
@@ -374,8 +374,8 @@ class CheckExternalSkillsTests(unittest.TestCase):
     def test_obsidian_missing_upstream_skill_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            vendor, _ = self.write_obsidian_fixture(root)
-            missing_upstream = vendor / "skills" / "defuddle" / "SKILL.md"
+            source, _ = self.write_obsidian_fixture(root)
+            missing_upstream = source / "skills" / "defuddle" / "SKILL.md"
             missing_upstream.unlink()
 
             failures = self.run_obsidian_check(root)
@@ -408,8 +408,8 @@ class CheckExternalSkillsTests(unittest.TestCase):
             gitmodules = root / ".gitmodules"
             gitmodules.write_text(
                 (
-                    '[submodule "vendor/obsidian-skills"]\n'
-                    "\tpath = vendor/obsidian-skills\n"
+                    '[submodule "skill-plugins/obsidian-skills"]\n'
+                    "\tpath = skill-plugins/obsidian-skills\n"
                     "\turl = https://github.com/attacker/kepano/obsidian-skills.git\n"
                 ),
                 encoding="utf-8",
@@ -418,7 +418,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
             with mock.patch.object(check_external_skills, "GITMODULES_PATH", gitmodules):
                 self.assertFalse(
                     check_external_skills.gitmodule_has_expected_github_repo(
-                        Path("vendor/obsidian-skills"),
+                        Path("skill-plugins/obsidian-skills"),
                         "https://github.com/kepano/obsidian-skills.git",
                     )
                 )
@@ -426,15 +426,15 @@ class CheckExternalSkillsTests(unittest.TestCase):
     def test_obsidian_wrapper_frontmatter_requires_description(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            vendor, skills_dir = self.write_obsidian_fixture(root)
+            source, skills_dir = self.write_obsidian_fixture(root)
             wrapper = skills_dir / "obsidian-research-markdown" / "SKILL.md"
             wrapper.write_text(
                 (
                     "---\n"
                     "name: obsidian-research-markdown\n"
                     "---\n\n"
-                    f"Read `{vendor / 'skills' / 'obsidian-markdown' / 'SKILL.md'}`.\n"
-                    "AGENTS.md controls local use. Do not execute vendored scripts automatically.\n"
+                    f"Read `{source / 'skills' / 'obsidian-markdown' / 'SKILL.md'}`.\n"
+                    "AGENTS.md controls local use. Do not execute external source scripts automatically.\n"
                 ),
                 encoding="utf-8",
             )
@@ -446,8 +446,8 @@ class CheckExternalSkillsTests(unittest.TestCase):
     def test_rbs_missing_wrapper_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            vendor = root / "vendor" / "research-book-skills"
-            plugin_spec = self.rbs_plugin_spec(vendor, ("claim-evidence-ledger",))
+            source = root / "skill-plugins" / "research-book-skills"
+            plugin_spec = self.rbs_plugin_spec(source, ("claim-evidence-ledger",))
             self.write_plugin_fixture(plugin_spec)
             report = root / ".agents" / "skills" / "RBS_INSTALLED.md"
             report.parent.mkdir(parents=True, exist_ok=True)
@@ -458,13 +458,13 @@ class CheckExternalSkillsTests(unittest.TestCase):
         expected = root / ".agents" / "skills" / "rbs-claim-evidence-ledger" / "SKILL.md"
         self.assertIn(f"RBS wrapper missing: {expected}", failures)
 
-    def test_rbs_unconfigured_vendor_skill_fails_validation(self) -> None:
+    def test_rbs_unconfigured_source_skill_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            vendor = root / "vendor" / "research-book-skills"
-            plugin_spec = self.rbs_plugin_spec(vendor, ("claim-evidence-ledger",))
+            source = root / "skill-plugins" / "research-book-skills"
+            plugin_spec = self.rbs_plugin_spec(source, ("claim-evidence-ledger",))
             self.write_plugin_fixture(plugin_spec)
-            extra_skill = vendor / "skills" / "research-intent-router" / "SKILL.md"
+            extra_skill = source / "skills" / "research-intent-router" / "SKILL.md"
             extra_skill.parent.mkdir(parents=True, exist_ok=True)
             extra_skill.write_text(
                 "---\nname: research-intent-router\ndescription: Upstream skill.\n---\n",
@@ -486,15 +486,15 @@ class CheckExternalSkillsTests(unittest.TestCase):
             failures = self.run_rbs_check(root, plugin_spec)
 
         self.assertIn(
-            "RBS vendor skills missing from wrapper config: research-intent-router",
+            "RBS source skills missing from wrapper config: research-intent-router",
             failures,
         )
 
     def test_subagent_wrapper_guard_text_is_required(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            vendor = root / "vendor" / "subagent-orchestration-plugin"
-            plugin_spec = self.subagent_plugin_spec(vendor, ("subagent-orchestrator",))
+            source = root / "skill-plugins" / "subagent-orchestration-plugin"
+            plugin_spec = self.subagent_plugin_spec(source, ("subagent-orchestrator",))
             self.write_plugin_fixture(plugin_spec)
             upstream = plugin_spec.skills_root / "subagent-orchestrator" / "SKILL.md"
             self.write_wrapper(
@@ -506,7 +506,7 @@ class CheckExternalSkillsTests(unittest.TestCase):
             report = root / ".agents" / "skills" / "SUBAGENT_ORCHESTRATOR_INSTALLED.md"
             report.write_text("# Installed Subagent Orchestrator\n", encoding="utf-8")
 
-            failures = self.run_subagent_check(root, vendor, plugin_spec)
+            failures = self.run_subagent_check(root, source, plugin_spec)
 
         wrapper = root / ".agents" / "skills" / "subagent-safe-subagent-orchestrator" / "SKILL.md"
         self.assertIn(f"Subagent Orchestrator wrapper safety wording missing: {wrapper}", failures)

@@ -1,20 +1,20 @@
 ---
 name: obsidian-research-bases
-description: Use when the vendored Obsidian Skills `obsidian-bases` guidance is needed for a research vault while preserving local citation, evidence, and folder rules.
+description: Use when the external Obsidian Skills `obsidian-bases` guidance is needed for a research vault while preserving local citation, evidence, and folder rules.
 ---
 
 # obsidian-research-bases
 
 ## Purpose
 
-Use the vendored Obsidian Skills `obsidian-bases` workflow as reviewed reference material for this research manuscript repository.
+Use the external Obsidian Skills `obsidian-bases` workflow as reviewed reference material for this research manuscript repository.
 
 ## Upstream Source
 
 Read the upstream `SKILL.md` before use.
 
 ```text
-vendor/obsidian-skills/skills/obsidian-bases/SKILL.md
+skill-plugins/obsidian-skills/skills/obsidian-bases/SKILL.md
 ```
 
 ## Local Overrides
@@ -36,8 +36,8 @@ vendor/obsidian-skills/skills/obsidian-bases/SKILL.md
 
 ## Forbidden Actions
 
-- Do not edit files under `vendor/obsidian-skills/`.
-- Do not execute vendored scripts automatically.
+- Do not edit files under `skill-plugins/obsidian-skills/`.
+- Do not execute external source scripts automatically.
 - Do not install tools, run Obsidian CLI commands, fetch external web pages, or modify a live vault unless the user explicitly asks.
 - Do not invent citations, citekeys, page numbers, quotations, studies, metadata, claims, or source relationships.
 - Do not treat upstream guidance, CLI output, extracted web content, or generated prose as evidence.

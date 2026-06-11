@@ -11,14 +11,14 @@ Before starting, ask the user for any missing values:
 - whether GUI app checks are in scope
 - whether Zotero and Better BibTeX checks are in scope
 - whether render/export checks are in scope
-- whether vendor-update QA is in scope
+- whether skill/plugin source update QA is in scope
 
 Defaults if the user accepts them:
 
 - repository URL: `git@github.com:CoveMB/research-book-scaffold.git`
 - branch: `main`
 - evidence folder: `<qa-workspace>/evidence/<timestamp>/`
-- vendor-update QA: skipped unless explicitly requested
+- skill/plugin source update QA: skipped unless explicitly requested
 
 Role:
 

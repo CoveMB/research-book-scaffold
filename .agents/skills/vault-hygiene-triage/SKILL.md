@@ -55,7 +55,7 @@ When explicitly asked, it may:
 - Update wiki links affected by approved moves.
 - Create a triage or hygiene audit note in `notes/90-audits/audits/`.
 
-It must not edit bibliography files, vendor files, upstream skills, source PDFs, or manuscript prose unless the user separately asks for that specific work.
+It must not edit bibliography files, skill/plugin source files, upstream skills, source PDFs, or manuscript prose unless the user separately asks for that specific work.
 
 ## Must not do
 

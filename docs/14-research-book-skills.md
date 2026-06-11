@@ -54,9 +54,9 @@ This repository is structured as a local plugin with:
 
 ## Local handling
 
-- Vendor upstream under `vendor/research-book-skills/` as a Git submodule.
-- Expose the vendored plugin directly through `.agents/plugins/marketplace.json`.
-- Use plugin assets directly from `vendor/research-book-skills/` instead of local copies.
+- Source upstream under `skill-plugins/research-book-skills/` as a Git submodule.
+- Expose the external plugin directly through `.agents/plugins/marketplace.json`.
+- Use plugin assets directly from `skill-plugins/research-book-skills/` instead of local copies.
 - Preserve upstream files unchanged.
 
 ## Use

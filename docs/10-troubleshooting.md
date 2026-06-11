@@ -23,10 +23,10 @@
 | qmd as md does not load in Obsidian | Use Obsidian Desktop 1.8.0 or newer. The plugin is desktop-only and will not load on Obsidian mobile. |
 | qmd as md cannot preview or render | Install Quarto, then set qmd as md's Quarto path to `quarto` or an absolute executable path. GUI Obsidian may not inherit the shell `PATH`, so an absolute path can be more reliable. |
 | `_quarto.yml` is not visible in Obsidian | Confirm qmd as md has YAML files enabled and that `.obsidian/app.json` or the File Explorer CSS snippet is not hiding `manuscript/`. Run `make check-obsidian-research-plugins`. |
-| External skills not installed | Run `python3 scripts/operations/vendors/install_external_skills.py --yes`, then review reports. |
-| Research Book Skills plugin not visible | Check `vendor/research-book-skills/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
-| Subagent Orchestrator plugin not visible | Check `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
-| Obsidian Skills wrapper missing | Run `python3 scripts/operations/vendors/check_external_skills.py`, then confirm `vendor/obsidian-skills/skills/` is initialized and refresh wrappers with the local installer if needed. |
+| External skills not installed | Run `python3 scripts/operations/skill_plugins/install_external_skills.py --yes`, then review reports. |
+| Research Book Skills plugin not visible | Check `skill-plugins/research-book-skills/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
+| Subagent Orchestrator plugin not visible | Check `skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
+| Obsidian Skills wrapper missing | Run `python3 scripts/operations/skill_plugins/check_external_skills.py`, then confirm `skill-plugins/obsidian-skills/skills/` is initialized and refresh wrappers with the local installer if needed. |
 | Agent edited too much | Inspect diff, keep intended changes, revert only with user approval. |
 | Export failed | Check Quarto, Pandoc, the TinyTeX `PATH`, bibliography path, and unresolved citation errors. |
 | Quarto render reports `unable to open database file` in sandboxed automation | Rerun render QA with normal user permissions or a writable Quarto cache location, then record the sandbox failure as an environment constraint rather than a manuscript failure if the normal render passes. |

@@ -26,10 +26,10 @@ SCRIPT_LAYOUT = {
     "scripts/operations/setup/environment_checks.py",
     "scripts/operations/health/doctor.py",
     "scripts/operations/health/doctor.sh",
-    "scripts/operations/vendors/install_external_skills.py",
-    "scripts/operations/vendors/check_external_skills.py",
-    "scripts/operations/vendors/update_skills_vendors.py",
-    "scripts/operations/vendors/update-skills-vendors.sh",
+    "scripts/operations/skill_plugins/install_external_skills.py",
+    "scripts/operations/skill_plugins/check_external_skills.py",
+    "scripts/operations/skill_plugins/update_skill_plugins.py",
+    "scripts/operations/skill_plugins/update-skill-plugins.sh",
     "scripts/operations/obsidian/obsidian_agent.py",
     "scripts/operations/obsidian/obsidian_research_plugins.py",
     "scripts/operations/obsidian/check_obsidian_panel.py",
@@ -67,26 +67,26 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertIn('target-version = "py311"', pyproject)
         self.assertNotIn("[tool.unittest]", pyproject)
 
-    def test_external_vendor_specs_are_canonical(self) -> None:
-        specs_by_key = {spec.key: spec for spec in project_config.EXTERNAL_VENDOR_SPECS}
+    def test_external_source_specs_are_canonical(self) -> None:
+        specs_by_key = {spec.key: spec for spec in project_config.EXTERNAL_SOURCE_SPECS}
 
         self.assertEqual(specs_by_key["ars"].label, "ARS")
-        self.assertEqual(specs_by_key["ars"].path, project_config.ARS_VENDOR)
+        self.assertEqual(specs_by_key["ars"].path, project_config.ARS_SOURCE)
         self.assertEqual(specs_by_key["ars"].default_repo, project_config.DEFAULT_ARS_REPO)
         self.assertEqual(specs_by_key["rbs"].label, "RBS")
-        self.assertEqual(specs_by_key["rbs"].path, project_config.RBS_VENDOR)
+        self.assertEqual(specs_by_key["rbs"].path, project_config.RBS_SOURCE)
         self.assertEqual(specs_by_key["rbs"].default_repo, project_config.DEFAULT_RBS_REPO)
         self.assertEqual(specs_by_key["subagent-orchestrator"].label, "Subagent Orchestrator")
         self.assertEqual(
             specs_by_key["subagent-orchestrator"].path,
-            project_config.SUBAGENT_ORCHESTRATOR_VENDOR,
+            project_config.SUBAGENT_ORCHESTRATOR_SOURCE,
         )
         self.assertEqual(
             specs_by_key["subagent-orchestrator"].default_repo,
             project_config.DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
         )
         self.assertEqual(specs_by_key["obsidian-skills"].label, "Obsidian Skills")
-        self.assertEqual(specs_by_key["obsidian-skills"].path, project_config.OBSIDIAN_SKILLS_VENDOR)
+        self.assertEqual(specs_by_key["obsidian-skills"].path, project_config.OBSIDIAN_SKILLS_SOURCE)
         self.assertEqual(
             specs_by_key["obsidian-skills"].default_repo,
             project_config.DEFAULT_OBSIDIAN_SKILLS_REPO,
@@ -116,7 +116,7 @@ class ProjectToolingTests(unittest.TestCase):
     def test_obsidian_safety_wrappers_exist_with_frontmatter_and_contract(self) -> None:
         for upstream_name, wrapper_name in OBSIDIAN_SKILL_WRAPPERS.items():
             with self.subTest(wrapper=wrapper_name):
-                upstream_path = project_config.OBSIDIAN_SKILLS_VENDOR / "skills" / upstream_name / "SKILL.md"
+                upstream_path = project_config.OBSIDIAN_SKILLS_SOURCE / "skills" / upstream_name / "SKILL.md"
                 wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
 
                 self.assertTrue(wrapper_path.exists(), wrapper_path)
@@ -142,7 +142,7 @@ class ProjectToolingTests(unittest.TestCase):
     def test_rbs_safety_wrappers_exist_with_frontmatter_and_contract(self) -> None:
         for upstream_name, wrapper_name in project_config.RBS_SKILL_WRAPPERS.items():
             with self.subTest(wrapper=wrapper_name):
-                upstream_path = project_config.RBS_VENDOR / "skills" / upstream_name / "SKILL.md"
+                upstream_path = project_config.RBS_SOURCE / "skills" / upstream_name / "SKILL.md"
                 wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
 
                 self.assertTrue(wrapper_path.exists(), wrapper_path)
@@ -160,13 +160,13 @@ class ProjectToolingTests(unittest.TestCase):
                 self.assertIn("bibliography checks", text)
                 self.assertIn("workflow guidance, not evidence", text)
 
-    def test_rbs_config_exposes_all_vendored_plugin_skills(self) -> None:
-        vendor_skill_names = {
+    def test_rbs_config_exposes_all_external_plugin_skills(self) -> None:
+        source_skill_names = {
             skill_file.parent.name
             for skill_file in (ROOT / project_config.RBS_PLUGIN_SPEC.skills_root).glob("*/SKILL.md")
         }
 
-        self.assertEqual(set(project_config.RBS_SKILLS), vendor_skill_names)
+        self.assertEqual(set(project_config.RBS_SKILLS), source_skill_names)
 
     def test_subagent_safety_wrappers_exist_with_guarded_contract(self) -> None:
         for upstream_name, wrapper_name in project_config.SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS.items():
@@ -187,14 +187,14 @@ class ProjectToolingTests(unittest.TestCase):
                 self.assertIn("not use automatically for every research task", text)
                 self.assertIn("Subagent output is not evidence", text)
                 self.assertIn("no global hooks, global agents, or global config", text)
-                self.assertIn("project, citation, manuscript, audit, and vendor rules win", text)
+                self.assertIn("project, citation, manuscript, audit, and skill/plugin source rules win", text)
 
     def test_external_plugin_specs_are_canonical(self) -> None:
-        specs_by_key = {spec.vendor_key: spec for spec in project_config.EXTERNAL_PLUGIN_SPECS}
+        specs_by_key = {spec.source_key: spec for spec in project_config.EXTERNAL_PLUGIN_SPECS}
 
         self.assertEqual(specs_by_key["rbs"].marketplace_name, project_config.RBS_MARKETPLACE_NAME)
         self.assertEqual(specs_by_key["rbs"].plugin_path, project_config.MARKETPLACE_PLUGIN_PATH)
-        self.assertEqual(specs_by_key["rbs"].skills_root, project_config.RBS_VENDOR / "skills")
+        self.assertEqual(specs_by_key["rbs"].skills_root, project_config.RBS_SOURCE / "skills")
         self.assertEqual(specs_by_key["subagent-orchestrator"].marketplace_name, "subagent-orchestrator")
         self.assertEqual(
             specs_by_key["subagent-orchestrator"].plugin_root,
@@ -205,7 +205,7 @@ class ProjectToolingTests(unittest.TestCase):
         for relative_path in sorted(SCRIPT_LAYOUT):
             self.assertTrue((ROOT / relative_path).exists(), relative_path)
 
-    def test_subagent_make_target_skips_other_external_vendors(self) -> None:
+    def test_subagent_make_target_skips_other_external_sources(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
         self.assertIn("--skip-ars --skip-rbs --skip-obsidian-skills", makefile)
@@ -285,7 +285,7 @@ class ProjectToolingTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 
         expected_steps = [
-            "Check out repository and vendored submodules",
+            "Check out repository and skill/plugin submodules",
             f"Set up Python {CI_PYTHON_VERSION}",
             "Show Python, Git, and Make versions",
             "Compile-check Python scripts and QA tools",
@@ -335,8 +335,8 @@ class ProjectToolingTests(unittest.TestCase):
         docs = (ROOT / "docs" / "15-obsidian-skills.md").read_text(encoding="utf-8")
         scripts_readme = (ROOT / "scripts" / "README.md").read_text(encoding="utf-8")
         expected = (
-            "python3 scripts/operations/vendors/install_external_skills.py --yes "
-            "--force --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-vendor-checkouts"
+            "python3 scripts/operations/skill_plugins/install_external_skills.py --yes "
+            "--force --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-skill-plugin-checkouts"
         )
 
         self.assertIn(expected, docs)

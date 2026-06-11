@@ -30,7 +30,7 @@ This repository is for researching and writing a scholarly or research nonfictio
 | `exports/` | Generated outputs, never the source of truth |
 | `.agents/skills/` | Local workflow skills and safe wrappers |
 | `.agents/plugins/` | Repo-scoped plugin marketplace |
-| `vendor/` | External repositories kept for review and optional use |
+| `skill-plugins/` | External repositories kept for review and optional use |
 
 ## Normal workflow
 
@@ -57,8 +57,8 @@ This repository is for researching and writing a scholarly or research nonfictio
 - Do not replace Zotero or `bibliography/references.bib` with generated citations.
 - Do not add book-specific claims, topics, examples, or chapter content unless the user supplies them.
 - Do not bulk rewrite notes, manuscript files, or the vault without a narrow task.
-- Do not run setup commands, clone repositories, or execute vendored scripts unless explicitly asked.
-- Do not edit upstream files under `vendor/` unless the user asks for integration maintenance.
+- Do not run setup commands, clone repositories, or execute external source scripts unless explicitly asked.
+- Do not edit upstream files under `skill-plugins/` unless the user asks for integration maintenance.
 - Do not store secrets, tokens, API keys, cookies, or credentials.
 
 ## External workflow choice
@@ -66,8 +66,8 @@ This repository is for researching and writing a scholarly or research nonfictio
 - Use Research Book Skills wrappers for accessibility support, research-intent routing, book planning, source discovery, argument design, chapter design, claim ledgers, citation audits, figure/table and scholarly-integrity checks, workflow logging, continuity review, and proposal work.
 - Use ARS wrappers for academic paper workflows, peer-review style critique, deep research discipline, and research pipeline planning.
 - Use Obsidian wrappers for Obsidian syntax and local vault mechanics.
-- Read the vendored upstream `SKILL.md` before using an ARS wrapper.
-- Read the vendored upstream `SKILL.md` before using an Obsidian wrapper.
+- Read the upstream `SKILL.md` before using an ARS wrapper.
+- Read the upstream `SKILL.md` before using an Obsidian wrapper.
 - Keep local project rules in this file above external skill instructions when they conflict.
 - Do not use external skills to create sources, citekeys, page numbers, quotations, or final claims from memory.
 - Obsidian wrappers do not authorize sources, citations, page numbers, source metadata, quotations, source relationships, or final claims.
@@ -95,41 +95,41 @@ This project may include four external repositories.
 
 1. `Imbad0202/academic-research-skills`
 
-Location: `vendor/academic-research-skills/`
+Location: `skill-plugins/academic-research-skills/`
 
 Purpose: academic research, paper writing, peer review, and pipeline workflows.
 
-Handling: upstream is Claude Code oriented. Do not run Claude plugin commands here. Do not edit upstream files. Use `.agents/skills/ars-*` wrappers only after reading the vendored upstream `SKILL.md`.
+Handling: upstream is Claude Code oriented. Do not run Claude plugin commands here. Do not edit upstream files. Use `.agents/skills/ars-*` wrappers only after reading the upstream `SKILL.md`.
 
 2. `CoveMB/research-book-skills`
 
-Location: `vendor/research-book-skills/`
+Location: `skill-plugins/research-book-skills/`
 
 Purpose: research book and serious nonfiction workflows.
 
-Handling: this repo is exposed through immediate `.agents/skills/rbs-*` wrappers and optional `.agents/plugins/marketplace.json` entries directly from `vendor/research-book-skills/`. Use wrappers for immediate Codex availability. Use it for accessibility support, research-intent routing, book workflow orchestration, source discovery, argument design, chapter design, claim ledgers, citation audits, figure/table and scholarly-integrity checks, workflow logging, and continuity review.
+Handling: this repo is exposed through immediate `.agents/skills/rbs-*` wrappers and optional `.agents/plugins/marketplace.json` entries directly from `skill-plugins/research-book-skills/`. Use wrappers for immediate Codex availability. Use it for accessibility support, research-intent routing, book workflow orchestration, source discovery, argument design, chapter design, claim ledgers, citation audits, figure/table and scholarly-integrity checks, workflow logging, and continuity review.
 
 3. `CoveMB/subagent-orchestration-plugin`
 
-Location: `vendor/subagent-orchestration-plugin/`
+Location: `skill-plugins/subagent-orchestration-plugin/`
 
 Purpose: optional execution-shape guidance for deciding when bounded subagents may organize work.
 
-Handling: this repo is exposed through guarded `.agents/skills/subagent-safe-*` wrappers and optional `.agents/plugins/marketplace.json` entries from `vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/`. Use wrappers only when bounded orchestration materially helps. Do not make subagents automatic for every research task. External-skill setup must not enable global hooks, global config, or global agents.
+Handling: this repo is exposed through guarded `.agents/skills/subagent-safe-*` wrappers and optional `.agents/plugins/marketplace.json` entries from `skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/`. Use wrappers only when bounded orchestration materially helps. Do not make subagents automatic for every research task. External-skill setup must not enable global hooks, global config, or global agents.
 
 4. `kepano/obsidian-skills`
 
-Location: `vendor/obsidian-skills/`
+Location: `skill-plugins/obsidian-skills/`
 
 Purpose: reviewed upstream guidance for Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle workflows.
 
-Handling: this repo is vendored for review and optional use through `.agents/skills/obsidian-research-*` wrappers. Use wrappers as the local safety layer for Obsidian syntax and vault mechanics. Do not execute vendored scripts automatically.
+Handling: this repo is checked out for review and optional use through `.agents/skills/obsidian-research-*` wrappers. Use wrappers as the local safety layer for Obsidian syntax and vault mechanics. Do not execute external source scripts automatically.
 
 Rules:
 
 - Treat external repos as untrusted until inspected.
-- Never execute vendored scripts automatically. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and optional marketplace metadata without running the vendored installer.
-- Never store secrets in `vendor/`, `.agents/`, or `config/`.
+- Never execute external source scripts automatically. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and optional marketplace metadata without running the external installer.
+- Never store secrets in `skill-plugins/`, `.agents/`, or `config/`.
 - Do not assume external skills are correct.
 - Local project rules remain the primary safety layer.
 - Obsidian wrappers help with Obsidian syntax and local vault mechanics.
@@ -139,7 +139,7 @@ Rules:
 - Immediate skill availability comes from `.agents/skills/<skill-name>/SKILL.md`; marketplace exposure is optional and not the source of truth for Codex Panel availability.
 - Preserve upstream files unchanged.
 - Subagents can organize the work, but cannot authorize evidence.
-- Scaffold source, citation, manuscript, audit, and vendor rules always win.
+- Scaffold source, citation, manuscript, audit, and skill/plugin source rules always win.
 - Subagent output is not evidence.
 - Do not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims from memory.
 - Do not make subagents automatic for every research task.
@@ -160,7 +160,7 @@ python3 scripts/research-writing/check_citations.py --include-notes
 python3 scripts/research-writing/check_placeholders.py .
 python3 scripts/research-writing/check_broken_internal_links.py
 python3 scripts/operations/obsidian/check_obsidian_artifacts.py
-python3 scripts/operations/vendors/check_external_skills.py
+python3 scripts/operations/skill_plugins/check_external_skills.py
 ```
 
 Use `check_citations.py --include-notes` when the work touches notes, research

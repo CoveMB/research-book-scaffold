@@ -18,9 +18,9 @@ project material. Do not use a template to fill missing evidence from memory.
 
 ## Plugin-owned templates
 
-Use these from `vendor/research-book-skills/` directly so local copies do not drift:
+Use these from `skill-plugins/research-book-skills/` directly so local copies do not drift:
 
-Inspect the relevant upstream file before using it, keep `vendor/` unchanged,
+Inspect the relevant upstream file before using it, keep `skill-plugins/` unchanged,
 and apply the local `AGENTS.md` source, citation, and evidence rules.
 
 - `skills/case-study-integration/assets/case-study-dossier-template.md`

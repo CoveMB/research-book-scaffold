@@ -1,20 +1,20 @@
 ---
 name: rbs-rights-privacy-release-auditor
-description: Use when the vendored Research Book Skills `rights-privacy-release-auditor` guidance is needed through the local scaffold safety wrapper.
+description: Use when the external Research Book Skills `rights-privacy-release-auditor` guidance is needed through the local scaffold safety wrapper.
 ---
 
 # rbs-rights-privacy-release-auditor
 
 ## Purpose
 
-Use the vendored Research Book Skills `rights-privacy-release-auditor` workflow as reviewed guidance for research book or scholarly nonfiction work in this scaffold.
+Use the external Research Book Skills `rights-privacy-release-auditor` workflow as reviewed guidance for research book or scholarly nonfiction work in this scaffold.
 
 ## Upstream Source
 
 Read the upstream `SKILL.md` before use.
 
 ```text
-vendor/research-book-skills/skills/rights-privacy-release-auditor/SKILL.md
+skill-plugins/research-book-skills/skills/rights-privacy-release-auditor/SKILL.md
 ```
 
 ## Local Overrides
@@ -34,8 +34,8 @@ vendor/research-book-skills/skills/rights-privacy-release-auditor/SKILL.md
 
 ## Forbidden Actions
 
-- Do not edit files under `vendor/research-book-skills/`.
-- Do not execute vendored scripts automatically.
+- Do not edit files under `skill-plugins/research-book-skills/`.
+- Do not execute external source scripts automatically.
 - Do not replace Zotero or `bibliography/references.bib` with generated citations.
 - Do not treat upstream guidance, generated prose, or agent output as source evidence.
 - Do not make book-specific claims unless the user supplies supported project material.

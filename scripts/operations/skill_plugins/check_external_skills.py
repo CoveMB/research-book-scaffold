@@ -28,7 +28,7 @@ from git_utils import (
 from project_config import (
     ARS_SKILLS,
     EXTERNAL_PLUGIN_SPECS,
-    EXTERNAL_VENDOR_SPECS,
+    EXTERNAL_SOURCE_SPECS,
     ExternalPluginSpec,
     GITMODULES_PATH,
     OBSIDIAN_SKILLS,
@@ -45,7 +45,7 @@ from project_config import (
 from script_utils import read_text
 
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(?P<body>.*?)\n---\s*", flags=re.DOTALL)
-VENDOR_SPECS_BY_KEY = {spec.key: spec for spec in EXTERNAL_VENDOR_SPECS}
+SOURCE_SPECS_BY_KEY = {spec.key: spec for spec in EXTERNAL_SOURCE_SPECS}
 MARKETPLACE_PATHS_BY_NAME = {spec.marketplace_name: spec.plugin_path for spec in EXTERNAL_PLUGIN_SPECS}
 
 
@@ -332,22 +332,22 @@ def check_skill_wrappers(
 
 
 def check_ars(failures: list[str], warnings: list[str]) -> None:
-    spec = VENDOR_SPECS_BY_KEY["ars"]
+    spec = SOURCE_SPECS_BY_KEY["ars"]
     check_submodule(spec.path, spec.default_repo, spec.label, failures)
-    check(spec.path.exists(), f"{spec.label} vendor exists: {spec.path}", f"{spec.label} vendor missing: {spec.path}", failures)
+    check(spec.path.exists(), f"{spec.label} source exists: {spec.path}", f"{spec.label} source missing: {spec.path}", failures)
     origin = git_origin(spec.path)
     if origin:
         check_origin(origin, spec.default_repo, "ARS", failures)
     else:
         warn("ARS origin unavailable", warnings)
     check_skills_exist(spec.label, spec.path, ARS_SKILLS, failures)
-    check_all_vendor_skills_configured(spec.label, spec.path, ARS_SKILLS, failures)
+    check_all_source_skills_configured(spec.label, spec.path, ARS_SKILLS, failures)
     check_skill_wrappers(
         spec.label,
         spec.path,
         ARS_SKILLS,
         failures,
-        ("local scaffold", "Do not execute vendored scripts automatically."),
+        ("local scaffold", "Do not execute external source scripts automatically."),
         wrapper_prefix="ars-",
     )
     check((SKILLS_DIR / "ARS_INSTALLED.md").exists(), "ARS install report exists", "ARS install report missing", failures)
@@ -355,32 +355,32 @@ def check_ars(failures: list[str], warnings: list[str]) -> None:
 
 def check_skills_exist(
     label: str,
-    vendor_root: Path,
+    source_root: Path,
     skill_names: list[str],
     failures: list[str],
 ) -> None:
     for skill_name in skill_names:
-        upstream = vendor_root / skill_name / "SKILL.md"
+        upstream = source_root / skill_name / "SKILL.md"
         check(upstream.exists(), f"{label} upstream skill exists: {upstream}", f"{label} upstream skill missing: {upstream}", failures)
 
 
-def vendor_skill_names(vendor_root: Path) -> set[str]:
-    if not vendor_root.exists():
+def source_skill_names(source_root: Path) -> set[str]:
+    if not source_root.exists():
         return set()
-    return {skill_file.parent.name for skill_file in vendor_root.glob("*/SKILL.md")}
+    return {skill_file.parent.name for skill_file in source_root.glob("*/SKILL.md")}
 
 
-def check_all_vendor_skills_configured(
+def check_all_source_skills_configured(
     label: str,
-    vendor_root: Path,
+    source_root: Path,
     configured_skill_names: list[str],
     failures: list[str],
 ) -> None:
-    missing_from_config = sorted(vendor_skill_names(vendor_root) - set(configured_skill_names))
+    missing_from_config = sorted(source_skill_names(source_root) - set(configured_skill_names))
     check(
         not missing_from_config,
-        f"{label} vendor skills all configured",
-        f"{label} vendor skills missing from wrapper config: {', '.join(missing_from_config)}",
+        f"{label} source skills all configured",
+        f"{label} source skills missing from wrapper config: {', '.join(missing_from_config)}",
         failures,
     )
 
@@ -403,7 +403,7 @@ def check_plugin_json_name(plugin_json: Path, expected_name: str, label: str, fa
     )
 
 
-def check_plugin_vendor(plugin_spec: ExternalPluginSpec, failures: list[str]) -> None:
+def check_plugin_source(plugin_spec: ExternalPluginSpec, failures: list[str]) -> None:
     check_plugin_json_name(
         plugin_spec.plugin_root / ".codex-plugin" / "plugin.json",
         plugin_spec.plugin_json_name,
@@ -412,24 +412,24 @@ def check_plugin_vendor(plugin_spec: ExternalPluginSpec, failures: list[str]) ->
     )
     check(
         plugin_spec.skills_root.exists(),
-        f"{plugin_spec.label} vendor skills folder exists",
-        f"{plugin_spec.label} vendor skills folder missing",
+        f"{plugin_spec.label} source skills folder exists",
+        f"{plugin_spec.label} source skills folder missing",
         failures,
     )
     check_skills_exist(plugin_spec.label, plugin_spec.skills_root, list(plugin_spec.skill_names), failures)
 
 
 def check_rbs(failures: list[str], warnings: list[str]) -> None:
-    spec = VENDOR_SPECS_BY_KEY["rbs"]
+    spec = SOURCE_SPECS_BY_KEY["rbs"]
     check_submodule(spec.path, spec.default_repo, spec.label, failures)
-    check(spec.path.exists(), f"{spec.label} vendor exists: {spec.path}", f"{spec.label} vendor missing: {spec.path}", failures)
+    check(spec.path.exists(), f"{spec.label} source exists: {spec.path}", f"{spec.label} source missing: {spec.path}", failures)
     origin = git_origin(spec.path)
     if origin:
         check_origin(origin, spec.default_repo, "RBS", failures)
     else:
         warn("RBS origin unavailable", warnings)
-    check_plugin_vendor(RBS_PLUGIN_SPEC, failures)
-    check_all_vendor_skills_configured(
+    check_plugin_source(RBS_PLUGIN_SPEC, failures)
+    check_all_source_skills_configured(
         "RBS",
         RBS_PLUGIN_SPEC.skills_root,
         list(RBS_PLUGIN_SPEC.skill_names),
@@ -451,16 +451,16 @@ def check_rbs(failures: list[str], warnings: list[str]) -> None:
 
 
 def check_subagent_orchestrator(failures: list[str], warnings: list[str]) -> None:
-    spec = VENDOR_SPECS_BY_KEY["subagent-orchestrator"]
+    spec = SOURCE_SPECS_BY_KEY["subagent-orchestrator"]
     check_submodule(spec.path, spec.default_repo, spec.label, failures)
-    check(spec.path.exists(), f"{spec.label} vendor exists: {spec.path}", f"{spec.label} vendor missing: {spec.path}", failures)
+    check(spec.path.exists(), f"{spec.label} source exists: {spec.path}", f"{spec.label} source missing: {spec.path}", failures)
     origin = git_origin(spec.path)
     if origin:
         check_origin(origin, spec.default_repo, "Subagent Orchestrator", failures)
     else:
         warn("Subagent Orchestrator origin unavailable", warnings)
-    check_plugin_vendor(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC, failures)
-    check_all_vendor_skills_configured(
+    check_plugin_source(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC, failures)
+    check_all_source_skills_configured(
         "Subagent Orchestrator",
         SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skills_root,
         list(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skill_names),
@@ -476,7 +476,7 @@ def check_subagent_orchestrator(failures: list[str], warnings: list[str]) -> Non
             "not use automatically for every research task",
             "Subagent output is not evidence",
             "no global hooks, global agents, or global config",
-            "project, citation, manuscript, audit, and vendor rules win",
+            "project, citation, manuscript, audit, and skill/plugin source rules win",
         ),
         wrapper_names_by_skill=SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
         safety_failure_label="Subagent Orchestrator wrapper safety wording missing",
@@ -490,22 +490,22 @@ def check_subagent_orchestrator(failures: list[str], warnings: list[str]) -> Non
 
 
 def check_obsidian_skills(failures: list[str], warnings: list[str]) -> None:
-    spec = VENDOR_SPECS_BY_KEY["obsidian-skills"]
+    spec = SOURCE_SPECS_BY_KEY["obsidian-skills"]
     check_submodule(spec.path, spec.default_repo, spec.label, failures)
-    check(spec.path.exists(), f"{spec.label} vendor exists: {spec.path}", f"{spec.label} vendor missing: {spec.path}", failures)
+    check(spec.path.exists(), f"{spec.label} source exists: {spec.path}", f"{spec.label} source missing: {spec.path}", failures)
     origin = git_origin(spec.path)
     if origin:
         check_origin(origin, spec.default_repo, "Obsidian Skills", failures)
     else:
         warn("Obsidian Skills origin unavailable", warnings)
     check_skills_exist(spec.label, spec.path / "skills", OBSIDIAN_SKILLS, failures)
-    check_all_vendor_skills_configured(spec.label, spec.path / "skills", OBSIDIAN_SKILLS, failures)
+    check_all_source_skills_configured(spec.label, spec.path / "skills", OBSIDIAN_SKILLS, failures)
     check_skill_wrappers(
         spec.label,
         spec.path / "skills",
         OBSIDIAN_SKILLS,
         failures,
-        ("AGENTS.md", "Do not execute vendored scripts automatically."),
+        ("AGENTS.md", "Do not execute external source scripts automatically."),
         wrapper_names_by_skill=OBSIDIAN_SKILL_WRAPPERS,
     )
     check(

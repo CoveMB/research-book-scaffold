@@ -25,7 +25,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 1. Project charter | Set scope | User brief | Charter note | Create from `templates/project-charter-template.md` | RBS research agenda workflow | Boundaries clear |
 | 2. Research question refinement | Narrow inquiry | Charter | Questions | Notes | RBS or ARS planning workflow | Questions testable |
-| 3. Search planning | Plan discovery | Questions | Search plan | `vendor/research-book-skills/skills/systematic-source-discovery/assets/search-log-template.md` | RBS source discovery workflow | Query reproducible |
+| 3. Search planning | Plan discovery | Questions | Search plan | `skill-plugins/research-book-skills/skills/systematic-source-discovery/assets/search-log-template.md` | RBS source discovery workflow | Query reproducible |
 | 4. Source discovery | Find candidates | Search plan | Candidate list | Zotero, indexes | RBS source discovery workflow | Criteria applied |
 | 5. Candidate dedupe and screening | Filter duplicates and search results | Candidate exports | Candidate matrix | CSV/BIB/RIS or pasted records | RBS discovery runner/deduper workflow | Duplicate and rejection reasons recorded |
 | 6. Source triage | Assess source fit and credibility | Candidates | Keep/reject notes | Matrix | RBS methodology/source audit workflow | Reasons recorded |
@@ -33,13 +33,13 @@
 | 8. Reading and annotation | Extract evidence | Sources | Annotations | Zotero, notes | Manual first pass | Pages tracked |
 | 9. Source notes | Convert annotations into source-bound notes | Annotations | Source note | Template | RBS annotation-to-source-note workflow | Quote, paraphrase, metadata, and locator gaps preserved |
 | 10. Evidence extraction | Compare evidence across sources | Source notes | Extraction table or source matrix | Templates | RBS extraction-table workflow | Evidence is comparable before synthesis |
-| 11. Literature mapping | Compare sources | Source notes, matrices | Literature map | `vendor/research-book-skills/skills/literature-review-mapper/assets/lit-map-template.md` | RBS literature map workflow | Debates visible |
+| 11. Literature mapping | Compare sources | Source notes, matrices | Literature map | `skill-plugins/research-book-skills/skills/literature-review-mapper/assets/lit-map-template.md` | RBS literature map workflow | Debates visible |
 | 12. Concept notes | Stabilize terms | Sources, maps | Concept note | Template | RBS argument or chapter workflows | Definitions and limits clear |
 | 13. Synthesis memo | Interpret across sources | Source notes, matrices, maps | Synthesis memo | Template | RBS literature and synthesis workflows | Counterevidence and uncertainty visible |
 | 14. Claim ledger | Track claims | Notes, map, synthesis | Claim notes | Template | RBS claim-evidence workflow | Evidence status set |
 | 15. Claim traceability | Link claims to evidence chain | Claims, notes, citekeys | Traceability map | Notes | RBS claim-traceability workflow | Orphan claims and missing locators visible |
 | 16. Argument map | Test sequence and objections | Claims, traceability notes | Argument map | Notes | RBS argument architecture workflow | Weak links marked |
-| 17. Chapter brief | Plan section | Claims, map | Brief | `vendor/research-book-skills/skills/chapter-architecture/assets/chapter-brief-template.md` | RBS chapter architecture workflow | Gaps marked |
+| 17. Chapter brief | Plan section | Claims, map | Brief | `skill-plugins/research-book-skills/skills/chapter-architecture/assets/chapter-brief-template.md` | RBS chapter architecture workflow | Gaps marked |
 | 18. Drafting from notes | Draft prose | Brief, notes | Draft | Quarto | RBS prose/chapter workflows | No unsupported claims |
 | 19. Citation audit | Check citations | Draft, BibTeX | Audit note | Script | RBS citation integrity workflow | Citekeys valid |
 | 20. Claim audit | Check support | Draft, claims | Audit note | Notes | RBS claim-evidence workflow | Weak claims flagged |

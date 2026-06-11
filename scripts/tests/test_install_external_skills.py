@@ -39,8 +39,8 @@ class InstallExternalSkillsTests(unittest.TestCase):
                     [flag, "https://example.invalid/repo.git"],
                 )
 
-    def test_preserve_vendor_checkouts_does_not_reset_configured_submodule(self) -> None:
-        args = install_external_skills.parse_args(["--preserve-vendor-checkouts"])
+    def test_preserve_skill_plugin_checkouts_does_not_reset_configured_submodule(self) -> None:
+        args = install_external_skills.parse_args(["--preserve-skill-plugin-checkouts"])
         report = SilentReport()
 
         with (
@@ -49,7 +49,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
             mock.patch.object(install_external_skills, "run") as run_mock,
         ):
             install_external_skills.clone_or_update(
-                Path("vendor/example"),
+                Path("skill-plugins/example"),
                 None,
                 args,
                 report,
@@ -57,10 +57,10 @@ class InstallExternalSkillsTests(unittest.TestCase):
             )
 
         run_mock.assert_not_called()
-        self.assertEqual(report.already_present, ["Example configured as Git submodule: vendor/example"])
+        self.assertEqual(report.already_present, ["Example configured as Git submodule: skill-plugins/example"])
         self.assertEqual(report.skipped, ["Example submodule checkout preserved"])
 
-    def test_vendor_path_must_be_configured_submodule(self) -> None:
+    def test_source_path_must_be_configured_submodule(self) -> None:
         args = install_external_skills.parse_args([])
         report = SilentReport()
 
@@ -70,7 +70,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
             mock.patch.object(install_external_skills, "run") as run_mock,
         ):
             install_external_skills.clone_or_update(
-                Path("vendor/example"),
+                Path("skill-plugins/example"),
                 None,
                 args,
                 report,
@@ -80,7 +80,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
         run_mock.assert_not_called()
         self.assertEqual(
             report.failed,
-            ["Example vendor path is not configured as a Git submodule: vendor/example"],
+            ["Example source path is not configured as a Git submodule: skill-plugins/example"],
         )
 
     def test_subagent_orchestrator_installer_is_project_scoped_and_available_only(self) -> None:
@@ -96,7 +96,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
         self.assertNotIn("--append-project-agents-md", command)
         self.assertNotIn("--with-hook", command)
 
-    def test_subagent_orchestrator_vendor_installer_is_not_run_by_default(self) -> None:
+    def test_subagent_orchestrator_source_installer_is_not_run_by_default(self) -> None:
         args = install_external_skills.parse_args(["--skip-ars", "--skip-rbs", "--skip-obsidian-skills"])
         report = SilentReport()
         wrapper_paths = [Path(".agents/skills/subagent-safe-subagent-orchestrator/SKILL.md")]
@@ -122,7 +122,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
 
         installer_mock.assert_not_called()
 
-    def test_subagent_orchestrator_installer_boundary_blocks_dirty_vendor(self) -> None:
+    def test_subagent_orchestrator_installer_boundary_blocks_dirty_source(self) -> None:
         report = SilentReport()
 
         with (
@@ -135,9 +135,9 @@ class InstallExternalSkillsTests(unittest.TestCase):
         ):
             self.assertFalse(install_external_skills.subagent_orchestrator_installer_boundary(report))
 
-        self.assertIn("Subagent Orchestrator vendor has uncommitted changes: M install.sh", report.failed)
+        self.assertIn("Subagent Orchestrator source has uncommitted changes: M install.sh", report.failed)
 
-    def test_subagent_orchestrator_marketplace_exposure_does_not_require_vendor_installer(self) -> None:
+    def test_subagent_orchestrator_marketplace_exposure_does_not_require_source_installer(self) -> None:
         args = install_external_skills.parse_args(["--skip-ars", "--skip-rbs", "--skip-obsidian-skills"])
         report = SilentReport()
         wrapper_paths = [Path(".agents/skills/subagent-safe-subagent-orchestrator/SKILL.md")]
@@ -172,7 +172,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
             "name": "local-research-workflow-plugins",
             "interface": {"displayName": "Local Research Workflow Plugins"},
             "plugins": [
-                install_external_skills.marketplace_entry("research-book-skills", "./vendor/research-book-skills"),
+                install_external_skills.marketplace_entry("research-book-skills", "./skill-plugins/research-book-skills"),
                 {
                     "name": "custom-plugin",
                     "source": {"source": "local", "path": "./custom"},
@@ -202,18 +202,18 @@ class InstallExternalSkillsTests(unittest.TestCase):
         report = SilentReport()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            vendor = Path(temp_dir) / "research-book-skills"
-            (vendor / ".codex-plugin").mkdir(parents=True)
-            (vendor / ".codex-plugin" / "plugin.json").write_text("{}", encoding="utf-8")
-            (vendor / "skills").mkdir()
+            source = Path(temp_dir) / "research-book-skills"
+            (source / ".codex-plugin").mkdir(parents=True)
+            (source / ".codex-plugin" / "plugin.json").write_text("{}", encoding="utf-8")
+            (source / "skills").mkdir()
             plugin_spec = install_external_skills.ExternalPluginSpec(
                 "rbs",
                 "RBS",
                 "research-book-skills",
-                "./vendor/research-book-skills",
-                vendor,
+                "./skill-plugins/research-book-skills",
+                source,
                 "research-skills-plugin",
-                vendor / "skills",
+                source / "skills",
                 ("missing-skill",),
             )
             with mock.patch.object(install_external_skills, "RBS_PLUGIN_SPEC", plugin_spec):
@@ -225,7 +225,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
         text = install_external_skills.rbs_wrapper_text("claim-evidence-ledger")
 
         self.assertIn("name: rbs-claim-evidence-ledger", text)
-        self.assertIn("vendor/research-book-skills/skills/claim-evidence-ledger/SKILL.md", text)
+        self.assertIn("skill-plugins/research-book-skills/skills/claim-evidence-ledger/SKILL.md", text)
         self.assertIn("local scaffold rules win", text)
         self.assertIn("Do not invent citations or claims", text)
         self.assertIn("source notes", text)
@@ -239,14 +239,14 @@ class InstallExternalSkillsTests(unittest.TestCase):
 
         self.assertIn("name: subagent-safe-subagent-orchestrator", text)
         self.assertIn(
-            "vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator/skills/subagent-orchestrator/SKILL.md",
+            "skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/skills/subagent-orchestrator/SKILL.md",
             text,
         )
         self.assertIn("bounded orchestration materially helps", text)
         self.assertIn("not use automatically for every research task", text)
         self.assertIn("Subagent output is not evidence", text)
         self.assertIn("no global hooks, global agents, or global config", text)
-        self.assertIn("project, citation, manuscript, audit, and vendor rules win", text)
+        self.assertIn("project, citation, manuscript, audit, and skill/plugin source rules win", text)
 
     def test_install_external_generates_rbs_wrappers_before_report(self) -> None:
         args = install_external_skills.parse_args(["--skip-ars", "--skip-subagent-orchestrator", "--skip-obsidian-skills"])
@@ -297,7 +297,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
         create_mock.assert_called_once_with(args, report)
         report_mock.assert_called_once_with(args, report, wrapper_paths, True, True)
 
-    def test_obsidian_skills_vendor_is_validated_with_wrappers_without_vendored_scripts(self) -> None:
+    def test_obsidian_skills_source_is_validated_with_wrappers_without_external_scripts(self) -> None:
         args = install_external_skills.parse_args(
             ["--skip-ars", "--skip-rbs", "--skip-subagent-orchestrator", "--obsidian-skills-ref", "main"]
         )
@@ -305,10 +305,10 @@ class InstallExternalSkillsTests(unittest.TestCase):
         wrapper_paths = [Path(wrapper_name) for wrapper_name in install_external_skills.OBSIDIAN_SKILL_WRAPPERS.values()]
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            vendor = Path(temp_dir) / "obsidian-skills"
-            vendor.mkdir()
+            source = Path(temp_dir) / "obsidian-skills"
+            source.mkdir()
             with (
-                mock.patch.object(install_external_skills, "OBSIDIAN_SKILLS_VENDOR", vendor),
+                mock.patch.object(install_external_skills, "OBSIDIAN_SKILLS_SOURCE", source),
                 mock.patch.object(install_external_skills, "clone_or_update") as clone_or_update_mock,
                 mock.patch.object(install_external_skills, "validate_obsidian_skills", return_value=True) as validate_mock,
                 mock.patch.object(install_external_skills, "create_obsidian_wrappers", return_value=wrapper_paths) as create_wrappers_mock,
@@ -318,7 +318,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
                 install_external_skills.install_external(args, report)
 
         clone_or_update_mock.assert_called_once_with(
-            vendor,
+            source,
             "main",
             args,
             report,
@@ -334,7 +334,7 @@ class InstallExternalSkillsTests(unittest.TestCase):
 
         self.assertIn("name: obsidian-research-markdown", text)
         self.assertIn("obsidian-markdown", text)
-        self.assertIn("vendor/obsidian-skills/skills/obsidian-markdown/SKILL.md", text)
+        self.assertIn("skill-plugins/obsidian-skills/skills/obsidian-markdown/SKILL.md", text)
         self.assertIn("Read the upstream `SKILL.md` before use.", text)
         self.assertIn("AGENTS.md", text)
         self.assertIn("citation workflow", text)
@@ -350,14 +350,14 @@ class InstallExternalSkillsTests(unittest.TestCase):
         report = SilentReport()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            vendor = Path(temp_dir) / "obsidian-skills"
-            (vendor / "skills" / "obsidian-markdown").mkdir(parents=True)
-            (vendor / "skills" / "obsidian-markdown" / "SKILL.md").write_text(
+            source = Path(temp_dir) / "obsidian-skills"
+            (source / "skills" / "obsidian-markdown").mkdir(parents=True)
+            (source / "skills" / "obsidian-markdown" / "SKILL.md").write_text(
                 "---\nname: obsidian-markdown\n---\n",
                 encoding="utf-8",
             )
 
-            with mock.patch.object(install_external_skills, "OBSIDIAN_SKILLS_VENDOR", vendor):
+            with mock.patch.object(install_external_skills, "OBSIDIAN_SKILLS_SOURCE", source):
                 self.assertFalse(install_external_skills.validate_obsidian_skills(report))
 
         self.assertTrue(any("Obsidian Skills skill missing" in message for message in report.failed))

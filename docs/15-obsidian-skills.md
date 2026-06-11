@@ -1,8 +1,8 @@
 # Obsidian Skills
 
-Obsidian Skills are upstream Agent Skills from `kepano/obsidian-skills`, vendored in this repository at `vendor/obsidian-skills/`. They provide Obsidian-specific guidance for Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle web extraction.
+Obsidian Skills are upstream Agent Skills from `kepano/obsidian-skills`, checked out in this repository at `skill-plugins/obsidian-skills/`. They provide Obsidian-specific guidance for Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle web extraction.
 
-This scaffold uses them through local wrapper skills under `.agents/skills/obsidian-research-*/`. The wrappers are the project safety layer: they point to the vendored upstream `SKILL.md` files, require reading upstream before use, and keep `AGENTS.md`, citation rules, evidence rules, and folder responsibilities in control.
+This scaffold uses them through local wrapper skills under `.agents/skills/obsidian-research-*/`. The wrappers are the project safety layer: they point to the upstream `SKILL.md` files, require reading upstream before use, and keep `AGENTS.md`, citation rules, evidence rules, and folder responsibilities in control.
 
 For new users, the normal setup path is:
 
@@ -35,35 +35,35 @@ After setup, Codex Panel can use these wrappers immediately when it is launched 
 - They are not a source of evidence.
 - They do not authorize sources, citations, page numbers, source metadata, quotations, source relationships, or final claims.
 - They do not replace Zotero or `bibliography/references.bib`.
-- They do not grant permission to execute vendored scripts, run Obsidian CLI commands, fetch web pages, or modify a live vault without explicit user direction.
+- They do not grant permission to execute external source scripts, run Obsidian CLI commands, fetch web pages, or modify a live vault without explicit user direction.
 
-## Vendor installation
+## Skill/plugin source installation
 
-The vendored source is a Git submodule:
+The external source is a Git submodule:
 
 ```sh
-git submodule update --init --recursive -- vendor/obsidian-skills
+git submodule update --init --recursive -- skill-plugins/obsidian-skills
 ```
 
 External-skill setup validates the expected upstream skill files, creates or refreshes the local wrappers, and writes `.agents/skills/OBSIDIAN_SKILLS_INSTALLED.md`:
 
 ```sh
-python3 scripts/operations/vendors/install_external_skills.py --yes --skip-ars --skip-rbs --skip-subagent-orchestrator
+python3 scripts/operations/skill_plugins/install_external_skills.py --yes --skip-ars --skip-rbs --skip-subagent-orchestrator
 ```
 
-If the vendor checkout is already present and only wrappers or reports need to be refreshed from the current checkout, preserve the submodule state:
+If the source checkout is already present and only wrappers or reports need to be refreshed from the current checkout, preserve the submodule state:
 
 ```sh
-python3 scripts/operations/vendors/install_external_skills.py --yes --force --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-vendor-checkouts
+python3 scripts/operations/skill_plugins/install_external_skills.py --yes --force --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-skill-plugin-checkouts
 ```
 
-To refresh only the Obsidian Skills vendor from upstream, use:
+To refresh only the Obsidian Skills source from upstream, use:
 
 ```sh
-bash scripts/operations/vendors/update-skills-vendors.sh --skip-ars --skip-rbs --skip-subagent-orchestrator
+bash scripts/operations/skill_plugins/update-skill-plugins.sh --skip-ars --skip-rbs --skip-subagent-orchestrator
 ```
 
-Review the resulting submodule pointer, wrapper diffs, and install report before committing. Do not edit files under `vendor/obsidian-skills/`.
+Review the resulting submodule pointer, wrapper diffs, and install report before committing. Do not edit files under `skill-plugins/obsidian-skills/`.
 
 ## Wrapper skill list
 
@@ -83,14 +83,14 @@ For Codex CLI, copy the upstream skill directories into the user skills path:
 
 ```sh
 mkdir -p ~/.codex/skills
-cp -R vendor/obsidian-skills/skills/* ~/.codex/skills/
+cp -R skill-plugins/obsidian-skills/skills/* ~/.codex/skills/
 ```
 
 For Claude Code, copy the upstream repository contents into the `.claude` folder for the vault or workspace where Claude Code needs to discover them:
 
 ```sh
 mkdir -p /path/to/vault/.claude
-cp -R vendor/obsidian-skills/* /path/to/vault/.claude/
+cp -R skill-plugins/obsidian-skills/* /path/to/vault/.claude/
 ```
 
 For OpenCode, clone the full upstream repository into the OpenCode skills directory:
@@ -235,7 +235,7 @@ Run the local integration and research-writing checks that match the work:
 
 ```sh
 bash scripts/operations/health/doctor.sh
-python3 scripts/operations/vendors/check_external_skills.py
+python3 scripts/operations/skill_plugins/check_external_skills.py
 python3 scripts/operations/obsidian/check_obsidian_panel.py
 python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 python3 scripts/research-writing/check_citations.py
@@ -257,8 +257,8 @@ make manuscript-release-audit
 
 Troubleshooting rules:
 
-- Missing wrapper: run `python3 scripts/operations/vendors/check_external_skills.py`, then refresh with the local installer if the vendor is present. The checker validates the full repo-scoped skill inventory under `.agents/skills`.
-- Missing vendor source: run `git submodule update --init --recursive -- vendor/obsidian-skills`.
+- Missing wrapper: run `python3 scripts/operations/skill_plugins/check_external_skills.py`, then refresh with the local installer if the source is present. The checker validates the full repo-scoped skill inventory under `.agents/skills`.
+- Missing source checkout: run `git submodule update --init --recursive -- skill-plugins/obsidian-skills`.
 - Missing Codex Panel skills: confirm Obsidian opened the project root as the vault and Codex Panel launched Codex from the repo root or a path below it.
 - Invalid `.base`: check YAML quoting and open the file in Obsidian to verify rendering.
 - Invalid `.canvas`: run `python3 -m json.tool research/canvases/example-literature-map.canvas` and confirm every edge references an existing node ID.
@@ -269,7 +269,7 @@ Troubleshooting rules:
 
 - Local scaffold rules win over upstream Obsidian Skills.
 - Use wrappers for project work; read upstream `SKILL.md` before applying its guidance.
-- Do not execute vendored scripts automatically.
+- Do not execute external source scripts automatically.
 - Do not modify a live Obsidian vault outside this repository unless the user explicitly supplies and approves that target.
 - Do not let extracted web content, CLI output, or generated prose become evidence without verification.
 - Treat Bases and Canvases as views or maps, not evidence.

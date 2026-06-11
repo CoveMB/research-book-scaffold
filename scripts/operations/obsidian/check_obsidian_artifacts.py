@@ -38,7 +38,7 @@ def artifact_files(root: Path) -> list[Path]:
     return sorted(
         path
         for path in root.rglob("*")
-        if path.is_file() and path.suffix in {".base", ".canvas"} and "vendor" not in path.parts
+        if path.is_file() and path.suffix in {".base", ".canvas"} and "skill-plugins" not in path.parts
     )
 
 

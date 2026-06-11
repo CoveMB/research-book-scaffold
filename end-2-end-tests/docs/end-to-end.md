@@ -12,7 +12,7 @@ A production release is ready only when:
 - setup completes or reports only explicitly accepted skipped optional tools
 - required local integrations are installed and checked
 - every Make target and direct script has positive coverage
-- every release gate passes without hiding evidence, citation, placeholder, link, vendor, or skill-usage problems
+- every release gate passes without hiding evidence, citation, placeholder, link, source, or skill-usage problems
 - required render targets are generated and manually inspected
 - all skipped checks, warnings, and residual scholarly risks are recorded
 
@@ -117,7 +117,7 @@ python3 scripts/operations/setup/setup_environment.py --dry-run --register-obsid
 Expected result:
 
 - Dry runs exit 0.
-- No files, packages, repositories, plugins, or vendor pointers are changed.
+- No files, packages, repositories, plugins, or source pointers are changed.
 - Recommended checks include `bash scripts/operations/health/doctor.sh`, external skill check, Obsidian check, Obsidian artifact check, citation check, and placeholder check.
 - When `--skip-obsidian-panel` is used, setup reports Codex Panel setup as skipped and does not require the Codex Panel check until that coverage is in scope.
 - When `--skip-obsidian-research-plugins` is used, setup reports Zotero/Pandoc Obsidian plugin setup as skipped and does not require the research plugin check until that coverage is in scope.
@@ -400,10 +400,10 @@ Expected result:
 | `make check-external-references` | Checks external URLs and DOI resolution without archive lookup | Run only when network QA is in scope; warnings are reviewed without blocking ordinary writing |
 | `make external-reference-report` | Writes `reports/external-reference-check.json` for external-reference audit review | Run only when a generated report is useful; archive lookup still requires an explicit script flag |
 | `make check-manuscript-readiness` | Detects remaining scaffold manuscript entries | Exits 0 for initialized production manuscripts and exits nonzero for a fresh uninitialized scaffold |
-| `make check-external-skills` | Validates vendor submodules, wrappers, plugins, and marketplace entries | Exits 0 with zero failures |
-| `make install-external-skills` | Vendors external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
+| `make check-external-skills` | Validates skill/plugin source submodules, wrappers, plugins, and marketplace entries | Exits 0 with zero failures |
+| `make install-external-skills` | Prepares external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
 | `make install-subagent-orchestrator` | Refreshes only the optional guarded subagent wrappers and marketplace path | Keeps plugin exposure optional and does not activate global hooks, global config, or global agents |
-| `make update-skills-vendors` | Fast-forwards vendored skill repositories and refreshes integrations | Use only when the release includes vendor updates |
+| `make update-skill-plugins` | Fast-forwards external skill repositories and refreshes integrations | Use only when the release includes source updates |
 | `make check-obsidian-panel` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
 | `make check-obsidian-research-plugins` | Verifies Zotero Integration and Pandoc Reference List plugin installs | Exits 0 after plugin files, manifests, and enablement are present |
 | `make check-obsidian-artifacts` | Validates project-local `.base` and `.canvas` artifacts | Exits 0 |
@@ -522,7 +522,7 @@ Entry points and support modules:
 - `scripts/research-writing/check_broken_internal_links.py`
 - `scripts/research-writing/check_citations.py`
 - `scripts/research-writing/check_external_references.py`
-- `scripts/operations/vendors/check_external_skills.py`
+- `scripts/operations/skill_plugins/check_external_skills.py`
 - `scripts/research-writing/check_manuscript_readiness.py`
 - `scripts/operations/obsidian/check_obsidian_artifacts.py`
 - `scripts/operations/obsidian/check_obsidian_panel.py`
@@ -533,7 +533,7 @@ Entry points and support modules:
 - `scripts/operations/setup/environment_checks.py`
 - `scripts/lib/git_utils.py`
 - `scripts/lib/import_paths.py`
-- `scripts/operations/vendors/install_external_skills.py`
+- `scripts/operations/skill_plugins/install_external_skills.py`
 - `scripts/operations/obsidian/install_obsidian_panel.sh`
 - `scripts/operations/obsidian/install_obsidian_research_plugins.sh`
 - `scripts/research-writing/new_from_template.py`
@@ -544,8 +544,8 @@ Entry points and support modules:
 - `scripts/lib/script_env.sh`
 - `scripts/lib/script_utils.py`
 - `scripts/operations/setup/setup_environment.py`
-- `scripts/operations/vendors/update-skills-vendors.sh`
-- `scripts/operations/vendors/update_skills_vendors.py`
+- `scripts/operations/skill_plugins/update-skill-plugins.sh`
+- `scripts/operations/skill_plugins/update_skill_plugins.py`
 
 Run support coverage:
 
@@ -570,8 +570,8 @@ python3 scripts/operations/obsidian/check_obsidian_artifacts.py
 python3 scripts/operations/obsidian/check_obsidian_panel.py
 python3 scripts/operations/obsidian/obsidian_research_plugins.py check
 python3 scripts/operations/obsidian/obsidian_research_plugins.py install --dry-run
-python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes
-python3 scripts/operations/vendors/check_external_skills.py
+python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes
+python3 scripts/operations/skill_plugins/check_external_skills.py
 python3 scripts/research-writing/check_placeholders.py .
 python3 scripts/research-writing/check_citations.py
 python3 scripts/research-writing/check_citations.py --include-notes --require-citations
@@ -588,7 +588,7 @@ Expected result:
 
 - Non-mutating checks exit 0 where prerequisites and initialized manuscript state exist; manuscript readiness and `make manuscript-release-audit` exit nonzero on a fresh uninitialized scaffold.
 - Missing optional render tooling is reported as a tooling blocker, not a manuscript failure.
-- Vendor checks fail if submodule pointers differ from the parent index, are uninitialized, conflicted, dirty, or from an unexpected origin.
+- Skill/plugin source checks fail if submodule pointers differ from the parent index, are uninitialized, conflicted, dirty, or from an unexpected origin.
 
 Template placeholder diagnostic:
 
@@ -601,13 +601,13 @@ Expected result:
 - `python3 scripts/research-writing/check_placeholders.py --include-templates templates` is expected to exit nonzero while templates contain intentional template placeholders.
 - Record the count as template fixture coverage, not a release blocker, unless placeholders appear outside `templates/` or inside generated project content.
 
-## Vendor Update QA
+## Skill/Plugin Source Update QA
 
-Only run this section when the release intentionally updates vendored skill repositories.
+Only run this section when the release intentionally updates external skill repositories.
 
 ```sh
-bash scripts/operations/vendors/update-skills-vendors.sh --skip-checks
-python3 scripts/operations/vendors/check_external_skills.py
+bash scripts/operations/skill_plugins/update-skill-plugins.sh --skip-checks
+python3 scripts/operations/skill_plugins/check_external_skills.py
 bash scripts/operations/health/doctor.sh
 git status --short --branch
 git submodule status --recursive
@@ -615,7 +615,7 @@ git submodule status --recursive
 
 Expected result:
 
-- The updater fast-forwards only selected vendor submodules.
+- The updater fast-forwards only selected skill/plugin source submodules.
 - Local skill wrappers, marketplace metadata, and install reports are refreshed.
 - Post-update checks pass.
 - Submodule pointer changes are visible for review.
@@ -750,22 +750,22 @@ Expected result:
 Run integration checks:
 
 ```sh
-python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes
-python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes --skip-ars
-python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes --skip-rbs
-python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes --skip-subagent-orchestrator
-python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes --no-rbs-plugin
-python3 scripts/operations/vendors/install_external_skills.py --dry-run --yes --no-subagent-orchestrator-plugin
-python3 scripts/operations/vendors/check_external_skills.py
+python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes
+python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --skip-ars
+python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --skip-rbs
+python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --skip-subagent-orchestrator
+python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --no-rbs-plugin
+python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --no-subagent-orchestrator-plugin
+python3 scripts/operations/skill_plugins/check_external_skills.py
 ```
 
 Expected result:
 
-- Dry runs report vendor operations without changing submodules, wrappers, marketplace files, or install reports.
+- Dry runs report source operations without changing submodules, wrappers, marketplace files, or install reports.
 - Skipped integrations are reported as skipped and are not claimed as installed.
 - `.agents/skills/ARS_INSTALLED.md`, `.agents/skills/RBS_INSTALLED.md`, and `.agents/skills/SUBAGENT_ORCHESTRATOR_INSTALLED.md` exist when selected.
-- `.agents/plugins/marketplace.json` points Research Book Skills and Subagent Orchestrator to vendored paths.
-- Vendored upstream files remain unchanged.
+- `.agents/plugins/marketplace.json` points Research Book Skills and Subagent Orchestrator to skill/plugin source paths.
+- External upstream files remain unchanged.
 
 Skill smoke tests are part of full release QA when the release claims ARS, Research Book Skills, or Subagent Orchestrator usability. Run smoke tests only against synthetic seed material or named read-only scaffold files, and record the result in the evidence log.
 
@@ -774,7 +774,7 @@ Loadability checks are not the same as live behavioral smoke tests. If QA only r
 For each listed ARS wrapper:
 
 1. Read the local wrapper `SKILL.md`.
-2. Read the referenced vendored upstream `SKILL.md`.
+2. Read the referenced upstream `SKILL.md`.
 3. Run only a bounded read-only prompt against synthetic seed files.
 4. Record whether the skill loaded, which files it read, what it would check, and what uncertainty remains.
 
@@ -796,7 +796,7 @@ Expected skill smoke-test result:
 - Each prompt remains read-only.
 - The response identifies files read and uncertainty remaining.
 - No skill output is treated as scholarly evidence.
-- No vendored upstream command, Claude-specific command, hook, global config, or global agent is executed.
+- No upstream command, Claude-specific command, hook, global config, or global agent is executed.
 
 ARS wrapper usage:
 
@@ -809,7 +809,7 @@ Expected usage behavior:
 
 - Read the wrapper first.
 - Read the referenced upstream `SKILL.md`.
-- Do not run Claude-specific commands, vendored scripts, hooks, or provider-specific commands.
+- Do not run Claude-specific commands, external source scripts, hooks, or provider-specific commands.
 - Verify citations, claims, page numbers, and source metadata independently.
 
 Research Book Skills wrapper usage:
@@ -907,7 +907,7 @@ Use using-subagent-orchestrator for this synthetic QA task. Classify whether the
 Expected result:
 
 - The wrapper only provides execution-shape guidance.
-- It does not override project rules, citation rules, manuscript rules, audit rules, or vendor rules.
+- It does not override project rules, citation rules, manuscript rules, audit rules, or skill/plugin source rules.
 - Subagent output is not treated as evidence.
 
 ## Render QA
@@ -1028,6 +1028,6 @@ Release is not ready when:
 
 - any required command exits nonzero
 - missing citations, duplicate bibliography keys, unresolved placeholders, broken links, scaffold manuscript entries, or missing render tools remain unresolved
-- a vendor submodule is dirty, uninitialized, conflicted, drifted from the parent index, or from an unexpected origin
+- a source submodule is dirty, uninitialized, conflicted, drifted from the parent index, or from an unexpected origin
 - a script requires network access or system installation that was not approved and verified
 - a claim, quotation, citation, or source metadata issue is unresolved but hidden from the release record

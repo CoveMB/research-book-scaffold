@@ -12,14 +12,14 @@ External integration reports are recorded in `ARS_INSTALLED.md`,
 
 These skills are local to this repository because they depend on the exact folder
 layout, checks, manuscript tooling, and vault conventions here. They are not
-vendored plugin skills.
+external plugin skills.
 
 - `quarto-export-readiness`: release-audit and Quarto manuscript export readiness.
 - `vault-hygiene-triage`: notes/research vault organization, inbox triage, placeholders, and wiki-link hygiene.
 
 ## External wrapper skills
 
-These wrappers adapt vendored upstream guidance to this repository's citation,
+These wrappers adapt upstream skill/plugin guidance to this repository's citation,
 evidence, and vault rules.
 
 - `ars-deep-research`: Academic Research Skills deep-research guidance through the local safety wrapper.

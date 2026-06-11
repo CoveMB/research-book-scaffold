@@ -2,7 +2,7 @@
 
 Codex Panel is the recommended Obsidian plugin that connects a vault to local Codex workflows. Default setup installs it unless `--skip-obsidian-panel` is passed.
 
-Codex Panel is separate from Obsidian Skills. Obsidian Skills are vendored reference skills with local wrappers for Obsidian syntax and vault mechanics; see `docs/15-obsidian-skills.md`.
+Codex Panel is separate from Obsidian Skills. Obsidian Skills are external reference skills with local wrappers for Obsidian syntax and vault mechanics; see `docs/15-obsidian-skills.md`.
 
 Default setup also installs Zotero Integration, Pandoc Reference List, and qmd as md unless `--skip-obsidian-research-plugins` is passed. Those plugins support citation work and Quarto manuscript editing in Obsidian; they do not replace Zotero, Better BibTeX, Quarto renders, or repository checks.
 
@@ -70,13 +70,13 @@ The repository can keep research notes easier to scan in Obsidian by hiding repo
 
 `manuscript/` stays visible because it is the Quarto source folder for drafting. `bibliography/` stays hidden because Zotero and Better BibTeX manage `bibliography/references.bib`; hand edits there can be overwritten by the next export. Pandoc Reference List can still read the file from its configured path, and the repository citation checks still read it directly.
 
-Vendor documentation stays visible by default. The `vendor/` folder contains upstream README files, licenses, skill docs, examples, and design docs that are useful when reviewing external workflows. Treat those files as reference material, not as project instructions or evidence.
+Skill/plugin source documentation stays visible by default. The `skill-plugins/` folder contains upstream README files, licenses, skill docs, examples, and design docs that are useful when reviewing external workflows. Treat those files as reference material, not as project instructions or evidence.
 
 To show the hidden files and folders in the File Explorer again, open Obsidian Settings, then Appearance, then CSS snippets, and disable `hide-repo-infrastructure`. The same change can be made in a text editor by removing `hide-repo-infrastructure` from `enabledCssSnippets` in `.obsidian/appearance.json`.
 
 That CSS snippet only controls the File Explorer. `.obsidian/app.json` also uses `userIgnoreFilters` to keep the same repository infrastructure out of Obsidian search, graph view, and link suggestions. To turn the hiding off completely, remove the matching entries from `userIgnoreFilters` as well. Reload Obsidian if the File Explorer or search index does not update right away.
 
-To hide vendor documentation again, add `vendor/` to `userIgnoreFilters` in `.obsidian/app.json` and add the matching `vendor` folder selector back to `.obsidian/snippets/hide-repo-infrastructure.css`. Obsidian's ignore filters are broad, so keeping vendor docs visible may also expose some non-documentation vendor files in search.
+To hide skill/plugin source documentation again, add `skill-plugins/` to `userIgnoreFilters` in `.obsidian/app.json` and add the matching `skill-plugins` folder selector back to `.obsidian/snippets/hide-repo-infrastructure.css`. Obsidian's ignore filters are broad, so keeping source docs visible may also expose some non-documentation source files in search.
 
 If `.obsidian/plugins/codex-panel/` already exists, setup will not replace it unless `--force` is passed. The research plugin installer accepts existing Zotero Integration, Pandoc Reference List, and qmd as md folders only after checking their required files and manifest IDs. When a plugin folder is broken or has a manifest mismatch, rerun setup with `--force`, then run the matching check.
 
@@ -194,7 +194,7 @@ Obsidian wrapper test:
 Use $obsidian-research-markdown to inspect notes/README.md and explain which Obsidian Markdown rules apply. Do not edit files.
 ```
 
-If Codex Panel does not see repo-scoped skills, verify that Obsidian opened the project root as the vault root and that Codex Panel launched Codex from the repo root or a path below it. Then run `python3 scripts/operations/vendors/check_external_skills.py` to confirm wrappers and vendors are present.
+If Codex Panel does not see repo-scoped skills, verify that Obsidian opened the project root as the vault root and that Codex Panel launched Codex from the repo root or a path below it. Then run `python3 scripts/operations/skill_plugins/check_external_skills.py` to confirm wrappers and sources are present.
 
 Read `AGENTS.md`, `docs/03-agent-orchestration.md`, `docs/05-security.md`, `docs/07-citation-workflow.md`, and `docs/15-obsidian-skills.md` before using it for edits that involve Obsidian-specific syntax, Bases, Canvas files, CLI operations, or web ingest.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update vendored skill repositories and refresh local integrations."""
+"""Update external skill/plugin source repositories and refresh local integrations."""
 
 from __future__ import annotations
 
@@ -18,12 +18,12 @@ from import_paths import configure_script_paths
 configure_script_paths(__file__)
 
 from git_utils import GitCommandError, git_stdout_required, has_git_checkout
-from project_config import EXTERNAL_VENDOR_SPECS, VENDOR_UPDATE_HEALTH_CHECKS, ExternalVendorSpec, change_to_project_root
+from project_config import EXTERNAL_SOURCE_SPECS, SKILL_PLUGIN_UPDATE_HEALTH_CHECKS, ExternalSourceSpec, change_to_project_root
 from script_utils import CommandError, run_command_required as run_checked
 
 
 @dataclass(frozen=True)
-class VendorUpdate:
+class SkillPluginUpdate:
     label: str
     path: Path
     old_ref: str
@@ -31,7 +31,7 @@ class VendorUpdate:
 
 
 class UpdateError(RuntimeError):
-    """Raised when a vendor update cannot safely continue."""
+    """Raised when a skill/plugin source update cannot safely continue."""
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -44,7 +44,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def vendor_specs(args: argparse.Namespace) -> list[ExternalVendorSpec]:
+def source_specs(args: argparse.Namespace) -> list[ExternalSourceSpec]:
     skipped_keys = {
         key
         for key, should_skip in {
@@ -55,38 +55,38 @@ def vendor_specs(args: argparse.Namespace) -> list[ExternalVendorSpec]:
         }.items()
         if should_skip
     }
-    vendors = [vendor for vendor in EXTERNAL_VENDOR_SPECS if vendor.key not in skipped_keys]
-    if not vendors:
-        raise UpdateError("No vendors selected; remove one skip flag.")
-    return vendors
+    sources = [source for source in EXTERNAL_SOURCE_SPECS if source.key not in skipped_keys]
+    if not sources:
+        raise UpdateError("No skill/plugin sources selected; remove one skip flag.")
+    return sources
 
 
 def submodule_status(path: Path) -> str:
     return git_stdout_required(["git", "-C", path.as_posix(), "status", "--short"])
 
 
-def fail_if_dirty(vendor: ExternalVendorSpec) -> None:
-    status = submodule_status(vendor.path)
+def fail_if_dirty(source: ExternalSourceSpec) -> None:
+    status = submodule_status(source.path)
     if status:
-        raise UpdateError(f"{vendor.label} vendor has uncommitted changes:\n{status}")
+        raise UpdateError(f"{source.label} skill/plugin source has uncommitted changes:\n{status}")
 
 
-def ensure_vendor_branch(vendor: ExternalVendorSpec) -> None:
-    path = vendor.path.as_posix()
+def ensure_source_branch(source: ExternalSourceSpec) -> None:
+    path = source.path.as_posix()
     current_branch = git_stdout_required(["git", "-C", path, "branch", "--show-current"])
-    if current_branch == vendor.branch:
+    if current_branch == source.branch:
         return
     if current_branch:
         raise UpdateError(
-            f"{vendor.label} vendor is on {current_branch}; expected {vendor.branch}. "
-            "Check out the intended vendor branch first."
+            f"{source.label} skill/plugin source is on {current_branch}; expected {source.branch}. "
+            "Check out the intended source branch first."
         )
     try:
-        run_checked(["git", "-C", path, "checkout", vendor.branch], f"checkout {vendor.label} branch {vendor.branch}")
+        run_checked(["git", "-C", path, "checkout", source.branch], f"checkout {source.label} branch {source.branch}")
     except CommandError:
         run_checked(
-            ["git", "-C", path, "checkout", "--track", f"origin/{vendor.branch}"],
-            f"track {vendor.label} branch {vendor.branch}",
+            ["git", "-C", path, "checkout", "--track", f"origin/{source.branch}"],
+            f"track {source.label} branch {source.branch}",
         )
 
 
@@ -94,32 +94,32 @@ def short_ref(ref: str) -> str:
     return ref[:12] if len(ref) > 12 else ref
 
 
-def update_vendor(vendor: ExternalVendorSpec) -> VendorUpdate:
-    path = vendor.path.as_posix()
-    run_checked(["git", "submodule", "sync", "--", path], f"sync {vendor.label} submodule")
-    if not has_git_checkout(vendor.path):
+def update_skill_plugin(source: ExternalSourceSpec) -> SkillPluginUpdate:
+    path = source.path.as_posix()
+    run_checked(["git", "submodule", "sync", "--", path], f"sync {source.label} submodule")
+    if not has_git_checkout(source.path):
         run_checked(
             ["git", "submodule", "update", "--init", "--recursive", "--", path],
-            f"initialize {vendor.label} submodule",
+            f"initialize {source.label} submodule",
         )
-    fail_if_dirty(vendor)
-    run_checked(["git", "-C", path, "fetch", "--prune"], f"fetch {vendor.label} remote")
-    ensure_vendor_branch(vendor)
+    fail_if_dirty(source)
+    run_checked(["git", "-C", path, "fetch", "--prune"], f"fetch {source.label} remote")
+    ensure_source_branch(source)
     old_ref = git_stdout_required(["git", "-C", path, "rev-parse", "HEAD"])
-    run_checked(["git", "-C", path, "pull", "--ff-only"], f"fast-forward {vendor.label}")
-    fail_if_dirty(vendor)
+    run_checked(["git", "-C", path, "pull", "--ff-only"], f"fast-forward {source.label}")
+    fail_if_dirty(source)
     new_ref = git_stdout_required(["git", "-C", path, "rev-parse", "HEAD"])
-    return VendorUpdate(vendor.label, vendor.path, old_ref, new_ref)
+    return SkillPluginUpdate(source.label, source.path, old_ref, new_ref)
 
 
 def refresh_command(args: argparse.Namespace) -> list[str]:
     command = [
         "python3",
-        "scripts/operations/vendors/install_external_skills.py",
+        "scripts/operations/skill_plugins/install_external_skills.py",
         "--yes",
         "--force",
         "--no-update",
-        "--preserve-vendor-checkouts",
+        "--preserve-skill-plugin-checkouts",
     ]
     if args.skip_ars:
         command.append("--skip-ars")
@@ -140,24 +140,24 @@ def run_health_checks(args: argparse.Namespace) -> None:
     if args.skip_checks:
         print("SKIP post-update checks")
         return
-    for check in VENDOR_UPDATE_HEALTH_CHECKS:
+    for check in SKILL_PLUGIN_UPDATE_HEALTH_CHECKS:
         run_checked(list(check.command), check.action)
 
 
-def print_summary(summaries: list[VendorUpdate]) -> None:
-    print("\nUpdated vendors:")
+def print_summary(summaries: list[SkillPluginUpdate]) -> None:
+    print("\nUpdated skill/plugin sources:")
     for summary in summaries:
         print(f"- {summary.label}: {short_ref(summary.old_ref)} -> {short_ref(summary.new_ref)} ({summary.path})")
 
 
-def update_skills_vendors(args: argparse.Namespace) -> list[VendorUpdate]:
+def update_skill_plugins(args: argparse.Namespace) -> list[SkillPluginUpdate]:
     current_branch = git_stdout_required(["git", "branch", "--show-current"])
     if not current_branch:
         raise UpdateError("Parent repository is detached; check out intended branch first.")
     print(f"Branch: {current_branch}")
     run_checked(["git", "status", "--short", "--branch"], "show parent repository status")
     run_checked(["git", "fetch", "--all", "--prune"], "fetch parent repository refs")
-    summaries = [update_vendor(vendor) for vendor in vendor_specs(args)]
+    summaries = [update_skill_plugin(source) for source in source_specs(args)]
     refresh_integrations(args)
     run_health_checks(args)
     run_checked(["git", "status", "--short", "--branch"], "show final parent repository status")
@@ -169,7 +169,7 @@ def main(argv: list[str]) -> int:
     change_to_project_root()
     args = parse_args(argv)
     try:
-        update_skills_vendors(args)
+        update_skill_plugins(args)
     except (CommandError, GitCommandError, UpdateError) as error:
         print(f"FAIL {error}", file=sys.stderr)
         return 1

@@ -14,15 +14,15 @@ DEFAULT_SUBAGENT_ORCHESTRATOR_REPO = "https://github.com/CoveMB/subagent-orchest
 DEFAULT_OBSIDIAN_SKILLS_REPO = "https://github.com/kepano/obsidian-skills.git"
 
 GITMODULES_PATH = Path(".gitmodules")
-ARS_VENDOR = Path("vendor/academic-research-skills")
-RBS_VENDOR = Path("vendor/research-book-skills")
-SUBAGENT_ORCHESTRATOR_VENDOR = Path("vendor/subagent-orchestration-plugin")
-OBSIDIAN_SKILLS_VENDOR = Path("vendor/obsidian-skills")
+ARS_SOURCE = Path("skill-plugins/academic-research-skills")
+RBS_SOURCE = Path("skill-plugins/research-book-skills")
+SUBAGENT_ORCHESTRATOR_SOURCE = Path("skill-plugins/subagent-orchestration-plugin")
+OBSIDIAN_SKILLS_SOURCE = Path("skill-plugins/obsidian-skills")
 SKILLS_DIR = Path(".agents/skills")
 PLUGIN_MARKETPLACE = Path(".agents/plugins/marketplace.json")
-MARKETPLACE_PLUGIN_PATH = "./vendor/research-book-skills"
-SUBAGENT_ORCHESTRATOR_PLUGIN_PATH = "./vendor/subagent-orchestration-plugin/plugin/subagent-orchestrator"
-SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT = SUBAGENT_ORCHESTRATOR_VENDOR / "plugin" / "subagent-orchestrator"
+MARKETPLACE_PLUGIN_PATH = "./skill-plugins/research-book-skills"
+SUBAGENT_ORCHESTRATOR_PLUGIN_PATH = "./skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator"
+SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT = SUBAGENT_ORCHESTRATOR_SOURCE / "plugin" / "subagent-orchestrator"
 RBS_MARKETPLACE_NAME = "research-book-skills"
 RBS_PLUGIN_JSON_NAME = "research-skills-plugin"
 SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME = "subagent-orchestrator"
@@ -30,7 +30,7 @@ SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME = "subagent-orchestrator"
 
 
 @dataclass(frozen=True)
-class ExternalVendorSpec:
+class ExternalSourceSpec:
     key: str
     label: str
     path: Path
@@ -40,7 +40,7 @@ class ExternalVendorSpec:
 
 @dataclass(frozen=True)
 class ExternalPluginSpec:
-    vendor_key: str
+    source_key: str
     label: str
     marketplace_name: str
     plugin_path: str
@@ -121,19 +121,19 @@ REPO_SCOPED_SKILL_NAMES = tuple(
     )
 )
 
-EXTERNAL_VENDOR_SPECS = (
-    ExternalVendorSpec("ars", "ARS", ARS_VENDOR, DEFAULT_ARS_REPO),
-    ExternalVendorSpec("rbs", "RBS", RBS_VENDOR, DEFAULT_RBS_REPO),
-    ExternalVendorSpec(
+EXTERNAL_SOURCE_SPECS = (
+    ExternalSourceSpec("ars", "ARS", ARS_SOURCE, DEFAULT_ARS_REPO),
+    ExternalSourceSpec("rbs", "RBS", RBS_SOURCE, DEFAULT_RBS_REPO),
+    ExternalSourceSpec(
         "subagent-orchestrator",
         "Subagent Orchestrator",
-        SUBAGENT_ORCHESTRATOR_VENDOR,
+        SUBAGENT_ORCHESTRATOR_SOURCE,
         DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
     ),
-    ExternalVendorSpec(
+    ExternalSourceSpec(
         "obsidian-skills",
         "Obsidian Skills",
-        OBSIDIAN_SKILLS_VENDOR,
+        OBSIDIAN_SKILLS_SOURCE,
         DEFAULT_OBSIDIAN_SKILLS_REPO,
     ),
 )
@@ -143,9 +143,9 @@ RBS_PLUGIN_SPEC = ExternalPluginSpec(
     "RBS",
     RBS_MARKETPLACE_NAME,
     MARKETPLACE_PLUGIN_PATH,
-    RBS_VENDOR,
+    RBS_SOURCE,
     RBS_PLUGIN_JSON_NAME,
-    RBS_VENDOR / "skills",
+    RBS_SOURCE / "skills",
     tuple(RBS_SKILLS),
 )
 SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC = ExternalPluginSpec(
@@ -165,7 +165,7 @@ EXTERNAL_PLUGIN_SPECS = (
 
 SETUP_RECOMMENDED_CHECKS = (
     CommandSpec(("bash", "scripts/operations/health/doctor.sh"), "run repository doctor"),
-    CommandSpec(("python3", "scripts/operations/vendors/check_external_skills.py"), "check external skill integrations"),
+    CommandSpec(("python3", "scripts/operations/skill_plugins/check_external_skills.py"), "check external skill integrations"),
     CommandSpec(("python3", "scripts/operations/obsidian/check_obsidian_panel.py"), "check Codex Panel install"),
     CommandSpec(
         ("python3", "scripts/operations/obsidian/obsidian_research_plugins.py", "check"),
@@ -176,8 +176,8 @@ SETUP_RECOMMENDED_CHECKS = (
     CommandSpec(("python3", "scripts/research-writing/check_placeholders.py", "."), "check unresolved placeholders"),
 )
 
-VENDOR_UPDATE_HEALTH_CHECKS = (
-    CommandSpec(("python3", "scripts/operations/vendors/check_external_skills.py"), "check external skill integrations"),
+SKILL_PLUGIN_UPDATE_HEALTH_CHECKS = (
+    CommandSpec(("python3", "scripts/operations/skill_plugins/check_external_skills.py"), "check external skill integrations"),
     CommandSpec(("bash", "scripts/operations/health/doctor.sh"), "run repository doctor"),
 )
 

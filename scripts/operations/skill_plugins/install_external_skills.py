@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Vendor external research skills and expose safe local integrations."""
+"""Prepare external research skill/plugin sources and expose safe local integrations."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ configure_script_paths(__file__)
 from git_utils import git_stdout, github_repositories_match, has_git_checkout
 from project_config import (
     ARS_SKILLS,
-    ARS_VENDOR,
+    ARS_SOURCE,
     DEFAULT_ARS_REPO,
     DEFAULT_OBSIDIAN_SKILLS_REPO,
     DEFAULT_RBS_REPO,
@@ -31,17 +31,17 @@ from project_config import (
     GITMODULES_PATH,
     OBSIDIAN_SKILLS,
     OBSIDIAN_SKILL_WRAPPERS,
-    OBSIDIAN_SKILLS_VENDOR,
+    OBSIDIAN_SKILLS_SOURCE,
     PLUGIN_MARKETPLACE,
     PROJECT_ROOT,
     RBS_PLUGIN_SPEC,
     RBS_SKILL_WRAPPERS,
-    RBS_VENDOR,
+    RBS_SOURCE,
     SKILLS_DIR,
     SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
     SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
     SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC,
-    SUBAGENT_ORCHESTRATOR_VENDOR,
+    SUBAGENT_ORCHESTRATOR_SOURCE,
     change_to_project_root,
 )
 from script_utils import StatusReport, run_command, read_text, write_text_if_changed
@@ -66,10 +66,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--no-rbs-plugin", action="store_true")
     parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
     update_group = parser.add_mutually_exclusive_group()
-    update_group.add_argument("--update", action="store_true", help="Update configured vendors from their remotes.")
-    update_group.add_argument("--no-update", action="store_true", help="Use pinned or current vendor checkouts.")
+    update_group.add_argument("--update", action="store_true", help="Update configured skill/plugin sources from remotes.")
+    update_group.add_argument("--no-update", action="store_true", help="Use pinned or current skill/plugin source checkouts.")
     parser.add_argument(
-        "--preserve-vendor-checkouts",
+        "--preserve-skill-plugin-checkouts",
         action="store_true",
         help="Refresh wrappers and reports without changing configured submodule checkouts.",
     )
@@ -83,7 +83,7 @@ def run(command: list[str], report: Report, dry_run: bool, action: str, cwd: Pat
 def git_available(report: Report) -> bool:
     if shutil.which("git"):
         return True
-    report.add("failed", "git missing; cannot vendor external repositories")
+    report.add("failed", "git missing; cannot prepare external repositories")
     return False
 
 
@@ -120,12 +120,12 @@ def clone_or_update(path: Path, ref: str | None, args: argparse.Namespace, repor
         return
     if is_configured_submodule(path):
         report.add("already_present", f"{label} configured as Git submodule: {path}")
-        if args.preserve_vendor_checkouts:
+        if args.preserve_skill_plugin_checkouts:
             report.add("skipped", f"{label} submodule checkout preserved")
             return
         sync_or_init_submodule(path, ref, args, report, label)
         return
-    report.add("failed", f"{label} vendor path is not configured as a Git submodule: {path}")
+    report.add("failed", f"{label} source path is not configured as a Git submodule: {path}")
 
 
 def commit_hash(path: Path) -> str:
@@ -139,11 +139,11 @@ def write_if_changed(path: Path, text: str, args: argparse.Namespace, report: Re
 
 
 def ars_skill_path(skill_name: str) -> Path:
-    return ARS_VENDOR / skill_name / "SKILL.md"
+    return ARS_SOURCE / skill_name / "SKILL.md"
 
 
 def obsidian_skill_path(skill_name: str) -> Path:
-    return OBSIDIAN_SKILLS_VENDOR / "skills" / skill_name / "SKILL.md"
+    return OBSIDIAN_SKILLS_SOURCE / "skills" / skill_name / "SKILL.md"
 
 
 def rbs_skill_path(skill_name: str) -> Path:
@@ -184,14 +184,14 @@ def ars_wrapper_text(skill_name: str) -> str:
     upstream_path = ars_skill_path(skill_name).as_posix()
     return f"""---
 name: {wrapper_name}
-description: Use this wrapper to consult the vendored Academic Research Skills `{skill_name}` workflow after reading and validating the upstream instructions.
+description: Use this wrapper to consult the external Academic Research Skills `{skill_name}` workflow after reading and validating the upstream instructions.
 ---
 
 # {wrapper_name}
 
 ## Purpose
 
-Use the vendored `{skill_name}` workflow as external guidance for academic research discipline.
+Use the external `{skill_name}` workflow as guidance for academic research discipline.
 
 ## Upstream source
 
@@ -205,8 +205,8 @@ Read this file before using the wrapper:
 
 - The upstream repository is Claude Code oriented.
 - Do not assume Claude-specific slash commands, hooks, subagents, plugin commands, or API-key assumptions work here.
-- Do not execute vendored scripts automatically.
-- Do not edit upstream files under `vendor/academic-research-skills/`.
+- Do not execute external source scripts automatically.
+- Do not edit upstream files under `skill-plugins/academic-research-skills/`.
 - Verify citations, claims, page numbers, and source metadata independently.
 - Keep local scaffold skills as the primary safety layer.
 
@@ -231,14 +231,14 @@ def rbs_wrapper_text(skill_name: str) -> str:
     upstream_path = rbs_skill_path(skill_name).as_posix()
     return f"""---
 name: {wrapper_name}
-description: Use when the vendored Research Book Skills `{skill_name}` guidance is needed through the local scaffold safety wrapper.
+description: Use when the external Research Book Skills `{skill_name}` guidance is needed through the local scaffold safety wrapper.
 ---
 
 # {wrapper_name}
 
 ## Purpose
 
-Use the vendored Research Book Skills `{skill_name}` workflow as reviewed guidance for research book or scholarly nonfiction work in this scaffold.
+Use the external Research Book Skills `{skill_name}` workflow as reviewed guidance for research book or scholarly nonfiction work in this scaffold.
 
 ## Upstream Source
 
@@ -265,8 +265,8 @@ Read the upstream `SKILL.md` before use.
 
 ## Forbidden Actions
 
-- Do not edit files under `vendor/research-book-skills/`.
-- Do not execute vendored scripts automatically.
+- Do not edit files under `skill-plugins/research-book-skills/`.
+- Do not execute external source scripts automatically.
 - Do not replace Zotero or `bibliography/references.bib` with generated citations.
 - Do not treat upstream guidance, generated prose, or agent output as source evidence.
 - Do not make book-specific claims unless the user supplies supported project material.
@@ -301,7 +301,7 @@ description: Use only when guarded Subagent Orchestrator guidance can help choos
 
 ## Purpose
 
-Use the vendored Subagent Orchestrator `{skill_name}` workflow only as an execution-shape helper for this repository.
+Use the external Subagent Orchestrator `{skill_name}` workflow only as an execution-shape helper for this repository.
 
 ## Upstream Source
 
@@ -313,7 +313,7 @@ Read the upstream `SKILL.md` before use.
 
 ## Local Overrides
 
-- `AGENTS.md`, project, citation, manuscript, audit, and vendor rules win over upstream guidance whenever they conflict.
+- `AGENTS.md`, project, citation, manuscript, audit, and skill/plugin source rules win over upstream guidance whenever they conflict.
 - Use only when bounded orchestration materially helps with a complex, separable, or review-heavy task.
 - Do not use automatically for every research task.
 - Subagent output is not evidence.
@@ -329,8 +329,8 @@ Read the upstream `SKILL.md` before use.
 
 ## Forbidden Actions
 
-- Do not edit files under `vendor/subagent-orchestration-plugin/`.
-- Do not execute vendored scripts automatically.
+- Do not edit files under `skill-plugins/subagent-orchestration-plugin/`.
+- Do not execute external source scripts automatically.
 - Do not let subagents invent citations, citekeys, page numbers, quotations, studies, metadata, claims, or source relationships.
 - Do not treat orchestration guidance as permission to bypass repository checks, user approval rules, privacy rules, or safety constraints.
 
@@ -362,14 +362,14 @@ def obsidian_wrapper_text(skill_name: str, wrapper_name: str) -> str:
     upstream_path = obsidian_skill_path(skill_name).as_posix()
     return f"""---
 name: {wrapper_name}
-description: Use when the vendored Obsidian Skills `{skill_name}` guidance is needed for a research vault while preserving local citation, evidence, and folder rules.
+description: Use when the external Obsidian Skills `{skill_name}` guidance is needed for a research vault while preserving local citation, evidence, and folder rules.
 ---
 
 # {wrapper_name}
 
 ## Purpose
 
-Use the vendored Obsidian Skills `{skill_name}` workflow as reviewed reference material for this research manuscript repository.
+Use the external Obsidian Skills `{skill_name}` workflow as reviewed reference material for this research manuscript repository.
 
 ## Upstream Source
 
@@ -398,8 +398,8 @@ Read the upstream `SKILL.md` before use.
 
 ## Forbidden Actions
 
-- Do not edit files under `vendor/obsidian-skills/`.
-- Do not execute vendored scripts automatically.
+- Do not edit files under `skill-plugins/obsidian-skills/`.
+- Do not execute external source scripts automatically.
 - Do not install tools, run Obsidian CLI commands, fetch external web pages, or modify a live vault unless the user explicitly asks.
 - Do not invent citations, citekeys, page numbers, quotations, studies, metadata, claims, or source relationships.
 - Do not treat upstream guidance, CLI output, extracted web content, or generated prose as evidence.
@@ -570,7 +570,7 @@ def report_text(
     repo_url: str,
     ref: str | None,
     commit: str,
-    vendor_path: Path,
+    source_path: Path,
     wrapper_paths: list[Path],
     plugin_path: Path | None,
     marketplace_path: Path | None,
@@ -583,7 +583,7 @@ def report_text(
         f"- Repo: `{repo_url}`",
         f"- Ref: `{ref or 'default branch'}`",
         f"- Commit: `{commit}`",
-        f"- Vendor path: `{vendor_path.as_posix()}`",
+        f"- Source path: `{source_path.as_posix()}`",
         f"- License note: {license_note}",
         "- Upstream files edited: no.",
         "",
@@ -607,9 +607,9 @@ def report_text(
     return "\n".join(lines)
 
 
-def license_note_for_vendor(vendor_path: Path) -> str:
+def license_note_for_source(source_path: Path) -> str:
     license_path = next(
-        (vendor_path / file_name for file_name in ("LICENSE", "LICENSE.md", "COPYING") if (vendor_path / file_name).exists()),
+        (source_path / file_name for file_name in ("LICENSE", "LICENSE.md", "COPYING") if (source_path / file_name).exists()),
         None,
     )
     if license_path is None:
@@ -628,12 +628,12 @@ def write_ars_install_report(args: argparse.Namespace, report: Report, ars_wrapp
         "Installed Academic Research Skills",
         DEFAULT_ARS_REPO,
         args.ars_ref,
-        commit_hash(ARS_VENDOR),
-        ARS_VENDOR,
+        commit_hash(ARS_SOURCE),
+        ARS_SOURCE,
         ars_wrappers,
         None,
         None,
-        license_note_for_vendor(ARS_VENDOR),
+        license_note_for_source(ARS_SOURCE),
         ["Upstream is Claude Code oriented.", "Do not run Claude-specific commands here."],
     )
     write_if_changed(SKILLS_DIR / "ARS_INSTALLED.md", ars_report, args, report, "ARS install report")
@@ -650,16 +650,16 @@ def write_rbs_install_report(
         "Installed Research Book Skills",
         DEFAULT_RBS_REPO,
         args.rbs_ref,
-        commit_hash(RBS_VENDOR),
-        RBS_VENDOR,
+        commit_hash(RBS_SOURCE),
+        RBS_SOURCE,
         rbs_wrappers,
-        RBS_VENDOR if plugin_exposed else None,
+        RBS_SOURCE if plugin_exposed else None,
         PLUGIN_MARKETPLACE if marketplace_written else None,
-        license_note_for_vendor(RBS_VENDOR),
+        license_note_for_source(RBS_SOURCE),
         [
             "Use wrappers for immediate Codex availability.",
             "Keep marketplace exposure optional.",
-            "Do not run vendored scripts automatically.",
+            "Do not run external source scripts automatically.",
             "Use the plugin as extended capability.",
         ],
     )
@@ -677,17 +677,17 @@ def write_subagent_orchestrator_install_report(
         "Installed Subagent Orchestrator",
         DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
         args.subagent_orchestrator_ref,
-        commit_hash(SUBAGENT_ORCHESTRATOR_VENDOR),
-        SUBAGENT_ORCHESTRATOR_VENDOR,
+        commit_hash(SUBAGENT_ORCHESTRATOR_SOURCE),
+        SUBAGENT_ORCHESTRATOR_SOURCE,
         subagent_wrappers,
         SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT if plugin_exposed else None,
         PLUGIN_MARKETPLACE if marketplace_written else None,
-        license_note_for_vendor(SUBAGENT_ORCHESTRATOR_VENDOR),
+        license_note_for_source(SUBAGENT_ORCHESTRATOR_SOURCE),
         [
             "Execution-shape helper only; not evidence.",
-            "Project rules, citation rules, manuscript rules, audit rules, and vendor rules win.",
+            "Project rules, citation rules, manuscript rules, audit rules, and skill/plugin source rules win.",
             "Use wrappers for immediate Codex availability.",
-            "Default external-skill setup does not execute the vendored installer.",
+            "Default external-skill setup does not execute the external installer.",
         ],
     )
     write_if_changed(
@@ -700,7 +700,7 @@ def write_subagent_orchestrator_install_report(
 
 
 def obsidian_skills_license_note() -> str:
-    return license_note_for_vendor(OBSIDIAN_SKILLS_VENDOR)
+    return license_note_for_source(OBSIDIAN_SKILLS_SOURCE)
 
 
 def write_obsidian_skills_install_report(
@@ -712,15 +712,15 @@ def write_obsidian_skills_install_report(
         "Installed Obsidian Skills",
         DEFAULT_OBSIDIAN_SKILLS_REPO,
         args.obsidian_skills_ref,
-        commit_hash(OBSIDIAN_SKILLS_VENDOR),
-        OBSIDIAN_SKILLS_VENDOR,
+        commit_hash(OBSIDIAN_SKILLS_SOURCE),
+        OBSIDIAN_SKILLS_SOURCE,
         obsidian_wrappers,
         None,
         None,
         obsidian_skills_license_note(),
         [
             "Use wrappers as the local safety layer before applying upstream guidance.",
-            "Do not execute vendored scripts automatically.",
+            "Do not execute external source scripts automatically.",
             "Do not treat Obsidian tooling output, extracted web content, or generated prose as evidence.",
         ],
     )
@@ -736,13 +736,13 @@ def write_obsidian_skills_install_report(
 def subagent_orchestrator_install_command() -> list[str]:
     return [
         "bash",
-        (SUBAGENT_ORCHESTRATOR_VENDOR / "install.sh").as_posix(),
+        (SUBAGENT_ORCHESTRATOR_SOURCE / "install.sh").as_posix(),
         "--scope",
         "project",
         "--repo-root",
         PROJECT_ROOT.as_posix(),
         "--from-vendor",
-        (PROJECT_ROOT / SUBAGENT_ORCHESTRATOR_VENDOR).as_posix(),
+        (PROJECT_ROOT / SUBAGENT_ORCHESTRATOR_SOURCE).as_posix(),
         "--available-only",
         "--link-skills",
         "--with-repo-marketplace",
@@ -754,23 +754,23 @@ def status_summary(status_text: str) -> str:
 
 
 def subagent_orchestrator_installer_boundary(report: Report) -> bool:
-    install_script = SUBAGENT_ORCHESTRATOR_VENDOR / "install.sh"
+    install_script = SUBAGENT_ORCHESTRATOR_SOURCE / "install.sh"
     if not install_script.exists():
         report.add("failed", f"Subagent Orchestrator installer missing: {install_script}")
         return False
-    if not is_configured_submodule(SUBAGENT_ORCHESTRATOR_VENDOR):
-        report.add("failed", f"Subagent Orchestrator vendor is not a configured submodule: {SUBAGENT_ORCHESTRATOR_VENDOR}")
+    if not is_configured_submodule(SUBAGENT_ORCHESTRATOR_SOURCE):
+        report.add("failed", f"Subagent Orchestrator source is not a configured submodule: {SUBAGENT_ORCHESTRATOR_SOURCE}")
         return False
-    if not has_git_checkout(SUBAGENT_ORCHESTRATOR_VENDOR):
-        report.add("failed", f"Subagent Orchestrator vendor is not a Git checkout: {SUBAGENT_ORCHESTRATOR_VENDOR}")
+    if not has_git_checkout(SUBAGENT_ORCHESTRATOR_SOURCE):
+        report.add("failed", f"Subagent Orchestrator source is not a Git checkout: {SUBAGENT_ORCHESTRATOR_SOURCE}")
         return False
-    origin = git_stdout(["git", "remote", "get-url", "origin"], cwd=SUBAGENT_ORCHESTRATOR_VENDOR) or ""
+    origin = git_stdout(["git", "remote", "get-url", "origin"], cwd=SUBAGENT_ORCHESTRATOR_SOURCE) or ""
     if not github_repositories_match(origin, DEFAULT_SUBAGENT_ORCHESTRATOR_REPO):
         report.add("failed", f"Subagent Orchestrator origin unexpected: {origin or 'unknown'}")
         return False
-    status = git_stdout(["git", "status", "--short"], cwd=SUBAGENT_ORCHESTRATOR_VENDOR) or ""
+    status = git_stdout(["git", "status", "--short"], cwd=SUBAGENT_ORCHESTRATOR_SOURCE) or ""
     if status:
-        report.add("failed", f"Subagent Orchestrator vendor has uncommitted changes: {status_summary(status)}")
+        report.add("failed", f"Subagent Orchestrator source has uncommitted changes: {status_summary(status)}")
         return False
     return True
 
@@ -803,16 +803,16 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
     if args.skip_ars:
         report.add("skipped", "ARS skipped")
     else:
-        clone_or_update(ARS_VENDOR, args.ars_ref, args, report, "ARS")
-        if ARS_VENDOR.exists() and validate_ars(report):
+        clone_or_update(ARS_SOURCE, args.ars_ref, args, report, "ARS")
+        if ARS_SOURCE.exists() and validate_ars(report):
             ars_wrappers = create_ars_wrappers(args, report)
             ars_ready = bool(ars_wrappers)
 
     if args.skip_rbs:
         report.add("skipped", "RBS skipped")
     else:
-        clone_or_update(RBS_VENDOR, args.rbs_ref, args, report, "RBS")
-        if RBS_VENDOR.exists() and validate_rbs(report):
+        clone_or_update(RBS_SOURCE, args.rbs_ref, args, report, "RBS")
+        if RBS_SOURCE.exists() and validate_rbs(report):
             rbs_wrappers = create_rbs_wrappers(args, report)
             rbs_ready = len(rbs_wrappers) == len(RBS_SKILL_WRAPPERS)
             if args.no_rbs_plugin:
@@ -825,13 +825,13 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
         report.add("skipped", "Subagent Orchestrator skipped")
     else:
         clone_or_update(
-            SUBAGENT_ORCHESTRATOR_VENDOR,
+            SUBAGENT_ORCHESTRATOR_SOURCE,
             args.subagent_orchestrator_ref,
             args,
             report,
             "Subagent Orchestrator",
         )
-        if SUBAGENT_ORCHESTRATOR_VENDOR.exists() and validate_subagent_orchestrator(report):
+        if SUBAGENT_ORCHESTRATOR_SOURCE.exists() and validate_subagent_orchestrator(report):
             subagent_wrappers = create_subagent_orchestrator_wrappers(args, report)
             subagent_ready = len(subagent_wrappers) == len(SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS)
             if args.no_subagent_orchestrator_plugin:
@@ -847,13 +847,13 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
         report.add("skipped", "Obsidian Skills skipped")
     else:
         clone_or_update(
-            OBSIDIAN_SKILLS_VENDOR,
+            OBSIDIAN_SKILLS_SOURCE,
             args.obsidian_skills_ref,
             args,
             report,
             "Obsidian Skills",
         )
-        obsidian_ready = OBSIDIAN_SKILLS_VENDOR.exists() and validate_obsidian_skills(report)
+        obsidian_ready = OBSIDIAN_SKILLS_SOURCE.exists() and validate_obsidian_skills(report)
         if obsidian_ready:
             obsidian_wrappers = create_obsidian_wrappers(args, report)
             obsidian_ready = len(obsidian_wrappers) == len(OBSIDIAN_SKILL_WRAPPERS)
@@ -883,7 +883,7 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
         write_obsidian_skills_install_report(args, report, obsidian_wrappers)
 
     report.add("warnings", "External repositories are untrusted until inspected")
-    report.add("warnings", "Vendored scripts were not executed")
+    report.add("warnings", "External source scripts were not executed")
 
 
 def main(argv: list[str]) -> int:

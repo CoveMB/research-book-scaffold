@@ -11,7 +11,7 @@ SCRIPT_IMPORT_DIRS = (
     "research-writing",
     "operations/setup",
     "operations/health",
-    "operations/vendors",
+    "operations/skill_plugins",
     "operations/obsidian",
 )
 
