@@ -228,7 +228,7 @@ Available wrappers include local scaffold skills, `ars-*` Academic Research Skil
 
 External repositories stay optional. Review upstream files before use. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and marketplace exposure without executing the external installer or enabling hooks, project agents, global config, or global agents. Obsidian Skills are checked out and wrapped locally; this scaffold does not install them globally.
 
-Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel, Zotero Integration, Pandoc Reference List, and qmd as md from published release assets, adds their plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json`, and seeds safe citation and QMD plugin settings. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
+Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel, Zotero Integration, Pandoc Reference List, and qmd as md from published release assets with SHA256 digests, adds their plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json`, and seeds safe citation and QMD plugin settings. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
 
 The external repositories under `skill-plugins/` are Git submodules. `bash setup.sh` and `make install-external-skills` initialize them. To do that manually, run:
 

@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from scripts.tests.helpers import SilentReport, working_directory, write_plugin_release
+from scripts.tests.helpers import SilentReport, working_directory, write_obsidian_plugin, write_plugin_release
 
 import obsidian_research_plugins
 import setup_environment
@@ -42,6 +42,19 @@ def setup_args_with_releases(release_urls: dict[str, str], *extra_args: str) -> 
             *extra_args,
         ]
     )
+
+
+def write_research_plugin_installs(
+    plugins_dir: Path,
+    settings_by_plugin: dict[str, dict[str, object] | str] | None = None,
+) -> None:
+    settings_by_plugin = settings_by_plugin or {}
+    for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
+        write_obsidian_plugin(
+            plugins_dir / plugin_id,
+            plugin_id,
+            settings=settings_by_plugin.get(plugin_id),
+        )
 
 
 class ObsidianResearchPluginInstallerTests(unittest.TestCase):
@@ -126,6 +139,25 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             self.assertTrue(qmd_settings["showOutline"])
             self.assertEqual(qmd_settings["templatesFolder"], "")
 
+    def test_install_research_plugins_rejects_release_asset_sha256_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            release_urls = write_research_plugin_releases(temp_path)
+            release_path = temp_path / f"{ZOTERO_INTEGRATION_PLUGIN_ID}-release.json"
+            payload = json.loads(release_path.read_text(encoding="utf-8"))
+            payload["assets"][0]["digest"] = f"sha256:{'0' * 64}"
+            release_path.write_text(json.dumps(payload), encoding="utf-8")
+            obsidian_dir = temp_path / ".obsidian"
+            obsidian_dir.mkdir()
+            (obsidian_dir / "community-plugins.json").write_text("[]\n", encoding="utf-8")
+
+            report = SilentReport()
+            with working_directory(temp_path):
+                obsidian_research_plugins.install_research_plugins(setup_args_with_releases(release_urls), report)
+
+            self.assertTrue(any("sha256 mismatch" in message for message in report.failed))
+            self.assertFalse((temp_path / ".obsidian" / "plugins" / ZOTERO_INTEGRATION_PLUGIN_ID).exists())
+
     def test_existing_research_plugin_settings_are_preserved_and_missing_defaults_are_added(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -133,29 +165,22 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             plugins_dir = obsidian_dir / "plugins"
             plugins_dir.mkdir(parents=True)
             (obsidian_dir / "community-plugins.json").write_text("[]\n", encoding="utf-8")
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
             custom_reference_settings = {
                 "pathToBibliography": "./bibliography/custom.bib",
                 "pathToPandoc": "/usr/local/bin/pandoc",
                 "enableCiteKeyCompletion": False,
             }
-            (plugins_dir / PANDOC_REFERENCE_LIST_PLUGIN_ID / "data.json").write_text(
-                json.dumps(custom_reference_settings),
-                encoding="utf-8",
-            )
             custom_qmd_settings = {
                 "quartoPath": "/custom/quarto",
                 "enableQmdLinking": False,
                 "showYamlFiles": False,
             }
-            (plugins_dir / QMD_AS_MD_PLUGIN_ID / "data.json").write_text(
-                json.dumps(custom_qmd_settings),
-                encoding="utf-8",
+            write_research_plugin_installs(
+                plugins_dir,
+                {
+                    PANDOC_REFERENCE_LIST_PLUGIN_ID: custom_reference_settings,
+                    QMD_AS_MD_PLUGIN_ID: custom_qmd_settings,
+                },
             )
 
             report = SilentReport()
@@ -190,19 +215,9 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             plugins_dir = obsidian_dir / "plugins"
             plugins_dir.mkdir(parents=True)
             (obsidian_dir / "community-plugins.json").write_text("[]\n", encoding="utf-8")
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
-            (
-                plugins_dir
-                / "obsidian-pandoc-reference-list"
-                / "data.json"
-            ).write_text(
-                json.dumps({"cslStylePath": obsidian_research_plugins.IEEE_CSL_STYLE_PATH}),
-                encoding="utf-8",
+            write_research_plugin_installs(
+                plugins_dir,
+                {PANDOC_REFERENCE_LIST_PLUGIN_ID: {"cslStylePath": obsidian_research_plugins.IEEE_CSL_STYLE_PATH}},
             )
 
             report = SilentReport()
@@ -225,18 +240,11 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             plugins_dir = obsidian_dir / "plugins"
             plugins_dir.mkdir(parents=True)
             (obsidian_dir / "community-plugins.json").write_text("[]\n", encoding="utf-8")
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
             csl_style_url = "https://example.test/ieee.csl"
-            (
-                plugins_dir
-                / "obsidian-pandoc-reference-list"
-                / "data.json"
-            ).write_text(json.dumps({"cslStyleURL": csl_style_url}), encoding="utf-8")
+            write_research_plugin_installs(
+                plugins_dir,
+                {PANDOC_REFERENCE_LIST_PLUGIN_ID: {"cslStyleURL": csl_style_url}},
+            )
 
             report = SilentReport()
             with working_directory(temp_path):
@@ -262,18 +270,11 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             plugins_dir = obsidian_dir / "plugins"
             plugins_dir.mkdir(parents=True)
             (obsidian_dir / "community-plugins.json").write_text("[]\n", encoding="utf-8")
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
             custom_csl_path = "/tmp/custom-style.csl"
-            (
-                plugins_dir
-                / "obsidian-pandoc-reference-list"
-                / "data.json"
-            ).write_text(json.dumps({"cslStylePath": custom_csl_path}), encoding="utf-8")
+            write_research_plugin_installs(
+                plugins_dir,
+                {PANDOC_REFERENCE_LIST_PLUGIN_ID: {"cslStylePath": custom_csl_path}},
+            )
 
             report = SilentReport()
             with working_directory(temp_path):
@@ -295,17 +296,10 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             plugins_dir = obsidian_dir / "plugins"
             plugins_dir.mkdir(parents=True)
             (obsidian_dir / "community-plugins.json").write_text("[]\n", encoding="utf-8")
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
-            (
-                plugins_dir
-                / "obsidian-zotero-desktop-connector"
-                / "data.json"
-            ).write_text(json.dumps({"citeSuggestTemplate": "[[{{citekey}}]]"}), encoding="utf-8")
+            write_research_plugin_installs(
+                plugins_dir,
+                {ZOTERO_INTEGRATION_PLUGIN_ID: {"citeSuggestTemplate": "[[{{citekey}}]]"}},
+            )
 
             report = SilentReport()
             with working_directory(temp_path):
@@ -327,17 +321,10 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             plugins_dir = obsidian_dir / "plugins"
             plugins_dir.mkdir(parents=True)
             (obsidian_dir / "community-plugins.json").write_text("[]\n", encoding="utf-8")
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
-            (
-                plugins_dir
-                / "obsidian-zotero-desktop-connector"
-                / "data.json"
-            ).write_text(json.dumps({"citeSuggestTemplate": "{{citekey}}"}), encoding="utf-8")
+            write_research_plugin_installs(
+                plugins_dir,
+                {ZOTERO_INTEGRATION_PLUGIN_ID: {"citeSuggestTemplate": "{{citekey}}"}},
+            )
 
             report = SilentReport()
             with working_directory(temp_path):
@@ -399,12 +386,7 @@ class ObsidianResearchPluginInstallerTests(unittest.TestCase):
             plugins_dir.mkdir(parents=True)
             community_plugins_path = obsidian_dir / "community-plugins.json"
             community_plugins_path.write_text('["existing-plugin"]\n', encoding="utf-8")
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
+            write_research_plugin_installs(plugins_dir)
 
             report = SilentReport()
             with working_directory(temp_path):
@@ -473,42 +455,19 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 json.dumps(list(OBSIDIAN_RESEARCH_PLUGIN_IDS)),
                 encoding="utf-8",
             )
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
-            (
-                plugins_dir
-                / ZOTERO_INTEGRATION_PLUGIN_ID
-                / "data.json"
-            ).write_text(
-                json.dumps(
-                    {
+            write_research_plugin_installs(
+                plugins_dir,
+                {
+                    ZOTERO_INTEGRATION_PLUGIN_ID: {
                         "citeFormats": [{"name": "Pandoc citekey", "format": "pandoc"}],
                         "citeSuggestTemplate": "[@{{citekey}}]",
-                    }
-                ),
-                encoding="utf-8",
-            )
-            (
-                plugins_dir
-                / PANDOC_REFERENCE_LIST_PLUGIN_ID
-                / "data.json"
-            ).write_text(
-                json.dumps(
-                    {
+                    },
+                    PANDOC_REFERENCE_LIST_PLUGIN_ID: {
                         "pathToBibliography": "./bibliography/references.bib",
                         "cslStylePath": obsidian_research_plugins.default_ieee_csl_style_path(temp_path),
                         "enableCiteKeyCompletion": True,
-                    }
-                ),
-                encoding="utf-8",
-            )
-            (plugins_dir / QMD_AS_MD_PLUGIN_ID / "data.json").write_text(
-                json.dumps(
-                    {
+                    },
+                    QMD_AS_MD_PLUGIN_ID: {
                         "quartoPath": obsidian_research_plugins.default_quarto_path(),
                         "enableQmdLinking": True,
                         "openPdfInObsidian": False,
@@ -516,9 +475,8 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                         "previewMarkdownFiles": False,
                         "showYamlFiles": True,
                         "showOutline": True,
-                    }
-                ),
-                encoding="utf-8",
+                    },
+                },
             )
 
             stdout = io.StringIO()
@@ -549,44 +507,25 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 json.dumps(list(OBSIDIAN_RESEARCH_PLUGIN_IDS)),
                 encoding="utf-8",
             )
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
-            (
-                plugins_dir
-                / ZOTERO_INTEGRATION_PLUGIN_ID
-                / "data.json"
-            ).write_text(
-                json.dumps(
-                    {
+            write_research_plugin_installs(
+                plugins_dir,
+                {
+                    ZOTERO_INTEGRATION_PLUGIN_ID: {
                         "citeFormats": [{"name": "Pandoc citekey", "format": "pandoc"}],
                         "citeSuggestTemplate": "[[{{citekey}}]]",
-                    }
-                ),
-                encoding="utf-8",
-            )
-            (
-                plugins_dir
-                / PANDOC_REFERENCE_LIST_PLUGIN_ID
-                / "data.json"
-            ).write_text(
-                json.dumps({"pathToBibliography": "./bibliography/custom.bib", "enableCiteKeyCompletion": False}),
-                encoding="utf-8",
-            )
-            (plugins_dir / QMD_AS_MD_PLUGIN_ID / "data.json").write_text(
-                json.dumps(
-                    {
+                    },
+                    PANDOC_REFERENCE_LIST_PLUGIN_ID: {
+                        "pathToBibliography": "./bibliography/custom.bib",
+                        "enableCiteKeyCompletion": False,
+                    },
+                    QMD_AS_MD_PLUGIN_ID: {
                         "quartoPath": "/missing/quarto",
                         "enableQmdLinking": False,
                         "openPdfInObsidian": True,
                         "showYamlFiles": False,
                         "showOutline": False,
-                    }
-                ),
-                encoding="utf-8",
+                    },
+                },
             )
 
             stdout = io.StringIO()
@@ -623,13 +562,10 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 '.nav-folder:has(> .nav-folder-title[data-path="manuscript"]) { display: none; }',
                 encoding="utf-8",
             )
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
-                (plugin_dir / "data.json").write_text("{}", encoding="utf-8")
+            write_research_plugin_installs(
+                plugins_dir,
+                {plugin_id: "{}" for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS},
+            )
 
             stdout = io.StringIO()
             with contextlib.redirect_stdout(stdout):
@@ -655,13 +591,10 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 json.dumps(list(OBSIDIAN_RESEARCH_PLUGIN_IDS)),
                 encoding="utf-8",
             )
-            for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS:
-                plugin_dir = plugins_dir / plugin_id
-                plugin_dir.mkdir()
-                (plugin_dir / "manifest.json").write_text(json.dumps({"id": plugin_id}), encoding="utf-8")
-                (plugin_dir / "main.js").write_text("module.exports = {};\n", encoding="utf-8")
-                (plugin_dir / "styles.css").write_text("", encoding="utf-8")
-                (plugin_dir / "data.json").write_text("{not valid json", encoding="utf-8")
+            write_research_plugin_installs(
+                plugins_dir,
+                {plugin_id: "{not valid json" for plugin_id in OBSIDIAN_RESEARCH_PLUGIN_IDS},
+            )
 
             stdout = io.StringIO()
             with contextlib.redirect_stdout(stdout):
@@ -680,11 +613,7 @@ class ObsidianResearchPluginCheckerTests(unittest.TestCase):
                 json.dumps(["obsidian-zotero-desktop-connector"]),
                 encoding="utf-8",
             )
-            plugin_dir = plugins_dir / "obsidian-zotero-desktop-connector"
-            plugin_dir.mkdir()
-            for file_name in REQUIRED_OBSIDIAN_PLUGIN_FILES:
-                content = json.dumps({"id": "obsidian-zotero-desktop-connector"}) if file_name == "manifest.json" else ""
-                (plugin_dir / file_name).write_text(content, encoding="utf-8")
+            write_obsidian_plugin(plugins_dir / ZOTERO_INTEGRATION_PLUGIN_ID, ZOTERO_INTEGRATION_PLUGIN_ID)
 
             stdout = io.StringIO()
             with contextlib.redirect_stdout(stdout):

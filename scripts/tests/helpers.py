@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import io
 import json
 import os
@@ -69,20 +70,45 @@ def working_directory(path: Path) -> Iterator[None]:
         os.chdir(original_cwd)
 
 
-def write_plugin_release(release_path: Path, manifest_id: str = CODEX_PANEL_PLUGIN_ID) -> None:
-    assets_dir = release_path.parent / f"{release_path.stem}-assets"
-    assets_dir.mkdir()
-    plugin_files = {
+def obsidian_plugin_file_contents(manifest_id: str) -> dict[str, str]:
+    return {
         "manifest.json": json.dumps({"id": manifest_id}),
         "main.js": "module.exports = {};",
         "styles.css": "",
     }
+
+
+def write_plugin_release(release_path: Path, manifest_id: str = CODEX_PANEL_PLUGIN_ID) -> None:
+    assets_dir = release_path.parent / f"{release_path.stem}-assets"
+    assets_dir.mkdir()
+    plugin_files = obsidian_plugin_file_contents(manifest_id)
     assets = []
     for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES):
         asset_path = assets_dir / file_name
-        asset_path.write_text(plugin_files[file_name], encoding="utf-8")
-        assets.append({"name": file_name, "browser_download_url": asset_path.as_uri()})
+        content = plugin_files[file_name]
+        asset_path.write_text(content, encoding="utf-8")
+        digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assets.append({
+            "name": file_name,
+            "browser_download_url": asset_path.as_uri(),
+            "digest": f"sha256:{digest}",
+        })
     release_path.write_text(json.dumps({"assets": assets}), encoding="utf-8")
+
+
+def write_obsidian_plugin(
+    plugin_dir: Path,
+    manifest_id: str,
+    settings: dict[str, object] | str | None = None,
+) -> Path:
+    plugin_dir.mkdir(parents=True, exist_ok=True)
+    plugin_files = obsidian_plugin_file_contents(manifest_id)
+    for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES):
+        (plugin_dir / file_name).write_text(plugin_files[file_name], encoding="utf-8")
+    if settings is not None:
+        settings_text = settings if isinstance(settings, str) else json.dumps(settings)
+        (plugin_dir / "data.json").write_text(settings_text, encoding="utf-8")
+    return plugin_dir
 
 
 def install_in_directory(work_dir: Path, args: object, report: setup_environment.Report) -> None:

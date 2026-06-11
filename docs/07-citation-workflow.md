@@ -113,7 +113,7 @@ source-note fields lives in `notes/10-evidence/source-notes/README.md`.
 
 Record title, author or organization, URL, access date when needed, and archive link when available.
 
-Use `make check-external-references` for an explicit network check of external URLs and DOI resolution in `bibliography/references.bib`, `notes/`, `research/`, and `manuscript/`. The checker validates URL and DOI syntax, prefers `HEAD` with `GET` fallback, uses a clear user agent, and separates likely failures from uncertain network results.
+Use `make check-external-references` for an explicit network check of external URLs and DOI resolution in `bibliography/references.bib`, `notes/`, `research/`, and `manuscript/`. The checker validates URL and DOI syntax, prefers `HEAD` with `GET` fallback, uses a clear user agent, and separates likely failures from uncertain network results. Localhost, private IP, `.local`, and single-label URLs are not probed by default; pass `--allow-private-url-checks` only when those checks are safe.
 
 The checker treats malformed URLs, malformed DOIs, HTTP 404, HTTP 410, and repeated DNS failure as likely failures. It treats HTTP 403, HTTP 429, timeouts, TLS errors, server errors, and access-controlled or paywalled responses as warnings because they are common false-positive sources.
 

@@ -28,14 +28,15 @@ from obsidian_agent import (
     community_plugins_path,
     download_release_assets,
     ensure_obsidian_plugin_parent,
-    is_zip_url,
+    missing_required_plugin_files,
     read_enabled_community_plugins,
     read_json_object,
-    read_release_payload,
-    release_asset_name,
     replace_directory_atomically,
+    required_release_asset_urls,
+    validate_plugin_manifest,
     vault_path_from_args,
     write_enabled_community_plugins,
+    ReleaseAsset,
 )
 from project_config import (
     OBSIDIAN_DIR,
@@ -188,40 +189,12 @@ def release_url_for_spec(spec: ObsidianResearchPluginSpec, args: argparse.Namesp
     return spec.release_api_url
 
 
-def latest_plugin_release_asset_urls(spec: ObsidianResearchPluginSpec, release_url: str) -> dict[str, str]:
-    if is_zip_url(release_url):
-        raise RuntimeError(f"{spec.label} installs from individual release assets, not zip archives")
-    payload = read_release_payload(release_url)
-    assets = payload.get("assets", [])
-    if not isinstance(assets, list):
-        raise RuntimeError(f"{spec.label} release metadata assets must be a list")
-
-    asset_urls: dict[str, str] = {}
-    for asset in assets:
-        if not isinstance(asset, dict):
-            continue
-        name = release_asset_name(asset)
-        download_url = asset.get("browser_download_url")
-        if name in REQUIRED_OBSIDIAN_PLUGIN_FILES and isinstance(download_url, str) and download_url:
-            if is_zip_url(download_url):
-                raise RuntimeError(f"{spec.label} release asset {name} points to a zip archive")
-            asset_urls[name] = download_url
-
-    missing_files = sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES - set(asset_urls))
-    if missing_files:
-        raise RuntimeError(f"No {spec.label} release assets found for: {', '.join(missing_files)}")
-    return asset_urls
-
-
-def validate_research_plugin_manifest(plugin_dir: Path, plugin_id: str) -> None:
-    manifest = read_json_object(plugin_dir / "manifest.json")
-    manifest_id = manifest.get("id")
-    if manifest_id != plugin_id:
-        raise RuntimeError(f"manifest id is {manifest_id}; expected {plugin_id}")
+def latest_plugin_release_asset_urls(spec: ObsidianResearchPluginSpec, release_url: str) -> dict[str, ReleaseAsset]:
+    return required_release_asset_urls(release_url, spec.label)
 
 
 def ensure_required_research_plugin_files(plugin_dir: Path, label: str, context: str = "Downloaded release") -> None:
-    missing_files = sorted(file_name for file_name in REQUIRED_OBSIDIAN_PLUGIN_FILES if not (plugin_dir / file_name).is_file())
+    missing_files = missing_required_plugin_files(plugin_dir)
     if missing_files:
         raise RuntimeError(f"{context} for {label} is missing: {', '.join(missing_files)}")
 
@@ -239,7 +212,7 @@ def ensure_existing_research_plugin_is_usable(
         return False
     try:
         ensure_required_research_plugin_files(destination_dir, spec.label, "Existing install")
-        validate_research_plugin_manifest(destination_dir, spec.plugin_id)
+        validate_plugin_manifest(destination_dir, spec.plugin_id)
     except RuntimeError as error:
         report.add(
             "failed",
@@ -386,7 +359,7 @@ def install_one_research_plugin(
             asset_urls = latest_plugin_release_asset_urls(spec, release_url_for_spec(spec, args))
             download_release_assets(asset_urls, plugin_root)
             ensure_required_research_plugin_files(plugin_root, spec.label)
-            validate_research_plugin_manifest(plugin_root, spec.plugin_id)
+            validate_plugin_manifest(plugin_root, spec.plugin_id)
             replace_directory_atomically(plugin_root, destination_dir)
     except (
         OSError,
@@ -466,7 +439,7 @@ def check_required_files(plugin_dir: Path, plugin_id: str, failures: list[str]) 
 
 def check_manifest(plugin_dir: Path, plugin_id: str, failures: list[str]) -> None:
     try:
-        validate_research_plugin_manifest(plugin_dir, plugin_id)
+        validate_plugin_manifest(plugin_dir, plugin_id)
     except RuntimeError as error:
         print_fail(f"{plugin_id} {error}", failures)
         return

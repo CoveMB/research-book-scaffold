@@ -179,6 +179,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--allow-private-url-checks",
+        action="store_true",
+        help=(
+            "Allow primary URL checks for localhost, private IP, .local, or single-label hostnames. "
+            "Use only when probing those URLs is safe."
+        ),
+    )
+    parser.add_argument(
         "--timeout",
         type=float,
         default=DEFAULT_TIMEOUT_SECONDS,
@@ -647,12 +655,23 @@ def check_reference(
     dns_attempts: int = DEFAULT_DNS_ATTEMPTS,
     check_archives: bool = False,
     create_archives: bool = False,
+    allow_private_url_checks: bool = False,
     allow_private_archive_submission: bool = False,
 ) -> list[Finding]:
     if reference.kind == "access_date":
         return []
     if reference.kind == "doi":
         return [check_doi(reference, client, timeout, dns_attempts)]
+    if not is_valid_url(reference.target):
+        return [Finding("malformed_url", reference, "Malformed URL")]
+    if is_private_or_local_url(reference.target) and not allow_private_url_checks:
+        return [
+            Finding(
+                "warning",
+                reference,
+                "URL check skipped for private or local-looking URL",
+            )
+        ]
 
     primary_finding = check_url(reference, client, timeout, dns_attempts)
     findings = [primary_finding]
@@ -676,6 +695,7 @@ def check_references(
     dns_attempts: int,
     check_archives: bool,
     create_archives: bool,
+    allow_private_url_checks: bool,
     allow_private_archive_submission: bool,
 ) -> list[Finding]:
     findings: list[Finding] = []
@@ -688,6 +708,7 @@ def check_references(
                 dns_attempts=dns_attempts,
                 check_archives=check_archives,
                 create_archives=create_archives,
+                allow_private_url_checks=allow_private_url_checks,
                 allow_private_archive_submission=allow_private_archive_submission,
             )
         )
@@ -839,6 +860,7 @@ def main(argv: list[str] | None = None) -> int:
         dns_attempts=args.dns_attempts,
         check_archives=args.check_archives,
         create_archives=args.create_archives,
+        allow_private_url_checks=args.allow_private_url_checks,
         allow_private_archive_submission=args.allow_private_archive_submission,
     )
     print_summary(files, references, findings, args.show_ok)

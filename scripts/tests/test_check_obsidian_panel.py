@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 
-from scripts.tests.helpers import add_scripts_to_path
+from scripts.tests.helpers import add_scripts_to_path, write_obsidian_plugin
 
 
 add_scripts_to_path()
@@ -30,13 +30,12 @@ def write_fake_codex(path: Path) -> Path:
 
 
 def write_plugin(vault_path: Path, *, enabled: bool = True, manifest_id: str = CODEX_PANEL_PLUGIN_ID) -> Path:
-    plugin_dir = vault_path / ".obsidian" / "plugins" / CODEX_PANEL_PLUGIN_ID
-    plugin_dir.mkdir(parents=True)
-    (plugin_dir / "main.js").write_text("", encoding="utf-8")
-    (plugin_dir / "manifest.json").write_text(json.dumps({"id": manifest_id}), encoding="utf-8")
-    (plugin_dir / "styles.css").write_text("", encoding="utf-8")
     codex_path = write_fake_codex(vault_path / "bin" / "codex")
-    (plugin_dir / "data.json").write_text(json.dumps({"codexPath": str(codex_path)}), encoding="utf-8")
+    plugin_dir = write_obsidian_plugin(
+        vault_path / ".obsidian" / "plugins" / CODEX_PANEL_PLUGIN_ID,
+        manifest_id,
+        settings={"codexPath": str(codex_path)},
+    )
     enabled_plugins = [CODEX_PANEL_PLUGIN_ID] if enabled else []
     (vault_path / ".obsidian" / "community-plugins.json").write_text(json.dumps(enabled_plugins), encoding="utf-8")
     return plugin_dir

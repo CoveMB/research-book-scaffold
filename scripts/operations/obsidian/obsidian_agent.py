@@ -12,6 +12,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -37,6 +38,14 @@ from script_utils import StatusReport
 
 DEFAULT_OBSIDIAN_REPO = "https://github.com/murashit/codex-panel"
 DEFAULT_OBSIDIAN_RELEASE_API_URL = "https://api.github.com/repos/murashit/codex-panel/releases/latest"
+SHA256_HEX_DIGITS = set("0123456789abcdef")
+
+
+@dataclass(frozen=True)
+class ReleaseAsset:
+    name: str
+    download_url: str
+    sha256: str
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -45,7 +54,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
-    parser.add_argument("--obsidian-release-sha256")
     parser.add_argument(
         "--register-obsidian-vault",
         action="store_true",
@@ -86,13 +94,31 @@ def release_asset_name(asset: object) -> str | None:
     return None
 
 
-def latest_obsidian_release_asset_urls(release_url: str | None = None) -> dict[str, str]:
-    payload = read_release_payload(release_url or DEFAULT_OBSIDIAN_RELEASE_API_URL)
+def normalize_sha256_digest(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    digest = value.strip().lower()
+    if digest.startswith("sha256:"):
+        digest = digest.split(":", 1)[1]
+    if len(digest) == 64 and all(character in SHA256_HEX_DIGITS for character in digest):
+        return digest
+    return None
+
+
+def required_release_asset_urls(
+    release_url: str,
+    plugin_label: str,
+    metadata_label: str | None = None,
+) -> dict[str, ReleaseAsset]:
+    if is_zip_url(release_url):
+        raise RuntimeError(f"{plugin_label} installs from individual release assets, not zip archives")
+    payload = read_release_payload(release_url)
     assets = payload.get("assets", [])
     if not isinstance(assets, list):
-        raise RuntimeError("release metadata assets must be a list")
+        label = metadata_label or f"{plugin_label} release metadata"
+        raise RuntimeError(f"{label} assets must be a list")
 
-    asset_urls: dict[str, str] = {}
+    asset_urls: dict[str, ReleaseAsset] = {}
     for asset in assets:
         if not isinstance(asset, dict):
             continue
@@ -100,14 +126,25 @@ def latest_obsidian_release_asset_urls(release_url: str | None = None) -> dict[s
         download_url = asset.get("browser_download_url")
         if name in REQUIRED_OBSIDIAN_PLUGIN_FILES and isinstance(download_url, str) and download_url:
             if is_zip_url(download_url):
-                raise RuntimeError(f"codex-panel release asset {name} points to a zip archive")
-            asset_urls[name] = download_url
+                raise RuntimeError(f"{plugin_label} release asset {name} points to a zip archive")
+            sha256 = normalize_sha256_digest(asset.get("digest") or asset.get("sha256"))
+            if sha256 is None:
+                raise RuntimeError(f"{plugin_label} release asset {name} missing sha256 digest")
+            asset_urls[name] = ReleaseAsset(name, download_url, sha256)
 
     missing_files = sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES - set(asset_urls))
     if missing_files:
         missing_text = ", ".join(missing_files)
-        raise RuntimeError(f"No codex-panel release assets found for: {missing_text}")
+        raise RuntimeError(f"No {plugin_label} release assets found for: {missing_text}")
     return asset_urls
+
+
+def latest_obsidian_release_asset_urls(release_url: str | None = None) -> dict[str, ReleaseAsset]:
+    return required_release_asset_urls(
+        release_url or DEFAULT_OBSIDIAN_RELEASE_API_URL,
+        "codex-panel",
+        metadata_label="release metadata",
+    )
 
 
 def download_url_to_file(download_url: str, destination_path: Path) -> None:
@@ -117,13 +154,31 @@ def download_url_to_file(download_url: str, destination_path: Path) -> None:
             shutil.copyfileobj(response, file_handle)
 
 
-def download_release_assets(asset_urls: dict[str, str], destination_dir: Path) -> None:
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as file_handle:
+        for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_release_asset(asset: ReleaseAsset, destination_path: Path) -> None:
+    actual_sha256 = file_sha256(destination_path)
+    if actual_sha256 != asset.sha256:
+        raise RuntimeError(
+            f"{asset.name} sha256 mismatch: expected {asset.sha256}, got {actual_sha256}"
+        )
+
+
+def download_release_assets(asset_urls: dict[str, ReleaseAsset], destination_dir: Path) -> None:
     destination_dir.mkdir(parents=True, exist_ok=True)
     for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES):
-        download_url = asset_urls[file_name]
-        if is_zip_url(download_url):
+        asset = asset_urls[file_name]
+        if is_zip_url(asset.download_url):
             raise RuntimeError(f"codex-panel release asset {file_name} points to a zip archive")
-        download_url_to_file(download_url, destination_dir / file_name)
+        destination_path = destination_dir / file_name
+        download_url_to_file(asset.download_url, destination_path)
+        verify_release_asset(asset, destination_path)
 
 
 def read_json_object(path: Path) -> dict[str, object]:
@@ -136,16 +191,21 @@ def read_json_object(path: Path) -> dict[str, object]:
     return payload
 
 
-def validate_plugin_manifest(plugin_dir: Path) -> None:
+def validate_plugin_manifest(plugin_dir: Path, expected_plugin_id: str = CODEX_PANEL_PLUGIN_ID) -> None:
     manifest_path = plugin_dir / "manifest.json"
     manifest = read_json_object(manifest_path)
     manifest_id = manifest.get("id")
-    if manifest_id != CODEX_PANEL_PLUGIN_ID:
-        raise RuntimeError(f"manifest id is {manifest_id}; expected {CODEX_PANEL_PLUGIN_ID}")
+    if manifest_id != expected_plugin_id:
+        raise RuntimeError(f"manifest id is {manifest_id}; expected {expected_plugin_id}")
+
+
+def missing_required_plugin_files(plugin_dir: Path) -> list[str]:
+    missing_files = sorted(file_name for file_name in REQUIRED_OBSIDIAN_PLUGIN_FILES if not (plugin_dir / file_name).is_file())
+    return missing_files
 
 
 def ensure_required_plugin_files(plugin_dir: Path) -> None:
-    missing_files = sorted(file_name for file_name in REQUIRED_OBSIDIAN_PLUGIN_FILES if not (plugin_dir / file_name).is_file())
+    missing_files = missing_required_plugin_files(plugin_dir)
     if missing_files:
         raise RuntimeError(f"Downloaded Codex Panel release is missing: {', '.join(missing_files)}")
 
@@ -492,10 +552,6 @@ def install_codex_panel(args: argparse.Namespace, report: StatusReport) -> None:
     vault_path = vault_path_from_args(args)
     if not vault_path.exists():
         report.add("failed", f"Obsidian vault path missing: {vault_path}")
-        return
-
-    if args.obsidian_release_sha256:
-        report.add("failed", "--obsidian-release-sha256 is not supported because codex-panel installs individual release assets")
         return
 
     plugins_dir = ensure_obsidian_plugin_parent(vault_path, report, args.dry_run)

@@ -98,6 +98,42 @@ class CheckExternalReferencesTests(unittest.TestCase):
                 self.assertEqual(findings[0].category, "malformed_url")
                 self.assertEqual(client.requests, [])
 
+    def test_private_or_local_urls_are_skipped_without_network_request_by_default(self) -> None:
+        private_urls = [
+            "http://localhost:11434/status",
+            "http://127.0.0.1/admin",
+            "http://10.0.0.5/source",
+            "http://169.254.169.254/latest/meta-data",
+            "http://drafts.local/source",
+            "http://intranet/source",
+        ]
+        for private_url in private_urls:
+            with self.subTest(url=private_url):
+                client = FakeHttpClient({
+                    ("HEAD", private_url): check_external_references.HttpResponse(200, private_url),
+                })
+
+                findings = check_external_references.check_reference(reference(private_url), client)
+
+                self.assertEqual(findings[0].category, "warning")
+                self.assertIn("skipped", findings[0].message)
+                self.assertEqual(client.requests, [])
+
+    def test_private_url_check_can_be_explicitly_enabled(self) -> None:
+        url = "http://127.0.0.1/status"
+        client = FakeHttpClient({
+            ("HEAD", url): check_external_references.HttpResponse(200, url),
+        })
+
+        findings = check_external_references.check_reference(
+            reference(url),
+            client,
+            allow_private_url_checks=True,
+        )
+
+        self.assertEqual([finding.category for finding in findings], ["ok"])
+        self.assertEqual(client.requests, [("HEAD", url)])
+
     def test_malformed_doi_is_reported_without_network_request(self) -> None:
         client = FakeHttpClient({})
 

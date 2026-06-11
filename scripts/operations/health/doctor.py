@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import subprocess
 import sys
 from pathlib import Path
 
@@ -21,6 +20,7 @@ from environment_checks import (
     MINIMUM_PYTHON_VERSION_TEXT,
     OPTIONAL_TOOLS,
     command_exists,
+    command_runs,
     python3_meets_minimum,
 )
 from git_utils import git_stdout
@@ -35,14 +35,6 @@ VERSION_CHECK_COMMANDS = {"codex": ["codex", "--version"]}
 def record(status: str, message: str, counts: dict[str, int]) -> None:
     counts[status] += 1
     print(f"{status.upper()} {message}")
-
-
-def command_runs(command: list[str]) -> bool:
-    try:
-        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=10)
-    except (OSError, subprocess.SubprocessError):
-        return False
-    return result.returncode == 0
 
 
 def check_required_command(command: str, counts: dict[str, int]) -> None:

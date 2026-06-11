@@ -59,7 +59,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument("--obsidian-vault")
     parser.add_argument("--obsidian-release-url")
-    parser.add_argument("--obsidian-release-sha256")
     parser.add_argument("--zotero-integration-release-url")
     parser.add_argument("--pandoc-reference-list-release-url")
     parser.add_argument("--qmd-as-md-release-url")

@@ -8,11 +8,16 @@ from pathlib import Path
 from unittest import mock
 
 
-from scripts.tests.helpers import SilentReport, install_in_directory, write_plugin_release
+from scripts.tests.helpers import (
+    SilentReport,
+    install_in_directory,
+    obsidian_plugin_file_contents,
+    write_plugin_release,
+)
 
 import obsidian_agent
 import setup_environment
-from project_config import CODEX_PANEL_PLUGIN_ID, OBSIDIAN_PLUGIN_DIR
+from project_config import CODEX_PANEL_PLUGIN_ID, OBSIDIAN_PLUGIN_DIR, REQUIRED_OBSIDIAN_PLUGIN_FILES
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -28,6 +33,18 @@ def install_with_plugin_release(
     report = SilentReport()
     install_in_directory(temp_path, args, report)
     return report
+
+
+def write_unpinned_plugin_release(release_path: Path, manifest_id: str = CODEX_PANEL_PLUGIN_ID) -> None:
+    assets_dir = release_path.parent / f"{release_path.stem}-assets"
+    assets_dir.mkdir()
+    plugin_files = obsidian_plugin_file_contents(manifest_id)
+    assets = []
+    for file_name in sorted(REQUIRED_OBSIDIAN_PLUGIN_FILES):
+        asset_path = assets_dir / file_name
+        asset_path.write_text(plugin_files[file_name], encoding="utf-8")
+        assets.append({"name": file_name, "browser_download_url": asset_path.as_uri()})
+    release_path.write_text(json.dumps({"assets": assets}), encoding="utf-8")
 
 
 class ObsidianInstallerTests(unittest.TestCase):
@@ -273,6 +290,35 @@ class ObsidianInstallerTests(unittest.TestCase):
             report = install_with_plugin_release(temp_path, manifest_id="wrong-plugin")
 
             self.assertTrue(any("manifest id" in message and "codex-panel" in message for message in report.failed))
+            self.assertFalse((temp_path / OBSIDIAN_PLUGIN_DIR / "manifest.json").exists())
+
+    def test_install_rejects_release_assets_without_sha256_digests(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            release_path = temp_path / "release.json"
+            write_unpinned_plugin_release(release_path)
+            args = setup_environment.parse_args(["--obsidian-release-url", release_path.as_uri()])
+            report = SilentReport()
+
+            install_in_directory(temp_path, args, report)
+
+            self.assertTrue(any("sha256 digest" in message for message in report.failed))
+            self.assertFalse((temp_path / OBSIDIAN_PLUGIN_DIR / "manifest.json").exists())
+
+    def test_install_rejects_release_asset_sha256_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            release_path = temp_path / "release.json"
+            write_plugin_release(release_path)
+            payload = json.loads(release_path.read_text(encoding="utf-8"))
+            payload["assets"][0]["digest"] = f"sha256:{'0' * 64}"
+            release_path.write_text(json.dumps(payload), encoding="utf-8")
+            args = setup_environment.parse_args(["--obsidian-release-url", release_path.as_uri()])
+            report = SilentReport()
+
+            install_in_directory(temp_path, args, report)
+
+            self.assertTrue(any("sha256 mismatch" in message for message in report.failed))
             self.assertFalse((temp_path / OBSIDIAN_PLUGIN_DIR / "manifest.json").exists())
 
     def test_install_rejects_zip_release_url(self) -> None:

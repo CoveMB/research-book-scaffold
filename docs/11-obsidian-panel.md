@@ -27,7 +27,7 @@ GUI apps may not inherit the shell `PATH`, so use an absolute Codex executable p
 ## Manual installation
 
 1. Install and log in to Codex CLI.
-2. Download the latest `main.js`, `manifest.json`, and `styles.css` release assets from `https://github.com/murashit/codex-panel/releases/latest`.
+2. Download the latest `main.js`, `manifest.json`, and `styles.css` release assets from `https://github.com/murashit/codex-panel/releases/latest`, and verify each asset against its SHA256 digest before use.
 3. Place those files at `<vault>/.obsidian/plugins/codex-panel/`.
 4. Confirm `manifest.json` has `"id": "codex-panel"`.
 5. Write `<vault>/.obsidian/plugins/codex-panel/data.json` with an absolute Codex executable path:
@@ -107,7 +107,7 @@ OBSIDIAN_VAULT=/path/to/vault bash scripts/operations/obsidian/install_obsidian_
 python3 scripts/operations/setup/setup_environment.py --obsidian-vault /path/to/vault
 ```
 
-The installer refuses to replace an existing plugin folder unless `--force` is passed. It installs from published release assets only and rejects zip archive inputs.
+The installer refuses to replace an existing plugin folder unless `--force` is passed. It installs from published release assets only, rejects zip archive inputs, and requires a SHA256 digest for each asset before installing it.
 
 Health check:
 
