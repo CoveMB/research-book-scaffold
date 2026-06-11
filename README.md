@@ -31,7 +31,7 @@ git remote add origin git@github.com:<account>/<book-repo>.git
 git push -u origin main
 bash setup.sh
 make doctor
-make check-obsidian-panel
+make check-obsidian-codex
 make check-obsidian-research-plugins
 make audit
 ```
@@ -64,7 +64,7 @@ for an offline or CLI-only pass.
 The setup script writes project-local files, but a few GUI and tool settings still need a human pass. Do these before treating the project as ready for daily writing.
 
 1. Read the final setup report.
-   - Run every check it lists, especially `make doctor`, `make check-obsidian-panel`, `make check-obsidian-research-plugins`, and `make audit`.
+   - Run every check it lists, especially `make doctor`, `make check-obsidian-codex`, `make check-obsidian-research-plugins`, and `make audit`.
    - If setup was run with `--skip-obsidian-panel` or `--skip-obsidian-research-plugins`, do not claim that plugin coverage until the matching install and check targets pass.
 
 2. Open the correct Obsidian vault.
@@ -81,7 +81,7 @@ The setup script writes project-local files, but a few GUI and tool settings sti
 
 4. Check Codex Panel inside Obsidian.
    - Run the command palette action `Codex Panel: Open panel`.
-   - If Codex Panel cannot find Codex, set the plugin's Codex executable setting to an absolute path, then rerun `make check-obsidian-panel`.
+   - If Codex Panel cannot find Codex, set the plugin's Codex executable setting to an absolute path, then rerun `make check-obsidian-codex`.
    - Use a read-only smoke prompt first: `Read AGENTS.md and summarize the project rules. Do not edit anything.`
 
 5. Set up Zotero and Better BibTeX.

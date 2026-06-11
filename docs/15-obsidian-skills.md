@@ -14,7 +14,7 @@ git remote add origin git@github.com:<account>/<book-repo>.git
 git push -u origin main
 bash setup.sh
 make doctor
-make check-obsidian-panel
+make check-obsidian-codex
 make check-obsidian-research-plugins
 make audit
 ```

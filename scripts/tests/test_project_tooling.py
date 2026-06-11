@@ -258,8 +258,9 @@ class ProjectToolingTests(unittest.TestCase):
     def test_makefile_obsidian_targets_pin_project_root_vault(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
+        self.assertNotIn("check-obsidian-panel:", makefile)
         self.assertIn(
-            "check-obsidian-panel:\n"
+            "check-obsidian-codex:\n"
             "\tpython3 scripts/operations/obsidian/check_obsidian_panel.py .",
             makefile,
         )

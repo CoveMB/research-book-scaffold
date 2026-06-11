@@ -98,7 +98,7 @@ Skip Obsidian/Codex Panel setup when local agent work will stay in the CLI or an
 python3 scripts/operations/setup/setup_environment.py --skip-obsidian-panel
 ```
 
-After a skipped setup, do not claim Codex Panel coverage until `make install-obsidian-panel` and `make check-obsidian-panel` pass.
+After a skipped setup, do not claim Codex Panel coverage until `make install-obsidian-panel` and `make check-obsidian-codex` pass.
 
 Use an explicit path only when installing into a different vault:
 
@@ -112,7 +112,7 @@ The installer refuses to replace an existing plugin folder unless `--force` is p
 Health check:
 
 ```sh
-make check-obsidian-panel
+make check-obsidian-codex
 make check-obsidian-research-plugins
 ```
 
