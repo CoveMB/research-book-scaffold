@@ -83,60 +83,6 @@ class InstallExternalSkillsTests(unittest.TestCase):
             ["Example source path is not configured as a Git submodule: skill-plugins/example"],
         )
 
-    def test_subagent_orchestrator_installer_is_project_scoped_and_available_only(self) -> None:
-        command = install_external_skills.subagent_orchestrator_install_command()
-
-        self.assertIn("--scope", command)
-        self.assertEqual(command[command.index("--scope") + 1], "project")
-        self.assertIn("--available-only", command)
-        self.assertIn("--link-skills", command)
-        self.assertIn("--with-repo-marketplace", command)
-        self.assertNotIn("--activate-gate", command)
-        self.assertNotIn("--with-project-agents", command)
-        self.assertNotIn("--append-project-agents-md", command)
-        self.assertNotIn("--with-hook", command)
-
-    def test_subagent_orchestrator_source_installer_is_not_run_by_default(self) -> None:
-        args = install_external_skills.parse_args(["--skip-ars", "--skip-rbs", "--skip-obsidian-skills"])
-        report = SilentReport()
-        wrapper_paths = [Path(".agents/skills/subagent-safe-subagent-orchestrator/SKILL.md")]
-
-        with (
-            mock.patch.object(install_external_skills, "clone_or_update"),
-            mock.patch.object(install_external_skills, "validate_subagent_orchestrator", return_value=True),
-            mock.patch.object(
-                install_external_skills,
-                "SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS",
-                {"subagent-orchestrator": "subagent-safe-subagent-orchestrator"},
-            ),
-            mock.patch.object(
-                install_external_skills,
-                "create_subagent_orchestrator_wrappers",
-                return_value=wrapper_paths,
-            ),
-            mock.patch.object(install_external_skills, "write_marketplace", return_value=True),
-            mock.patch.object(install_external_skills, "write_subagent_orchestrator_install_report"),
-            mock.patch.object(install_external_skills, "install_subagent_orchestrator") as installer_mock,
-        ):
-            install_external_skills.install_external(args, report)
-
-        installer_mock.assert_not_called()
-
-    def test_subagent_orchestrator_installer_boundary_blocks_dirty_source(self) -> None:
-        report = SilentReport()
-
-        with (
-            mock.patch.object(install_external_skills, "has_git_checkout", return_value=True),
-            mock.patch.object(
-                install_external_skills,
-                "git_stdout",
-                side_effect=["https://github.com/CoveMB/subagent-orchestration-plugin.git", " M install.sh"],
-            ),
-        ):
-            self.assertFalse(install_external_skills.subagent_orchestrator_installer_boundary(report))
-
-        self.assertIn("Subagent Orchestrator source has uncommitted changes: M install.sh", report.failed)
-
     def test_subagent_orchestrator_marketplace_exposure_does_not_require_source_installer(self) -> None:
         args = install_external_skills.parse_args(["--skip-ars", "--skip-rbs", "--skip-obsidian-skills"])
         report = SilentReport()
@@ -157,11 +103,9 @@ class InstallExternalSkillsTests(unittest.TestCase):
             ),
             mock.patch.object(install_external_skills, "write_marketplace") as write_marketplace_mock,
             mock.patch.object(install_external_skills, "write_subagent_orchestrator_install_report") as write_report_mock,
-            mock.patch.object(install_external_skills, "install_subagent_orchestrator") as installer_mock,
         ):
             install_external_skills.install_external(args, report)
 
-        installer_mock.assert_not_called()
         write_marketplace_mock.assert_called_once()
         write_report_mock.assert_called_once_with(args, report, wrapper_paths, True, write_marketplace_mock.return_value)
 
@@ -289,7 +233,6 @@ class InstallExternalSkillsTests(unittest.TestCase):
                 return_value=wrapper_paths,
             ) as create_mock,
             mock.patch.object(install_external_skills, "write_marketplace", return_value=True),
-            mock.patch.object(install_external_skills, "install_subagent_orchestrator", return_value=True),
             mock.patch.object(install_external_skills, "write_subagent_orchestrator_install_report") as report_mock,
         ):
             install_external_skills.install_external(args, report)

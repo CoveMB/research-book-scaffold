@@ -19,7 +19,7 @@ from import_paths import configure_script_paths
 
 configure_script_paths(__file__)
 
-from git_utils import git_stdout, github_repositories_match, has_git_checkout
+from git_utils import git_stdout, has_git_checkout
 from project_config import (
     ARS_SKILLS,
     ARS_SOURCE,
@@ -33,7 +33,6 @@ from project_config import (
     OBSIDIAN_SKILL_WRAPPERS,
     OBSIDIAN_SKILLS_SOURCE,
     PLUGIN_MARKETPLACE,
-    PROJECT_ROOT,
     RBS_PLUGIN_SPEC,
     RBS_SKILL_WRAPPERS,
     RBS_SOURCE,
@@ -730,59 +729,6 @@ def write_obsidian_skills_install_report(
         args,
         report,
         "Obsidian Skills install report",
-    )
-
-
-def subagent_orchestrator_install_command() -> list[str]:
-    return [
-        "bash",
-        (SUBAGENT_ORCHESTRATOR_SOURCE / "install.sh").as_posix(),
-        "--scope",
-        "project",
-        "--repo-root",
-        PROJECT_ROOT.as_posix(),
-        "--from-vendor",
-        (PROJECT_ROOT / SUBAGENT_ORCHESTRATOR_SOURCE).as_posix(),
-        "--available-only",
-        "--link-skills",
-        "--with-repo-marketplace",
-    ]
-
-
-def status_summary(status_text: str) -> str:
-    return ", ".join(line.strip() for line in status_text.splitlines() if line.strip())
-
-
-def subagent_orchestrator_installer_boundary(report: Report) -> bool:
-    install_script = SUBAGENT_ORCHESTRATOR_SOURCE / "install.sh"
-    if not install_script.exists():
-        report.add("failed", f"Subagent Orchestrator installer missing: {install_script}")
-        return False
-    if not is_configured_submodule(SUBAGENT_ORCHESTRATOR_SOURCE):
-        report.add("failed", f"Subagent Orchestrator source is not a configured submodule: {SUBAGENT_ORCHESTRATOR_SOURCE}")
-        return False
-    if not has_git_checkout(SUBAGENT_ORCHESTRATOR_SOURCE):
-        report.add("failed", f"Subagent Orchestrator source is not a Git checkout: {SUBAGENT_ORCHESTRATOR_SOURCE}")
-        return False
-    origin = git_stdout(["git", "remote", "get-url", "origin"], cwd=SUBAGENT_ORCHESTRATOR_SOURCE) or ""
-    if not github_repositories_match(origin, DEFAULT_SUBAGENT_ORCHESTRATOR_REPO):
-        report.add("failed", f"Subagent Orchestrator origin unexpected: {origin or 'unknown'}")
-        return False
-    status = git_stdout(["git", "status", "--short"], cwd=SUBAGENT_ORCHESTRATOR_SOURCE) or ""
-    if status:
-        report.add("failed", f"Subagent Orchestrator source has uncommitted changes: {status_summary(status)}")
-        return False
-    return True
-
-
-def install_subagent_orchestrator(args: argparse.Namespace, report: Report) -> bool:
-    if not subagent_orchestrator_installer_boundary(report):
-        return False
-    return run(
-        subagent_orchestrator_install_command(),
-        report,
-        args.dry_run,
-        "installed Subagent Orchestrator project-scoped integration",
     )
 
 
