@@ -54,9 +54,6 @@ class SetupEnvironmentTests(unittest.TestCase):
         install_mock.assert_not_called()
         self.assertIn("Codex Panel setup skipped by --skip-obsidian-panel", report.skipped)
 
-    def test_removed_subagent_install_flag_is_rejected(self) -> None:
-        assert_parse_args_rejects(self, setup_environment.parse_args, ["--install-subagent-orchestrator"])
-
     def test_update_conflict_is_rejected_during_argparse(self) -> None:
         assert_parse_args_rejects(self, setup_environment.parse_args, ["--update", "--no-update"])
 
@@ -142,16 +139,12 @@ class SetupEnvironmentTests(unittest.TestCase):
                 "--yes",
                 "--force",
                 "--skip-ars",
-                "--skip-subagent-orchestrator",
                 "--skip-obsidian-skills",
                 "--rbs-ref",
-                "main",
-                "--subagent-orchestrator-ref",
                 "main",
                 "--obsidian-skills-ref",
                 "main",
                 "--no-rbs-plugin",
-                "--no-subagent-orchestrator-plugin",
                 "--no-update",
             ]
         )
@@ -162,13 +155,10 @@ class SetupEnvironmentTests(unittest.TestCase):
         self.assertTrue(external_args.yes)
         self.assertTrue(external_args.force)
         self.assertTrue(external_args.skip_ars)
-        self.assertTrue(external_args.skip_subagent_orchestrator)
         self.assertTrue(external_args.skip_obsidian_skills)
         self.assertEqual(external_args.rbs_ref, "main")
-        self.assertEqual(external_args.subagent_orchestrator_ref, "main")
         self.assertEqual(external_args.obsidian_skills_ref, "main")
         self.assertTrue(external_args.no_rbs_plugin)
-        self.assertTrue(external_args.no_subagent_orchestrator_plugin)
         self.assertTrue(external_args.no_update)
         self.assertFalse(external_args.preserve_skill_plugin_checkouts)
 

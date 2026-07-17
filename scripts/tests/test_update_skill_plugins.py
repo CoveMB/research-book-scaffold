@@ -19,7 +19,6 @@ from project_config import (
     ExternalSourceSpec,
     OBSIDIAN_SKILLS_SOURCE,
     RBS_SOURCE,
-    SUBAGENT_ORCHESTRATOR_SOURCE,
     SKILL_PLUGIN_UPDATE_HEALTH_CHECKS,
 )
 
@@ -75,14 +74,12 @@ class UpdateSkillPluginsTests(unittest.TestCase):
         self.assertIn(("git", "-C", ARS_SOURCE.as_posix(), "pull", "--ff-only"), calls)
         self.assertIn(("git", "submodule", "sync", "--", RBS_SOURCE.as_posix()), calls)
         self.assertIn(("git", "-C", RBS_SOURCE.as_posix(), "pull", "--ff-only"), calls)
-        self.assertIn(("git", "submodule", "sync", "--", SUBAGENT_ORCHESTRATOR_SOURCE.as_posix()), calls)
-        self.assertIn(("git", "-C", SUBAGENT_ORCHESTRATOR_SOURCE.as_posix(), "pull", "--ff-only"), calls)
         self.assertIn(("git", "submodule", "sync", "--", OBSIDIAN_SKILLS_SOURCE.as_posix()), calls)
         self.assertIn(("git", "-C", OBSIDIAN_SKILLS_SOURCE.as_posix(), "pull", "--ff-only"), calls)
         self.assertIn(self.expected_install_external_command(), calls)
         for check in SKILL_PLUGIN_UPDATE_HEALTH_CHECKS:
             self.assertIn(tuple(check.command), calls)
-        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS", "Subagent Orchestrator", "Obsidian Skills"])
+        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS", "Obsidian Skills"])
 
     def test_skip_flags_limit_source_refresh_scope(self) -> None:
         args = update_skill_plugins.parse_args(["--skip-ars", "--skip-checks"])
@@ -91,12 +88,11 @@ class UpdateSkillPluginsTests(unittest.TestCase):
 
         self.assertNotIn(("git", "submodule", "sync", "--", ARS_SOURCE.as_posix()), calls)
         self.assertIn(("git", "submodule", "sync", "--", RBS_SOURCE.as_posix()), calls)
-        self.assertIn(("git", "submodule", "sync", "--", SUBAGENT_ORCHESTRATOR_SOURCE.as_posix()), calls)
         self.assertIn(("git", "submodule", "sync", "--", OBSIDIAN_SKILLS_SOURCE.as_posix()), calls)
         self.assertIn(self.expected_install_external_command("--skip-ars"), calls)
         for check in SKILL_PLUGIN_UPDATE_HEALTH_CHECKS:
             self.assertNotIn(tuple(check.command), calls)
-        self.assertEqual([summary.label for summary in summaries], ["RBS", "Subagent Orchestrator", "Obsidian Skills"])
+        self.assertEqual([summary.label for summary in summaries], ["RBS", "Obsidian Skills"])
 
     def test_obsidian_skills_skip_flag_limits_source_refresh_scope(self) -> None:
         args = update_skill_plugins.parse_args(["--skip-obsidian-skills", "--skip-checks"])
@@ -105,7 +101,7 @@ class UpdateSkillPluginsTests(unittest.TestCase):
 
         self.assertNotIn(("git", "submodule", "sync", "--", OBSIDIAN_SKILLS_SOURCE.as_posix()), calls)
         self.assertIn(self.expected_install_external_command("--skip-obsidian-skills"), calls)
-        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS", "Subagent Orchestrator"])
+        self.assertEqual([summary.label for summary in summaries], ["ARS", "RBS"])
 
     def test_shell_entrypoint_forwards_source_flags_to_python(self) -> None:
         shell_script = (ROOT / "scripts" / "operations" / "skill_plugins" / "update-skill-plugins.sh").read_text(
@@ -115,10 +111,8 @@ class UpdateSkillPluginsTests(unittest.TestCase):
         self.assertIn("exec python3", shell_script)
         self.assertIn('update_skill_plugins.py" "$@"', shell_script)
 
-    def test_subagent_skip_flag_limits_source_refresh_scope(self) -> None:
-        args = update_skill_plugins.parse_args(
-            ["--skip-ars", "--skip-rbs", "--skip-subagent-orchestrator", "--skip-obsidian-skills"]
-        )
+    def test_all_skip_flags_reject_empty_source_selection(self) -> None:
+        args = update_skill_plugins.parse_args(["--skip-ars", "--skip-rbs", "--skip-obsidian-skills"])
 
         with self.assertRaisesRegex(update_skill_plugins.UpdateError, "No skill/plugin sources selected"):
             update_skill_plugins.source_specs(args)

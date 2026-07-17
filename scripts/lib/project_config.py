@@ -10,23 +10,17 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ARS_REPO = "https://github.com/Imbad0202/academic-research-skills.git"
 DEFAULT_RBS_REPO = "https://github.com/CoveMB/research-book-skills.git"
-DEFAULT_SUBAGENT_ORCHESTRATOR_REPO = "https://github.com/CoveMB/subagent-orchestration-plugin.git"
 DEFAULT_OBSIDIAN_SKILLS_REPO = "https://github.com/kepano/obsidian-skills.git"
 
 GITMODULES_PATH = Path(".gitmodules")
 ARS_SOURCE = Path("skill-plugins/academic-research-skills")
 RBS_SOURCE = Path("skill-plugins/research-book-skills")
-SUBAGENT_ORCHESTRATOR_SOURCE = Path("skill-plugins/subagent-orchestration-plugin")
 OBSIDIAN_SKILLS_SOURCE = Path("skill-plugins/obsidian-skills")
 SKILLS_DIR = Path(".agents/skills")
 PLUGIN_MARKETPLACE = Path(".agents/plugins/marketplace.json")
 MARKETPLACE_PLUGIN_PATH = "./skill-plugins/research-book-skills"
-SUBAGENT_ORCHESTRATOR_PLUGIN_PATH = "./skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator"
-SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT = SUBAGENT_ORCHESTRATOR_SOURCE / "plugin" / "subagent-orchestrator"
 RBS_MARKETPLACE_NAME = "research-book-skills"
 RBS_PLUGIN_JSON_NAME = "research-skills-plugin"
-SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME = "subagent-orchestrator"
-SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME = "subagent-orchestrator"
 
 
 @dataclass(frozen=True)
@@ -60,11 +54,6 @@ class CommandSpec:
 
 
 ARS_SKILLS = ["deep-research", "academic-paper", "academic-paper-reviewer", "academic-pipeline"]
-SUBAGENT_ORCHESTRATOR_SKILLS = ["using-subagent-orchestrator", "subagent-orchestrator"]
-SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS = {
-    "using-subagent-orchestrator": "subagent-safe-using-subagent-orchestrator",
-    "subagent-orchestrator": "subagent-safe-subagent-orchestrator",
-}
 OBSIDIAN_SKILLS = ["obsidian-markdown", "obsidian-bases", "json-canvas", "obsidian-cli", "defuddle"]
 OBSIDIAN_SKILL_WRAPPERS = {
     "obsidian-markdown": "obsidian-research-markdown",
@@ -115,7 +104,6 @@ REPO_SCOPED_SKILL_NAMES = tuple(
             *LOCAL_PROJECT_SKILLS,
             *(f"ars-{skill_name}" for skill_name in ARS_SKILLS),
             *RBS_SKILL_WRAPPERS.values(),
-            *SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS.values(),
             *OBSIDIAN_SKILL_WRAPPERS.values(),
         )
     )
@@ -124,12 +112,6 @@ REPO_SCOPED_SKILL_NAMES = tuple(
 EXTERNAL_SOURCE_SPECS = (
     ExternalSourceSpec("ars", "ARS", ARS_SOURCE, DEFAULT_ARS_REPO),
     ExternalSourceSpec("rbs", "RBS", RBS_SOURCE, DEFAULT_RBS_REPO),
-    ExternalSourceSpec(
-        "subagent-orchestrator",
-        "Subagent Orchestrator",
-        SUBAGENT_ORCHESTRATOR_SOURCE,
-        DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
-    ),
     ExternalSourceSpec(
         "obsidian-skills",
         "Obsidian Skills",
@@ -148,20 +130,7 @@ RBS_PLUGIN_SPEC = ExternalPluginSpec(
     RBS_SOURCE / "skills",
     tuple(RBS_SKILLS),
 )
-SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC = ExternalPluginSpec(
-    "subagent-orchestrator",
-    "Subagent Orchestrator",
-    SUBAGENT_ORCHESTRATOR_MARKETPLACE_NAME,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_PATH,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT / "skills",
-    tuple(SUBAGENT_ORCHESTRATOR_SKILLS),
-)
-EXTERNAL_PLUGIN_SPECS = (
-    RBS_PLUGIN_SPEC,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC,
-)
+EXTERNAL_PLUGIN_SPECS = (RBS_PLUGIN_SPEC,)
 
 SETUP_RECOMMENDED_CHECKS = (
     CommandSpec(("bash", "scripts/operations/health/doctor.sh"), "run repository doctor"),

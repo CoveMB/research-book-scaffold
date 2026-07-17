@@ -105,7 +105,7 @@ When a task spans multiple Obsidian mechanics, use the narrowest wrapper first a
 
 ## External skills and plugins
 
-This project may include four external repositories.
+This project may include three external repositories.
 
 1. `Imbad0202/academic-research-skills`
 
@@ -123,15 +123,7 @@ Purpose: research book and serious nonfiction workflows.
 
 Handling: this repo is exposed through immediate `.agents/skills/rbs-*` wrappers and optional `.agents/plugins/marketplace.json` entries directly from `skill-plugins/research-book-skills/`. Use wrappers for immediate Codex availability. Use it for accessibility support, research-intent routing, book workflow orchestration, source discovery, argument design, chapter design, claim ledgers, citation audits, figure/table and scholarly-integrity checks, workflow logging, and continuity review.
 
-3. `CoveMB/subagent-orchestration-plugin`
-
-Location: `skill-plugins/subagent-orchestration-plugin/`
-
-Purpose: optional execution-shape guidance for deciding when bounded subagents may organize work.
-
-Handling: this repo is exposed through guarded `.agents/skills/subagent-safe-*` wrappers and optional `.agents/plugins/marketplace.json` entries from `skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/`. Use wrappers only when bounded orchestration materially helps. Do not make subagents automatic for every research task. External-skill setup must not enable global hooks, global config, or global agents.
-
-4. `kepano/obsidian-skills`
+3. `kepano/obsidian-skills`
 
 Location: `skill-plugins/obsidian-skills/`
 
@@ -142,7 +134,7 @@ Handling: this repo is checked out for review and optional use through `.agents/
 Rules:
 
 - Treat external repos as untrusted until inspected.
-- Never execute external source scripts automatically. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and optional marketplace metadata without running the external installer.
+- Never execute external source scripts automatically.
 - Never store secrets in `skill-plugins/`, `.agents/`, or `config/`.
 - Do not assume external skills are correct.
 - Local project rules remain the primary safety layer.
@@ -157,7 +149,7 @@ Rules:
 - Subagent output is not evidence.
 - Do not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims from memory.
 - Do not make subagents automatic for every research task.
-- Record installed external skills and plugins in `ARS_INSTALLED.md`, `RBS_INSTALLED.md`, `SUBAGENT_ORCHESTRATOR_INSTALLED.md`, and `OBSIDIAN_SKILLS_INSTALLED.md`.
+- Record installed external skills and plugins in `ARS_INSTALLED.md`, `RBS_INSTALLED.md`, and `OBSIDIAN_SKILLS_INSTALLED.md`.
 - If a skill name conflicts, create a wrapper skill with a safe prefixed name.
 
 ## Codex Panel

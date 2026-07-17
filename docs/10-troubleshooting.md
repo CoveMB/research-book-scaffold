@@ -25,7 +25,6 @@
 | `_quarto.yml` is not visible in Obsidian | Confirm qmd as md has YAML files enabled and that `.obsidian/app.json` or the File Explorer CSS snippet is not hiding `manuscript/`. Run `make check-obsidian-research-plugins`. |
 | External skills not installed | Run `python3 scripts/operations/skill_plugins/install_external_skills.py --yes`, then review reports. |
 | Research Book Skills plugin not visible | Check `skill-plugins/research-book-skills/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
-| Subagent Orchestrator plugin not visible | Check `skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. |
 | Obsidian Skills wrapper missing | Run `python3 scripts/operations/skill_plugins/check_external_skills.py`, then confirm `skill-plugins/obsidian-skills/skills/` is initialized and refresh wrappers with the local installer if needed. |
 | Agent edited too much | Inspect diff, keep intended changes, revert only with user approval. |
 | Export failed | Check Quarto, Pandoc, the TinyTeX `PATH`, bibliography path, and unresolved citation errors. |

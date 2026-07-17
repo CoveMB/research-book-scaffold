@@ -59,8 +59,6 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             self.assertIn(f"`ars-{skill_name}`", self.runbook_text)
         for skill_name in project_config.RBS_SKILLS:
             self.assertIn(f"`{skill_name}`", self.runbook_text)
-        for skill_name in project_config.SUBAGENT_ORCHESTRATOR_SKILLS:
-            self.assertIn(f"`{skill_name}`", self.runbook_text)
 
     def test_runbook_points_to_seed_tool_and_fixture_resources(self) -> None:
         self.assertIn("`end-2-end-tests/tools/seed_release_qa.py`", self.runbook_text)

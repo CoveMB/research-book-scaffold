@@ -211,7 +211,7 @@ The external layers are separate:
 - `.agents/skills/` stores safe local wrappers that are immediately usable after setup.
 - `.agents/plugins/marketplace.json` keeps optional plugin exposure for users who choose to install repo marketplace plugins later.
 
-Available wrappers include local scaffold skills, `ars-*` Academic Research Skills wrappers, `rbs-*` Research Book Skills wrappers, guarded `subagent-safe-*` wrappers, and `obsidian-research-*` Obsidian Skills wrappers. Use them for bounded tasks such as accessibility support, research-intent routing, search planning, candidate dedupe, source-note conversion, evidence extraction, claim traceability, claim audits, figure/table integrity checks, scholarly-integrity checks, workflow logging, release/privacy review, proposal comps, drafting from notes, final manuscript checks, Obsidian syntax/mechanics, and orchestration planning when subagents would materially help. Marketplace exposure is useful, but it is not the immediate availability path.
+Available wrappers include local scaffold skills, `ars-*` Academic Research Skills wrappers, `rbs-*` Research Book Skills wrappers, and `obsidian-research-*` Obsidian Skills wrappers. Use them for bounded research, writing, audit, accessibility, and Obsidian tasks. Marketplace exposure is useful, but it is not the immediate availability path.
 
 ## Default local agent integration
 
@@ -223,10 +223,9 @@ Available wrappers include local scaffold skills, `ars-*` Academic Research Skil
 
 - Academic Research Skills can be added from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
 - Research Book Skills can be added from `CoveMB/research-book-skills`, exposed through immediate `rbs-*` wrappers, and optionally exposed as a repo marketplace plugin from `skill-plugins/research-book-skills/`.
-- Subagent Orchestrator can be added from `CoveMB/subagent-orchestration-plugin` and exposed from `skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/`.
 - Obsidian Skills can be added from `kepano/obsidian-skills` and exposed through local wrappers for Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle guidance.
 
-External repositories stay optional. Review upstream files before use. Default external-skill setup refreshes guarded Subagent Orchestrator wrappers and marketplace exposure without executing the external installer or enabling hooks, project agents, global config, or global agents. Obsidian Skills are checked out and wrapped locally; this scaffold does not install them globally.
+External repositories stay optional. Review upstream files before use. Obsidian Skills are checked out and wrapped locally; this scaffold does not install them globally.
 
 Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel, Zotero Integration, Pandoc Reference List, and qmd as md from published release assets with SHA256 digests, adds their plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json`, and seeds safe citation and QMD plugin settings. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
 

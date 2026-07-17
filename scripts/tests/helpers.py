@@ -22,7 +22,7 @@ SCRIPT_IMPORT_DIRS = [
     SCRIPTS_DIR / "operations" / "skill_plugins",
     SCRIPTS_DIR / "operations" / "obsidian",
 ]
-REMOVED_EXTERNAL_REPO_FLAGS = ("--ars-repo", "--rbs-repo", "--subagent-orchestrator-repo", "--obsidian-skills-repo")
+REMOVED_EXTERNAL_REPO_FLAGS = ("--ars-repo", "--rbs-repo", "--obsidian-skills-repo")
 
 
 def add_path(path: Path) -> None:

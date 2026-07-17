@@ -48,19 +48,19 @@ git submodule update --init --recursive -- skill-plugins/obsidian-skills
 External-skill setup validates the expected upstream skill files, creates or refreshes the local wrappers, and writes `.agents/skills/OBSIDIAN_SKILLS_INSTALLED.md`:
 
 ```sh
-python3 scripts/operations/skill_plugins/install_external_skills.py --yes --skip-ars --skip-rbs --skip-subagent-orchestrator
+python3 scripts/operations/skill_plugins/install_external_skills.py --yes --skip-ars --skip-rbs
 ```
 
 If the source checkout is already present and only wrappers or reports need to be refreshed from the current checkout, preserve the submodule state:
 
 ```sh
-python3 scripts/operations/skill_plugins/install_external_skills.py --yes --force --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-skill-plugin-checkouts
+python3 scripts/operations/skill_plugins/install_external_skills.py --yes --force --skip-ars --skip-rbs --preserve-skill-plugin-checkouts
 ```
 
 To refresh only the Obsidian Skills source from upstream, use:
 
 ```sh
-bash scripts/operations/skill_plugins/update-skill-plugins.sh --skip-ars --skip-rbs --skip-subagent-orchestrator
+bash scripts/operations/skill_plugins/update-skill-plugins.sh --skip-ars --skip-rbs
 ```
 
 Review the resulting submodule pointer, wrapper diffs, and install report before committing. Do not edit files under `skill-plugins/obsidian-skills/`.

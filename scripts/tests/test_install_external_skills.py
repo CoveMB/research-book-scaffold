@@ -21,9 +21,6 @@ class SilentReport(install_external_skills.Report):
 
 
 class InstallExternalSkillsTests(unittest.TestCase):
-    def test_removed_subagent_install_flag_is_rejected(self) -> None:
-        assert_parse_args_rejects(self, install_external_skills.parse_args, ["--install-subagent-orchestrator"])
-
     def test_update_conflict_is_rejected_during_argparse(self) -> None:
         assert_parse_args_rejects(self, install_external_skills.parse_args, ["--update", "--no-update"])
 
@@ -83,32 +80,6 @@ class InstallExternalSkillsTests(unittest.TestCase):
             ["Example source path is not configured as a Git submodule: skill-plugins/example"],
         )
 
-    def test_subagent_orchestrator_marketplace_exposure_does_not_require_source_installer(self) -> None:
-        args = install_external_skills.parse_args(["--skip-ars", "--skip-rbs", "--skip-obsidian-skills"])
-        report = SilentReport()
-        wrapper_paths = [Path(".agents/skills/subagent-safe-subagent-orchestrator/SKILL.md")]
-
-        with (
-            mock.patch.object(install_external_skills, "clone_or_update"),
-            mock.patch.object(install_external_skills, "validate_subagent_orchestrator", return_value=True),
-            mock.patch.object(
-                install_external_skills,
-                "SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS",
-                {"subagent-orchestrator": "subagent-safe-subagent-orchestrator"},
-            ),
-            mock.patch.object(
-                install_external_skills,
-                "create_subagent_orchestrator_wrappers",
-                return_value=wrapper_paths,
-            ),
-            mock.patch.object(install_external_skills, "write_marketplace") as write_marketplace_mock,
-            mock.patch.object(install_external_skills, "write_subagent_orchestrator_install_report") as write_report_mock,
-        ):
-            install_external_skills.install_external(args, report)
-
-        write_marketplace_mock.assert_called_once()
-        write_report_mock.assert_called_once_with(args, report, wrapper_paths, True, write_marketplace_mock.return_value)
-
     def test_write_marketplace_preserves_skipped_existing_plugins(self) -> None:
         args = install_external_skills.parse_args(["--force"])
         report = SilentReport()
@@ -133,14 +104,13 @@ class InstallExternalSkillsTests(unittest.TestCase):
                     args,
                     report,
                     include_rbs=False,
-                    include_subagent_orchestrator=True,
                 )
             plugin_names = [
                 plugin.get("name")
                 for plugin in json.loads(marketplace.read_text(encoding="utf-8"))["plugins"]
             ]
 
-        self.assertEqual(plugin_names, ["research-book-skills", "custom-plugin", "subagent-orchestrator"])
+        self.assertEqual(plugin_names, ["research-book-skills", "custom-plugin"])
 
     def test_validate_rbs_requires_expected_skill_files(self) -> None:
         report = SilentReport()
@@ -178,22 +148,8 @@ class InstallExternalSkillsTests(unittest.TestCase):
         self.assertIn("bibliography checks", text)
         self.assertIn("workflow guidance, not evidence", text)
 
-    def test_subagent_wrapper_text_includes_guarded_contract(self) -> None:
-        text = install_external_skills.subagent_orchestrator_wrapper_text("subagent-orchestrator")
-
-        self.assertIn("name: subagent-safe-subagent-orchestrator", text)
-        self.assertIn(
-            "skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator/skills/subagent-orchestrator/SKILL.md",
-            text,
-        )
-        self.assertIn("bounded orchestration materially helps", text)
-        self.assertIn("not use automatically for every research task", text)
-        self.assertIn("Subagent output is not evidence", text)
-        self.assertIn("no global hooks, global agents, or global config", text)
-        self.assertIn("project, citation, manuscript, audit, and skill/plugin source rules win", text)
-
     def test_install_external_generates_rbs_wrappers_before_report(self) -> None:
-        args = install_external_skills.parse_args(["--skip-ars", "--skip-subagent-orchestrator", "--skip-obsidian-skills"])
+        args = install_external_skills.parse_args(["--skip-ars", "--skip-obsidian-skills"])
         report = SilentReport()
         wrapper_paths = [Path(".agents/skills/rbs-claim-evidence-ledger/SKILL.md")]
 
@@ -214,35 +170,9 @@ class InstallExternalSkillsTests(unittest.TestCase):
         create_mock.assert_called_once_with(args, report)
         report_mock.assert_called_once_with(args, report, wrapper_paths, True, True)
 
-    def test_install_external_generates_guarded_subagent_wrappers_without_global_installs(self) -> None:
-        args = install_external_skills.parse_args(["--skip-ars", "--skip-rbs", "--skip-obsidian-skills"])
-        report = SilentReport()
-        wrapper_paths = [Path(".agents/skills/subagent-safe-subagent-orchestrator/SKILL.md")]
-
-        with (
-            mock.patch.object(install_external_skills, "clone_or_update"),
-            mock.patch.object(install_external_skills, "validate_subagent_orchestrator", return_value=True),
-            mock.patch.object(
-                install_external_skills,
-                "SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS",
-                {"subagent-orchestrator": "subagent-safe-subagent-orchestrator"},
-            ),
-            mock.patch.object(
-                install_external_skills,
-                "create_subagent_orchestrator_wrappers",
-                return_value=wrapper_paths,
-            ) as create_mock,
-            mock.patch.object(install_external_skills, "write_marketplace", return_value=True),
-            mock.patch.object(install_external_skills, "write_subagent_orchestrator_install_report") as report_mock,
-        ):
-            install_external_skills.install_external(args, report)
-
-        create_mock.assert_called_once_with(args, report)
-        report_mock.assert_called_once_with(args, report, wrapper_paths, True, True)
-
     def test_obsidian_skills_source_is_validated_with_wrappers_without_external_scripts(self) -> None:
         args = install_external_skills.parse_args(
-            ["--skip-ars", "--skip-rbs", "--skip-subagent-orchestrator", "--obsidian-skills-ref", "main"]
+            ["--skip-ars", "--skip-rbs", "--obsidian-skills-ref", "main"]
         )
         report = SilentReport()
         wrapper_paths = [Path(wrapper_name) for wrapper_name in install_external_skills.OBSIDIAN_SKILL_WRAPPERS.values()]

@@ -20,7 +20,6 @@ from project_config import (
     ExternalSourceSpec,
     OBSIDIAN_SKILL_WRAPPERS,
     RBS_PLUGIN_JSON_NAME,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME,
 )
 
 
@@ -142,19 +141,6 @@ class CheckExternalSkillsTests(unittest.TestCase):
             skill_names,
         )
 
-    def subagent_plugin_spec(self, source: Path, skill_names: tuple[str, ...]) -> ExternalPluginSpec:
-        plugin_root = source / "plugin" / "subagent-orchestrator"
-        return ExternalPluginSpec(
-            "subagent-orchestrator",
-            "Subagent Orchestrator",
-            "subagent-orchestrator",
-            "./skill-plugins/subagent-orchestration-plugin/plugin/subagent-orchestrator",
-            plugin_root,
-            "subagent-orchestrator",
-            plugin_root / "skills",
-            skill_names,
-        )
-
     def write_plugin_fixture(self, plugin_spec: ExternalPluginSpec) -> None:
         plugin_json = plugin_spec.plugin_root / ".codex-plugin" / "plugin.json"
         plugin_json.parent.mkdir(parents=True, exist_ok=True)
@@ -186,37 +172,6 @@ class CheckExternalSkillsTests(unittest.TestCase):
         ):
             with contextlib.redirect_stdout(io.StringIO()):
                 check_external_skills.check_rbs(failures, warnings)
-
-        self.assertEqual(warnings, [])
-        return failures
-
-    def run_subagent_check(self, root: Path, source: Path, plugin_spec: ExternalPluginSpec) -> list[str]:
-        failures: list[str] = []
-        warnings: list[str] = []
-        source_spec = ExternalSourceSpec(
-            "subagent-orchestrator",
-            "Subagent Orchestrator",
-            source,
-            "https://github.com/CoveMB/subagent-orchestration-plugin.git",
-        )
-
-        with (
-            mock.patch.object(
-                check_external_skills,
-                "SOURCE_SPECS_BY_KEY",
-                {"subagent-orchestrator": source_spec},
-            ),
-            mock.patch.object(check_external_skills, "SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC", plugin_spec),
-            mock.patch.object(check_external_skills, "SKILLS_DIR", root / ".agents" / "skills"),
-            mock.patch.object(check_external_skills, "check_submodule"),
-            mock.patch.object(
-                check_external_skills,
-                "git_origin",
-                return_value="https://github.com/CoveMB/subagent-orchestration-plugin.git",
-            ),
-        ):
-            with contextlib.redirect_stdout(io.StringIO()):
-                check_external_skills.check_subagent_orchestrator(failures, warnings)
 
         self.assertEqual(warnings, [])
         return failures
@@ -323,19 +278,16 @@ class CheckExternalSkillsTests(unittest.TestCase):
     def test_conflicted_submodule_is_actionable(self) -> None:
         self.assertEqual(
             check_external_skills.submodule_status_message(
-                "Subagent Orchestrator",
-                Path("skill-plugins/subagent-orchestration-plugin"),
-                "Uf2185e5 skill-plugins/subagent-orchestration-plugin\n",
+                "Obsidian Skills",
+                Path("skill-plugins/obsidian-skills"),
+                "Uf2185e5 skill-plugins/obsidian-skills\n",
                 0,
             ),
-            "Subagent Orchestrator submodule has merge conflicts: skill-plugins/subagent-orchestration-plugin",
+            "Obsidian Skills submodule has merge conflicts: skill-plugins/obsidian-skills",
         )
 
     def test_expected_rbs_plugin_name_matches_upstream(self) -> None:
         self.assertEqual(RBS_PLUGIN_JSON_NAME, "research-skills-plugin")
-
-    def test_expected_subagent_orchestrator_plugin_name_matches_upstream(self) -> None:
-        self.assertEqual(SUBAGENT_ORCHESTRATOR_PLUGIN_JSON_NAME, "subagent-orchestrator")
 
     def test_submodule_status_failure_is_actionable(self) -> None:
         failures: list[str] = []
@@ -489,28 +441,6 @@ class CheckExternalSkillsTests(unittest.TestCase):
             "RBS source skills missing from wrapper config: research-intent-router",
             failures,
         )
-
-    def test_subagent_wrapper_guard_text_is_required(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            source = root / "skill-plugins" / "subagent-orchestration-plugin"
-            plugin_spec = self.subagent_plugin_spec(source, ("subagent-orchestrator",))
-            self.write_plugin_fixture(plugin_spec)
-            upstream = plugin_spec.skills_root / "subagent-orchestrator" / "SKILL.md"
-            self.write_wrapper(
-                root / ".agents" / "skills",
-                "subagent-safe-subagent-orchestrator",
-                upstream,
-                "AGENTS.md controls local use.",
-            )
-            report = root / ".agents" / "skills" / "SUBAGENT_ORCHESTRATOR_INSTALLED.md"
-            report.write_text("# Installed Subagent Orchestrator\n", encoding="utf-8")
-
-            failures = self.run_subagent_check(root, source, plugin_spec)
-
-        wrapper = root / ".agents" / "skills" / "subagent-safe-subagent-orchestrator" / "SKILL.md"
-        self.assertIn(f"Subagent Orchestrator wrapper safety wording missing: {wrapper}", failures)
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -65,4 +65,4 @@
 - Optional user-level skill installation commands are not part of project setup and require explicit user-level approval.
 - Do not let Obsidian CLI output, Defuddle output, or generated Obsidian artifacts authorize citations, source metadata, page numbers, or final claims.
 - Do not let Bases or Canvases become evidence; they are views and maps over source-backed notes.
-- Guarded subagent wrappers must not enable global hooks, global agents, or global config, and subagent output is not evidence.
+- Subagents must not enable global hooks, global agents, or global config, and their output is not evidence.

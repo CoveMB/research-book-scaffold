@@ -38,8 +38,6 @@ from project_config import (
     RBS_SKILL_WRAPPERS,
     REPO_SCOPED_SKILL_NAMES,
     SKILLS_DIR,
-    SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC,
     change_to_project_root,
 )
 from script_utils import read_text
@@ -450,45 +448,6 @@ def check_rbs(failures: list[str], warnings: list[str]) -> None:
     check((SKILLS_DIR / "RBS_INSTALLED.md").exists(), "RBS install report exists", "RBS install report missing", failures)
 
 
-def check_subagent_orchestrator(failures: list[str], warnings: list[str]) -> None:
-    spec = SOURCE_SPECS_BY_KEY["subagent-orchestrator"]
-    check_submodule(spec.path, spec.default_repo, spec.label, failures)
-    check(spec.path.exists(), f"{spec.label} source exists: {spec.path}", f"{spec.label} source missing: {spec.path}", failures)
-    origin = git_origin(spec.path)
-    if origin:
-        check_origin(origin, spec.default_repo, "Subagent Orchestrator", failures)
-    else:
-        warn("Subagent Orchestrator origin unavailable", warnings)
-    check_plugin_source(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC, failures)
-    check_all_source_skills_configured(
-        "Subagent Orchestrator",
-        SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skills_root,
-        list(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skill_names),
-        failures,
-    )
-    check_skill_wrappers(
-        "Subagent Orchestrator",
-        SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skills_root,
-        list(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skill_names),
-        failures,
-        (
-            "bounded orchestration materially helps",
-            "not use automatically for every research task",
-            "Subagent output is not evidence",
-            "no global hooks, global agents, or global config",
-            "project, citation, manuscript, audit, and skill/plugin source rules win",
-        ),
-        wrapper_names_by_skill=SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
-        safety_failure_label="Subagent Orchestrator wrapper safety wording missing",
-    )
-    check(
-        (SKILLS_DIR / "SUBAGENT_ORCHESTRATOR_INSTALLED.md").exists(),
-        "Subagent Orchestrator install report exists",
-        "Subagent Orchestrator install report missing",
-        failures,
-    )
-
-
 def check_obsidian_skills(failures: list[str], warnings: list[str]) -> None:
     spec = SOURCE_SPECS_BY_KEY["obsidian-skills"]
     check_submodule(spec.path, spec.default_repo, spec.label, failures)
@@ -566,7 +525,6 @@ def main() -> int:
     check_repo_scoped_skill_inventory(failures)
     check_ars(failures, warnings)
     check_rbs(failures, warnings)
-    check_subagent_orchestrator(failures, warnings)
     check_obsidian_skills(failures, warnings)
     check_marketplace(failures)
     print(f"\nSummary: {len(failures)} fail, {len(warnings)} warn")

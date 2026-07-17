@@ -3,7 +3,7 @@ PYTHON ?= python3
 VENV ?= .venv
 VENV_PYTHON := $(VENV)/bin/python
 
-.PHONY: help start-project doctor render render-html render-pdf render-docx test install-dev .require-ruff .require-pyright lint typecheck check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills install-subagent-orchestrator update-skill-plugins check-obsidian-codex check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
+.PHONY: help start-project doctor render render-html render-pdf render-docx test install-dev .require-ruff .require-pyright lint typecheck check-placeholders check-citations check-citations-strict check-links check-external-references external-reference-report check-manuscript-readiness check-external-skills install-external-skills update-skill-plugins check-obsidian-codex check-obsidian-research-plugins check-obsidian-artifacts install-obsidian-panel install-obsidian-research-plugins install-hooks precommit-run scaffold-audit audit release-audit manuscript-release-audit ci
 
 help:
 	@echo "Targets:"
@@ -26,7 +26,6 @@ help:
 	@echo "  check-manuscript-readiness Check release manuscript files for scaffold entries"
 	@echo "  check-external-skills  Check external skill/plugin integration"
 	@echo "  install-external-skills Prepare external skills and update marketplace"
-	@echo "  install-subagent-orchestrator Refresh guarded subagent wrappers and marketplace"
 	@echo "  update-skill-plugins  Fast-forward skill/plugin sources and refresh integrations"
 	@echo "  check-obsidian-codex   Check Codex Panel and Codex CLI in the project root vault"
 	@echo "  check-obsidian-research-plugins Check Zotero/Pandoc/QMD Obsidian plugin installs"
@@ -120,9 +119,6 @@ check-external-skills:
 
 install-external-skills:
 	python3 scripts/operations/skill_plugins/install_external_skills.py --yes
-
-install-subagent-orchestrator:
-	python3 scripts/operations/skill_plugins/install_external_skills.py --yes --skip-ars --skip-rbs --skip-obsidian-skills
 
 update-skill-plugins:
 	bash scripts/operations/skill_plugins/update-skill-plugins.sh

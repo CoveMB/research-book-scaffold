@@ -26,7 +26,6 @@ from project_config import (
     DEFAULT_ARS_REPO,
     DEFAULT_OBSIDIAN_SKILLS_REPO,
     DEFAULT_RBS_REPO,
-    DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
     ExternalPluginSpec,
     GITMODULES_PATH,
     OBSIDIAN_SKILLS,
@@ -37,10 +36,6 @@ from project_config import (
     RBS_SKILL_WRAPPERS,
     RBS_SOURCE,
     SKILLS_DIR,
-    SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
-    SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC,
-    SUBAGENT_ORCHESTRATOR_SOURCE,
     change_to_project_root,
 )
 from script_utils import StatusReport, run_command, read_text, write_text_if_changed
@@ -56,14 +51,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--skip-ars", action="store_true")
     parser.add_argument("--skip-rbs", action="store_true")
-    parser.add_argument("--skip-subagent-orchestrator", action="store_true")
     parser.add_argument("--skip-obsidian-skills", action="store_true")
     parser.add_argument("--ars-ref")
     parser.add_argument("--rbs-ref")
-    parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--obsidian-skills-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
-    parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
     update_group = parser.add_mutually_exclusive_group()
     update_group.add_argument("--update", action="store_true", help="Update configured skill/plugin sources from remotes.")
     update_group.add_argument("--no-update", action="store_true", help="Use pinned or current skill/plugin source checkouts.")
@@ -147,10 +139,6 @@ def obsidian_skill_path(skill_name: str) -> Path:
 
 def rbs_skill_path(skill_name: str) -> Path:
     return RBS_PLUGIN_SPEC.skills_root / skill_name / "SKILL.md"
-
-
-def subagent_orchestrator_skill_path(skill_name: str) -> Path:
-    return SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skills_root / skill_name / "SKILL.md"
 
 
 def validate_skill_files(
@@ -288,75 +276,6 @@ def create_rbs_wrappers(args: argparse.Namespace, report: Report) -> list[Path]:
     return wrapper_paths
 
 
-def subagent_orchestrator_wrapper_text(skill_name: str) -> str:
-    wrapper_name = SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS[skill_name]
-    upstream_path = subagent_orchestrator_skill_path(skill_name).as_posix()
-    return f"""---
-name: {wrapper_name}
-description: Use only when guarded Subagent Orchestrator guidance can help choose bounded single-thread, sequential, or parallel work without weakening project rules.
----
-
-# {wrapper_name}
-
-## Purpose
-
-Use the external Subagent Orchestrator `{skill_name}` workflow only as an execution-shape helper for this repository.
-
-## Upstream Source
-
-Read the upstream `SKILL.md` before use.
-
-```text
-{upstream_path}
-```
-
-## Local Overrides
-
-- `AGENTS.md`, project, citation, manuscript, audit, and skill/plugin source rules win over upstream guidance whenever they conflict.
-- Use only when bounded orchestration materially helps with a complex, separable, or review-heavy task.
-- Do not use automatically for every research task.
-- Subagent output is not evidence.
-- Use no global hooks, global agents, or global config.
-- Do not install or activate project hooks, project agents, or global configuration from this wrapper.
-- Keep subagents bounded, read-only by default, and forbidden from recursive fan-out.
-
-## Allowed Use
-
-- Use this wrapper to decide whether a task should be single-threaded, sequential, or delegated to bounded subagents.
-- Prefer single-thread or sequential work unless parallel tracks clearly reduce risk, improve review, or preserve context.
-- Synthesize conflicts, uncertainty, files, risks, and verification before acting on subagent output.
-
-## Forbidden Actions
-
-- Do not edit files under `skill-plugins/subagent-orchestration-plugin/`.
-- Do not execute external source scripts automatically.
-- Do not let subagents invent citations, citekeys, page numbers, quotations, studies, metadata, claims, or source relationships.
-- Do not treat orchestration guidance as permission to bypass repository checks, user approval rules, privacy rules, or safety constraints.
-
-## Validation
-
-- Confirm the upstream `SKILL.md` exists and was read for the current task.
-- State why orchestration materially helps when using this wrapper.
-- Keep any delegated scope explicit and bounded.
-- Report any remaining uncertainty or conflicts from subagent output.
-"""
-
-
-def create_subagent_orchestrator_wrappers(args: argparse.Namespace, report: Report) -> list[Path]:
-    wrapper_paths: list[Path] = []
-    for skill_name, wrapper_name in SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS.items():
-        wrapper_path = SKILLS_DIR / wrapper_name / "SKILL.md"
-        if write_if_changed(
-            wrapper_path,
-            subagent_orchestrator_wrapper_text(skill_name),
-            args,
-            report,
-            f"Subagent Orchestrator wrapper {skill_name}",
-        ):
-            wrapper_paths.append(wrapper_path)
-    return wrapper_paths
-
-
 def obsidian_wrapper_text(skill_name: str, wrapper_name: str) -> str:
     upstream_path = obsidian_skill_path(skill_name).as_posix()
     return f"""---
@@ -464,10 +383,6 @@ def validate_rbs(report: Report) -> bool:
     return validate_plugin_components(RBS_PLUGIN_SPEC, report)
 
 
-def validate_subagent_orchestrator(report: Report) -> bool:
-    return validate_plugin_components(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC, report)
-
-
 def marketplace_entry(name: str, plugin_path: str) -> dict[str, object]:
     return {
         "name": name,
@@ -477,20 +392,10 @@ def marketplace_entry(name: str, plugin_path: str) -> dict[str, object]:
     }
 
 
-def configured_marketplace_entries(
-    include_rbs: bool,
-    include_subagent_orchestrator: bool,
-) -> list[dict[str, object]]:
+def configured_marketplace_entries(include_rbs: bool) -> list[dict[str, object]]:
     entries: list[dict[str, object]] = []
     if include_rbs:
         entries.append(marketplace_entry(RBS_PLUGIN_SPEC.marketplace_name, RBS_PLUGIN_SPEC.plugin_path))
-    if include_subagent_orchestrator:
-        entries.append(
-            marketplace_entry(
-                SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.marketplace_name,
-                SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.plugin_path,
-            )
-        )
     return entries
 
 
@@ -529,11 +434,10 @@ def merge_marketplace_entries(
 
 def marketplace_text(
     include_rbs: bool = True,
-    include_subagent_orchestrator: bool = True,
     existing_plugins: list[object] | None = None,
     remove_plugin_names: set[str] | None = None,
 ) -> str:
-    desired_plugins = configured_marketplace_entries(include_rbs, include_subagent_orchestrator)
+    desired_plugins = configured_marketplace_entries(include_rbs)
     plugins = merge_marketplace_entries(existing_plugins or [], desired_plugins, remove_plugin_names or set())
     payload = {
         "name": "local-research-workflow-plugins",
@@ -547,14 +451,12 @@ def write_marketplace(
     args: argparse.Namespace,
     report: Report,
     include_rbs: bool,
-    include_subagent_orchestrator: bool,
     remove_plugin_names: set[str] | None = None,
 ) -> bool:
     return write_if_changed(
         PLUGIN_MARKETPLACE,
         marketplace_text(
             include_rbs,
-            include_subagent_orchestrator,
             existing_marketplace_plugins(PLUGIN_MARKETPLACE),
             remove_plugin_names or set(),
         ),
@@ -665,39 +567,6 @@ def write_rbs_install_report(
     write_if_changed(SKILLS_DIR / "RBS_INSTALLED.md", rbs_report, args, report, "RBS install report")
 
 
-def write_subagent_orchestrator_install_report(
-    args: argparse.Namespace,
-    report: Report,
-    subagent_wrappers: list[Path],
-    plugin_exposed: bool,
-    marketplace_written: bool,
-) -> None:
-    install_report = report_text(
-        "Installed Subagent Orchestrator",
-        DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
-        args.subagent_orchestrator_ref,
-        commit_hash(SUBAGENT_ORCHESTRATOR_SOURCE),
-        SUBAGENT_ORCHESTRATOR_SOURCE,
-        subagent_wrappers,
-        SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT if plugin_exposed else None,
-        PLUGIN_MARKETPLACE if marketplace_written else None,
-        license_note_for_source(SUBAGENT_ORCHESTRATOR_SOURCE),
-        [
-            "Execution-shape helper only; not evidence.",
-            "Project rules, citation rules, manuscript rules, audit rules, and skill/plugin source rules win.",
-            "Use wrappers for immediate Codex availability.",
-            "Default external-skill setup does not execute the external installer.",
-        ],
-    )
-    write_if_changed(
-        SKILLS_DIR / "SUBAGENT_ORCHESTRATOR_INSTALLED.md",
-        install_report,
-        args,
-        report,
-        "Subagent Orchestrator install report",
-    )
-
-
 def obsidian_skills_license_note() -> str:
     return license_note_for_source(OBSIDIAN_SKILLS_SOURCE)
 
@@ -735,16 +604,13 @@ def write_obsidian_skills_install_report(
 def install_external(args: argparse.Namespace, report: Report) -> None:
     ars_wrappers: list[Path] = []
     plugin_exposed = False
-    subagent_plugin_exposed = False
     marketplace_written = False
     remove_plugin_names: set[str] = set()
     ars_ready = False
     rbs_ready = False
-    subagent_ready = False
     obsidian_ready = False
     obsidian_wrappers: list[Path] = []
     rbs_wrappers: list[Path] = []
-    subagent_wrappers: list[Path] = []
 
     if args.skip_ars:
         report.add("skipped", "ARS skipped")
@@ -767,28 +633,6 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
             else:
                 plugin_exposed = True
 
-    if args.skip_subagent_orchestrator:
-        report.add("skipped", "Subagent Orchestrator skipped")
-    else:
-        clone_or_update(
-            SUBAGENT_ORCHESTRATOR_SOURCE,
-            args.subagent_orchestrator_ref,
-            args,
-            report,
-            "Subagent Orchestrator",
-        )
-        if SUBAGENT_ORCHESTRATOR_SOURCE.exists() and validate_subagent_orchestrator(report):
-            subagent_wrappers = create_subagent_orchestrator_wrappers(args, report)
-            subagent_ready = len(subagent_wrappers) == len(SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS)
-            if args.no_subagent_orchestrator_plugin:
-                report.add(
-                    "skipped",
-                    "Subagent Orchestrator marketplace exposure skipped by --no-subagent-orchestrator-plugin",
-                )
-                remove_plugin_names.add(SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.marketplace_name)
-            else:
-                subagent_plugin_exposed = True
-
     if args.skip_obsidian_skills:
         report.add("skipped", "Obsidian Skills skipped")
     else:
@@ -804,12 +648,11 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
             obsidian_wrappers = create_obsidian_wrappers(args, report)
             obsidian_ready = len(obsidian_wrappers) == len(OBSIDIAN_SKILL_WRAPPERS)
 
-    if plugin_exposed or subagent_plugin_exposed or remove_plugin_names:
+    if plugin_exposed or remove_plugin_names:
         marketplace_written = write_marketplace(
             args,
             report,
             plugin_exposed,
-            subagent_plugin_exposed,
             remove_plugin_names,
         )
 
@@ -817,14 +660,6 @@ def install_external(args: argparse.Namespace, report: Report) -> None:
         write_ars_install_report(args, report, ars_wrappers)
     if rbs_ready:
         write_rbs_install_report(args, report, rbs_wrappers, plugin_exposed, marketplace_written)
-    if subagent_ready:
-        write_subagent_orchestrator_install_report(
-            args,
-            report,
-            subagent_wrappers,
-            subagent_plugin_exposed,
-            marketplace_written,
-        )
     if obsidian_ready:
         write_obsidian_skills_install_report(args, report, obsidian_wrappers)
 

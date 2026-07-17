@@ -22,14 +22,13 @@
 | Codex Panel Obsidian plugin | Agent work inside Obsidian | Recommended; setup default unless skipped |
 | Academic Research Skills skill/plugin source repo | External academic paper and pipeline workflows | Optional |
 | Research Book Skills plugin | External research book workflows | Optional |
-| Subagent Orchestrator plugin | Optional execution-shape guidance for bounded subagents | Optional |
 | Obsidian Skills skill/plugin source repo | Obsidian Markdown, Bases, Canvas, CLI, and Defuddle wrapper guidance | Optional |
 
 Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help find candidate sources. Import and verify useful sources in Zotero or `bibliography/references.bib` before citing them.
 
 Do not store API keys or credentials in this repository.
 
-External repositories live under `skill-plugins/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the Research Book Skills source submodule and the nested optional Subagent Orchestrator plugin path.
+External repositories live under `skill-plugins/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the Research Book Skills source submodule.
 
 `bash setup.sh` uses network access when it initializes skill/plugin source submodules or
 downloads Obsidian plugin release assets. For offline or CLI-only setup, use

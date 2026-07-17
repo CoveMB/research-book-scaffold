@@ -8,7 +8,6 @@ Expected external repositories are Git submodules:
 
 - `academic-research-skills/`: source checkout from `https://github.com/Imbad0202/academic-research-skills.git`.
 - `research-book-skills/`: source checkout from `https://github.com/CoveMB/research-book-skills.git`.
-- `subagent-orchestration-plugin/`: optional plugin source checkout from `https://github.com/CoveMB/subagent-orchestration-plugin.git`.
 - `obsidian-skills/`: reviewed Obsidian workflow source checkout from `https://github.com/kepano/obsidian-skills.git`.
 
 Preserve upstream files unchanged.

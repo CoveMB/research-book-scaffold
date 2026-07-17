@@ -32,4 +32,4 @@ Subagents may organize work, separate investigation tracks, or review risks. The
 
 The scaffold source, citation, manuscript, audit, and skill/plugin source rules always win. Subagent output is not evidence. Do not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims from memory.
 
-Use guarded wrappers under `.agents/skills/subagent-safe-*/`. Do not make subagents automatic for every research task. Use them only when bounded orchestration materially helps, keep them read-only by default, avoid global hooks/config/agents, and synthesize conflicts before editing.
+Do not make subagents automatic for every research task. Use them only when bounded delegation materially helps, keep them read-only by default, and review their output before editing.

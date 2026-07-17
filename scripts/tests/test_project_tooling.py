@@ -51,11 +51,6 @@ OBSIDIAN_SKILL_WRAPPERS = {
     "defuddle": "obsidian-research-defuddle",
 }
 
-SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS = {
-    "using-subagent-orchestrator": "subagent-safe-using-subagent-orchestrator",
-    "subagent-orchestrator": "subagent-safe-subagent-orchestrator",
-}
-
 CI_PYTHON_VERSION = "3.11"
 
 
@@ -95,15 +90,6 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertEqual(specs_by_key["rbs"].label, "RBS")
         self.assertEqual(specs_by_key["rbs"].path, project_config.RBS_SOURCE)
         self.assertEqual(specs_by_key["rbs"].default_repo, project_config.DEFAULT_RBS_REPO)
-        self.assertEqual(specs_by_key["subagent-orchestrator"].label, "Subagent Orchestrator")
-        self.assertEqual(
-            specs_by_key["subagent-orchestrator"].path,
-            project_config.SUBAGENT_ORCHESTRATOR_SOURCE,
-        )
-        self.assertEqual(
-            specs_by_key["subagent-orchestrator"].default_repo,
-            project_config.DEFAULT_SUBAGENT_ORCHESTRATOR_REPO,
-        )
         self.assertEqual(specs_by_key["obsidian-skills"].label, "Obsidian Skills")
         self.assertEqual(specs_by_key["obsidian-skills"].path, project_config.OBSIDIAN_SKILLS_SOURCE)
         self.assertEqual(
@@ -119,11 +105,6 @@ class ProjectToolingTests(unittest.TestCase):
             project_config.RBS_SKILL_WRAPPERS,
             {skill_name: f"rbs-{skill_name}" for skill_name in project_config.RBS_SKILLS},
         )
-        self.assertEqual(
-            project_config.SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
-            SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS,
-        )
-
     def test_repo_scoped_skill_manifest_matches_skill_directories(self) -> None:
         skill_files = (ROOT / project_config.SKILLS_DIR).glob("*/SKILL.md")
         actual_skill_names = {skill_file.parent.name for skill_file in skill_files}
@@ -187,47 +168,16 @@ class ProjectToolingTests(unittest.TestCase):
 
         self.assertEqual(set(project_config.RBS_SKILLS), source_skill_names)
 
-    def test_subagent_safety_wrappers_exist_with_guarded_contract(self) -> None:
-        for upstream_name, wrapper_name in project_config.SUBAGENT_ORCHESTRATOR_SKILL_WRAPPERS.items():
-            with self.subTest(wrapper=wrapper_name):
-                upstream_path = (
-                    project_config.SUBAGENT_ORCHESTRATOR_PLUGIN_SPEC.skills_root / upstream_name / "SKILL.md"
-                )
-                wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
-
-                self.assertTrue(wrapper_path.exists(), wrapper_path)
-                text = wrapper_path.read_text(encoding="utf-8")
-
-                self.assertTrue(text.startswith("---\n"))
-                self.assertIn(f"name: {wrapper_name}", text)
-                self.assertIn("description:", text)
-                self.assertIn(upstream_path.as_posix(), text)
-                self.assertIn("bounded orchestration materially helps", text)
-                self.assertIn("not use automatically for every research task", text)
-                self.assertIn("Subagent output is not evidence", text)
-                self.assertIn("no global hooks, global agents, or global config", text)
-                self.assertIn("project, citation, manuscript, audit, and skill/plugin source rules win", text)
-
     def test_external_plugin_specs_are_canonical(self) -> None:
         specs_by_key = {spec.source_key: spec for spec in project_config.EXTERNAL_PLUGIN_SPECS}
 
         self.assertEqual(specs_by_key["rbs"].marketplace_name, project_config.RBS_MARKETPLACE_NAME)
         self.assertEqual(specs_by_key["rbs"].plugin_path, project_config.MARKETPLACE_PLUGIN_PATH)
         self.assertEqual(specs_by_key["rbs"].skills_root, project_config.RBS_SOURCE / "skills")
-        self.assertEqual(specs_by_key["subagent-orchestrator"].marketplace_name, "subagent-orchestrator")
-        self.assertEqual(
-            specs_by_key["subagent-orchestrator"].plugin_root,
-            project_config.SUBAGENT_ORCHESTRATOR_PLUGIN_ROOT,
-        )
 
     def test_scripts_are_grouped_by_use_case(self) -> None:
         for relative_path in sorted(SCRIPT_LAYOUT):
             self.assertTrue((ROOT / relative_path).exists(), relative_path)
-
-    def test_subagent_make_target_skips_other_external_sources(self) -> None:
-        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
-
-        self.assertIn("--skip-ars --skip-rbs --skip-obsidian-skills", makefile)
 
     def test_makefile_exposes_obsidian_artifact_check(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
@@ -397,7 +347,7 @@ class ProjectToolingTests(unittest.TestCase):
         scripts_readme = (ROOT / "scripts" / "README.md").read_text(encoding="utf-8")
         expected = (
             "python3 scripts/operations/skill_plugins/install_external_skills.py --yes "
-            "--force --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-skill-plugin-checkouts"
+            "--force --skip-ars --skip-rbs --preserve-skill-plugin-checkouts"
         )
 
         self.assertIn(expected, docs)

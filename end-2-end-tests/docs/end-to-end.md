@@ -143,7 +143,7 @@ Expected result:
 
 - Required tools are found or reported with clear manual steps.
 - `.agents/skills/` exists and local skill front matter validates.
-- ARS, RBS, guarded Subagent Orchestrator, and Obsidian Skills wrappers are present under `.agents/skills/`.
+- ARS, RBS, and Obsidian Skills wrappers are present under `.agents/skills/`.
 - The project root is treated as the Obsidian vault root.
 - `.obsidian/plugins/codex-panel/` is installed or an existing plugin folder is reported as skipped unless `--force` was intentionally used.
 - Setup writes `.obsidian/community-plugins.json` so `codex-panel` is listed as enabled.
@@ -404,7 +404,6 @@ Expected result:
 | `make check-manuscript-readiness` | Detects remaining scaffold manuscript entries | Exits 0 for initialized production manuscripts and exits nonzero for a fresh uninitialized scaffold |
 | `make check-external-skills` | Validates skill/plugin source submodules, wrappers, plugins, and marketplace entries | Exits 0 with zero failures |
 | `make install-external-skills` | Prepares external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
-| `make install-subagent-orchestrator` | Refreshes only the optional guarded subagent wrappers and marketplace path | Keeps plugin exposure optional and does not activate global hooks, global config, or global agents |
 | `make update-skill-plugins` | Fast-forwards external skill repositories and refreshes integrations | Use only when the release includes source updates |
 | `make check-obsidian-codex` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
 | `make check-obsidian-research-plugins` | Verifies Zotero Integration and Pandoc Reference List plugin installs | Exits 0 after plugin files, manifests, and enablement are present |
@@ -759,9 +758,7 @@ Run integration checks:
 python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes
 python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --skip-ars
 python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --skip-rbs
-python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --skip-subagent-orchestrator
 python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --no-rbs-plugin
-python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --no-subagent-orchestrator-plugin
 python3 scripts/operations/skill_plugins/check_external_skills.py
 ```
 
@@ -769,11 +766,11 @@ Expected result:
 
 - Dry runs report source operations without changing submodules, wrappers, marketplace files, or install reports.
 - Skipped integrations are reported as skipped and are not claimed as installed.
-- `.agents/skills/ARS_INSTALLED.md`, `.agents/skills/RBS_INSTALLED.md`, and `.agents/skills/SUBAGENT_ORCHESTRATOR_INSTALLED.md` exist when selected.
-- `.agents/plugins/marketplace.json` points Research Book Skills and Subagent Orchestrator to skill/plugin source paths.
+- `.agents/skills/ARS_INSTALLED.md`, `.agents/skills/RBS_INSTALLED.md`, and `.agents/skills/OBSIDIAN_SKILLS_INSTALLED.md` exist when selected.
+- `.agents/plugins/marketplace.json` points Research Book Skills to its plugin source path.
 - External upstream files remain unchanged.
 
-Skill smoke tests are part of full release QA when the release claims ARS, Research Book Skills, or Subagent Orchestrator usability. Run smoke tests only against synthetic seed material or named read-only scaffold files, and record the result in the evidence log.
+Skill smoke tests are part of full release QA when the release claims ARS or Research Book Skills usability. Run smoke tests only against synthetic seed material or named read-only scaffold files, and record the result in the evidence log.
 
 Loadability checks are not the same as live behavioral smoke tests. If QA only reads wrapper files, upstream `SKILL.md` files, plugin manifests, and marketplace paths, record the result as loadability coverage and do not claim full skill smoke-test coverage.
 
@@ -789,12 +786,6 @@ For each listed Research Book Skills wrapper:
 1. Use the safe fixture prompt pattern below.
 2. Confirm the skill stays within the seed fixture or named files.
 3. Record whether it can be loaded and used without edits.
-
-For Subagent Orchestrator skills:
-
-1. Use the safe usage prompt below.
-2. Confirm it classifies execution shape only.
-3. Do not spawn agents as part of this smoke test.
 
 Expected skill smoke-test result:
 
@@ -893,28 +884,6 @@ Expected result:
 - The selected skill reads only the bounded seed fixture or named project files.
 - It does not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims.
 - It preserves source and citation limits.
-
-Subagent Orchestrator guarded wrapper usage:
-
-- `subagent-safe-using-subagent-orchestrator`
-- `subagent-safe-subagent-orchestrator`
-
-Upstream skill names covered by those wrappers:
-
-- `using-subagent-orchestrator`
-- `subagent-orchestrator`
-
-Safe usage prompt:
-
-```text
-Use using-subagent-orchestrator for this synthetic QA task. Classify whether the task fits single-thread, sequential-plan, or parallel-subagents. Do not spawn agents. Do not edit files. Treat output as planning aid only, not evidence.
-```
-
-Expected result:
-
-- The wrapper only provides execution-shape guidance.
-- It does not override project rules, citation rules, manuscript rules, audit rules, or skill/plugin source rules.
-- Subagent output is not treated as evidence.
 
 ## Render QA
 

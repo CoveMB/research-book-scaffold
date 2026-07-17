@@ -44,7 +44,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--skip-packages", action="store_true")
     parser.add_argument("--skip-ars", action="store_true")
     parser.add_argument("--skip-rbs", action="store_true")
-    parser.add_argument("--skip-subagent-orchestrator", action="store_true")
     parser.add_argument("--skip-obsidian-skills", action="store_true")
     parser.add_argument("--skip-obsidian-panel", action="store_true")
     parser.add_argument(
@@ -73,10 +72,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--install-system", action="store_true")
     parser.add_argument("--ars-ref")
     parser.add_argument("--rbs-ref")
-    parser.add_argument("--subagent-orchestrator-ref")
     parser.add_argument("--obsidian-skills-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
-    parser.add_argument("--no-subagent-orchestrator-plugin", action="store_true")
     update_group = parser.add_mutually_exclusive_group()
     update_group.add_argument("--update", action="store_true", help="Update configured external skills from remotes.")
     update_group.add_argument("--no-update", action="store_true", help="Use pinned or current external skill checkouts.")
@@ -159,14 +156,11 @@ def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespac
         force=args.force,
         skip_ars=args.skip_ars,
         skip_rbs=args.skip_rbs,
-        skip_subagent_orchestrator=args.skip_subagent_orchestrator,
         skip_obsidian_skills=args.skip_obsidian_skills,
         ars_ref=args.ars_ref,
         rbs_ref=args.rbs_ref,
-        subagent_orchestrator_ref=args.subagent_orchestrator_ref,
         obsidian_skills_ref=args.obsidian_skills_ref,
         no_rbs_plugin=args.no_rbs_plugin,
-        no_subagent_orchestrator_plugin=args.no_subagent_orchestrator_plugin,
         update=args.update,
         no_update=args.no_update,
         preserve_skill_plugin_checkouts=False,

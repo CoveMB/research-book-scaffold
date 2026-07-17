@@ -28,9 +28,7 @@ Use `bash scripts/operations/health/doctor.sh` for a quick health check, `python
 
 Use `bash scripts/operations/skill_plugins/update-skill-plugins.sh` when the external skill/plugin repositories have new upstream commits. It fetches repository refs, fast-forwards the configured source submodules, refreshes local skill wrappers, marketplace metadata, install reports, and runs the external-skill and doctor checks.
 
-Use `python3 scripts/operations/skill_plugins/install_external_skills.py --yes --force --skip-ars --skip-rbs --skip-subagent-orchestrator --preserve-skill-plugin-checkouts` when only the Obsidian Skills wrappers and install report need to be refreshed from the current `skill-plugins/obsidian-skills/` checkout. Verify with `python3 scripts/operations/skill_plugins/check_external_skills.py`.
-
-Use `make install-subagent-orchestrator` to refresh only the optional subagent wrapper and marketplace exposure. External-skill setup keeps Subagent Orchestrator guarded through `.agents/skills/subagent-safe-*` wrappers, leaves marketplace exposure optional, and does not activate global hooks, global config, or global agents.
+Use `python3 scripts/operations/skill_plugins/install_external_skills.py --yes --force --skip-ars --skip-rbs --preserve-skill-plugin-checkouts` when only the Obsidian Skills wrappers and install report need to be refreshed from the current `skill-plugins/obsidian-skills/` checkout. Verify with `python3 scripts/operations/skill_plugins/check_external_skills.py`.
 
 Use `python3 scripts/operations/obsidian/check_obsidian_artifacts.py` or `make check-obsidian-artifacts` to validate project-local `.base` and `.canvas` files.
 
