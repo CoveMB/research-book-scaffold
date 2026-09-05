@@ -11,6 +11,7 @@ from scripts.tests.helpers import add_scripts_to_path
 add_scripts_to_path()
 
 import project_config
+import install_external_skills
 
 
 SCRIPT_LAYOUT = {
@@ -113,52 +114,75 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertEqual(len(project_config.REPO_SCOPED_SKILL_NAMES), len(expected_skill_names))
         self.assertEqual(actual_skill_names, expected_skill_names)
 
-    def test_obsidian_safety_wrappers_exist_with_frontmatter_and_contract(self) -> None:
-        for upstream_name, wrapper_name in OBSIDIAN_SKILL_WRAPPERS.items():
+    def test_external_wrappers_preserve_frontmatter_and_generated_parity(self) -> None:
+        def front_matter(text: str) -> str:
+            return text[: text.index("\n---\n", 4) + 5]
+
+        wrappers: list[tuple[str, str, str]] = []
+        wrappers.extend(
+            (
+                f"ars-{skill_name}",
+                (
+                    "---\n"
+                    f"name: ars-{skill_name}\n"
+                    "description: Use this wrapper to consult the external Academic Research Skills "
+                    f"`{skill_name}` workflow after reading and validating the upstream instructions.\n"
+                    "---\n"
+                ),
+                install_external_skills.ars_wrapper_text(skill_name),
+            )
+            for skill_name in project_config.ARS_SKILLS
+        )
+        wrappers.extend(
+            (
+                wrapper_name,
+                (
+                    "---\n"
+                    f"name: {wrapper_name}\n"
+                    "description: Use when the external Research Book Skills "
+                    f"`{skill_name}` guidance is needed through the local scaffold safety wrapper.\n"
+                    "---\n"
+                ),
+                install_external_skills.rbs_wrapper_text(skill_name),
+            )
+            for skill_name, wrapper_name in project_config.RBS_SKILL_WRAPPERS.items()
+        )
+        wrappers.extend(
+            (
+                wrapper_name,
+                (
+                    "---\n"
+                    f"name: {wrapper_name}\n"
+                    "description: Use when the external Obsidian Skills "
+                    f"`{skill_name}` guidance is needed for a research vault while preserving local citation, evidence, and folder rules.\n"
+                    "---\n"
+                ),
+                install_external_skills.obsidian_wrapper_text(skill_name, wrapper_name),
+            )
+            for skill_name, wrapper_name in OBSIDIAN_SKILL_WRAPPERS.items()
+        )
+
+        self.assertEqual(len(wrappers), 38)
+        for wrapper_name, expected_front_matter, expected_text in wrappers:
             with self.subTest(wrapper=wrapper_name):
-                upstream_path = project_config.OBSIDIAN_SKILLS_SOURCE / "skills" / upstream_name / "SKILL.md"
                 wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
-
-                self.assertTrue(wrapper_path.exists(), wrapper_path)
                 text = wrapper_path.read_text(encoding="utf-8")
+                self.assertEqual(front_matter(text), expected_front_matter)
+                self.assertEqual(text, expected_text)
 
-                self.assertTrue(text.startswith("---\n"))
-                self.assertIn("\n---\n", text[4:])
-                self.assertIn(f"name: {wrapper_name}", text)
-                self.assertIn("description:", text)
-                self.assertIn(upstream_name, text)
-                self.assertIn(upstream_path.as_posix(), text)
-                self.assertIn("Read the upstream `SKILL.md` before use.", text)
-                self.assertIn("AGENTS.md", text)
-                self.assertIn("citation workflow", text)
-                self.assertIn("evidence rules", text)
-                self.assertIn("folder responsibilities", text)
-                self.assertIn("## Allowed Reads", text)
-                self.assertIn("## Allowed Writes", text)
-                self.assertIn("## Forbidden Actions", text)
-                self.assertIn("## Validation Steps", text)
-                self.assertIn("## Failure Modes", text)
+    def test_representative_external_wrappers_load_read_only(self) -> None:
+        expected_wrappers = {
+            "ars-academic-paper": "skill-plugins/academic-research-skills/academic-paper/SKILL.md",
+            "rbs-claim-evidence-ledger": "skill-plugins/research-book-skills/skills/claim-evidence-ledger/SKILL.md",
+            "obsidian-research-markdown": "skill-plugins/obsidian-skills/skills/obsidian-markdown/SKILL.md",
+        }
 
-    def test_rbs_safety_wrappers_exist_with_frontmatter_and_contract(self) -> None:
-        for upstream_name, wrapper_name in project_config.RBS_SKILL_WRAPPERS.items():
+        for wrapper_name, upstream_path in expected_wrappers.items():
             with self.subTest(wrapper=wrapper_name):
-                upstream_path = project_config.RBS_SOURCE / "skills" / upstream_name / "SKILL.md"
                 wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
-
-                self.assertTrue(wrapper_path.exists(), wrapper_path)
                 text = wrapper_path.read_text(encoding="utf-8")
-
-                self.assertTrue(text.startswith("---\n"))
-                self.assertIn(f"name: {wrapper_name}", text)
-                self.assertIn("description:", text)
-                self.assertIn(upstream_path.as_posix(), text)
-                self.assertIn("local scaffold rules win", text)
-                self.assertIn("Do not invent citations or claims", text)
-                self.assertIn("source notes", text)
-                self.assertIn("claim ledgers", text)
-                self.assertIn("audits", text)
-                self.assertIn("bibliography checks", text)
-                self.assertIn("workflow guidance, not evidence", text)
+                self.assertIn(f"# {wrapper_name}\n", text)
+                self.assertIn(f"Read `{upstream_path}` before use.", text)
 
     def test_rbs_config_exposes_all_external_plugin_skills(self) -> None:
         source_skill_names = {
