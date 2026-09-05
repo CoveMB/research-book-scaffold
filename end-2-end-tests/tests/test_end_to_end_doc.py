@@ -57,8 +57,17 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
     def test_runbook_mentions_external_skill_surfaces(self) -> None:
         for skill_name in project_config.ARS_SKILLS:
             self.assertIn(f"`ars-{skill_name}`", self.runbook_text)
-        for skill_name in project_config.RBS_SKILLS:
-            self.assertIn(f"`{skill_name}`", self.runbook_text)
+        rbs_start = self.runbook_text.index("Research Book Skills wrapper usage:")
+        rbs_end = self.runbook_text.index("Safe fixture prompt pattern:", rbs_start)
+        listed_wrappers = re.findall(
+            r"^- `([^`]+)`$",
+            self.runbook_text[rbs_start:rbs_end],
+            flags=re.MULTILINE,
+        )
+        self.assertCountEqual(
+            project_config.RBS_SKILL_WRAPPERS.values(),
+            listed_wrappers,
+        )
 
     def test_runbook_points_to_seed_tool_and_fixture_resources(self) -> None:
         self.assertIn("`end-2-end-tests/tools/seed_release_qa.py`", self.runbook_text)

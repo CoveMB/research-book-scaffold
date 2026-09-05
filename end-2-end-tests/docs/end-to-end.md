@@ -841,38 +841,6 @@ Research Book Skills wrapper usage:
 - `rbs-book-proposal-scholarship`
 - `rbs-book-comps-verifier`
 
-Upstream skill names covered by those wrappers:
-
-- `research-intent-router`
-- `dyslexia-research-companion`
-- `dictation-to-research-notes`
-- `reading-load-reducer`
-- `dyslexia-friendly-prose-editor`
-- `research-book-orchestrator`
-- `scholarly-research-agenda`
-- `systematic-source-discovery`
-- `discovery-runner-deduper`
-- `annotation-to-source-note`
-- `extraction-table-builder`
-- `literature-review-mapper`
-- `annotated-bibliography-builder`
-- `methodology-source-auditor`
-- `claim-evidence-ledger`
-- `claim-traceability-graph`
-- `argument-architecture`
-- `counterargument-peer-review`
-- `chapter-architecture`
-- `scholarly-prose-editor`
-- `citation-integrity-auditor`
-- `figure-table-integrity-auditor`
-- `scholarly-integrity-gate`
-- `ai-human-workflow-log`
-- `rights-privacy-release-auditor`
-- `manuscript-continuity-editor`
-- `case-study-integration`
-- `book-proposal-scholarship`
-- `book-comps-verifier`
-
 Safe fixture prompt pattern:
 
 ```text
