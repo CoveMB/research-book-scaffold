@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import io
 import unittest
 from unittest import mock
 
@@ -13,6 +15,51 @@ import doctor
 
 
 class DoctorTests(unittest.TestCase):
+    def test_doctor_succeeds_when_curl_and_unzip_are_missing(self) -> None:
+        output = io.StringIO()
+
+        with (
+            contextlib.redirect_stdout(output),
+            mock.patch.object(doctor, "change_to_project_root"),
+            mock.patch.object(doctor, "check_file"),
+            mock.patch.object(doctor, "check_dir"),
+            mock.patch.object(doctor, "check_git_branch_tracking"),
+            mock.patch.object(doctor, "command_runs", return_value=True),
+            mock.patch.object(doctor, "python3_meets_minimum", return_value=True),
+            mock.patch.object(
+                doctor,
+                "command_exists",
+                side_effect=lambda command: command not in {"curl", "unzip"},
+            ),
+        ):
+            self.assertEqual(doctor.main(), 0)
+
+        self.assertNotIn("curl", output.getvalue())
+        self.assertNotIn("unzip", output.getvalue())
+
+    def test_doctor_still_fails_when_git_is_missing(self) -> None:
+        output = io.StringIO()
+
+        with (
+            contextlib.redirect_stdout(output),
+            mock.patch.object(doctor, "change_to_project_root"),
+            mock.patch.object(doctor, "check_file"),
+            mock.patch.object(doctor, "check_dir"),
+            mock.patch.object(doctor, "check_git_branch_tracking"),
+            mock.patch.object(doctor, "command_runs", return_value=True),
+            mock.patch.object(doctor, "python3_meets_minimum", return_value=True),
+            mock.patch.object(
+                doctor,
+                "command_exists",
+                side_effect=lambda command: command not in {"git", "curl", "unzip"},
+            ),
+        ):
+            self.assertEqual(doctor.main(), 1)
+
+        self.assertIn("FAIL git missing", output.getvalue())
+        self.assertNotIn("curl", output.getvalue())
+        self.assertNotIn("unzip", output.getvalue())
+
     def test_required_command_warns_when_version_check_fails(self) -> None:
         counts = {"pass": 0, "warn": 0, "fail": 0}
 

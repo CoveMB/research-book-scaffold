@@ -8,6 +8,20 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class DocsConsistencyTests(unittest.TestCase):
+    def test_setup_prerequisite_docs_do_not_require_curl_or_unzip(self) -> None:
+        tooling = (ROOT / "docs/01-tooling.md").read_text(encoding="utf-8")
+        runbook = (ROOT / "end-2-end-tests" / "docs" / "end-to-end.md").read_text(encoding="utf-8")
+        prerequisites_start = runbook.index("## Prerequisites")
+        fresh_clone_start = runbook.index("## Fresh Clone QA", prerequisites_start)
+        prerequisites = runbook[prerequisites_start:fresh_clone_start]
+
+        self.assertNotIn("| curl |", tooling)
+        self.assertNotIn("| unzip |", tooling)
+        self.assertNotIn("- `curl`", prerequisites)
+        self.assertNotIn("- `unzip`", prerequisites)
+        self.assertNotIn("curl --version", prerequisites)
+        self.assertNotIn("unzip -v", prerequisites)
+
     def test_obsidian_vault_is_documented_as_default_skippable_recommendation(self) -> None:
         tooling = (ROOT / "docs/01-tooling.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

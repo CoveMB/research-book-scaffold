@@ -9,10 +9,63 @@ from unittest import mock
 from scripts.tests.helpers import REMOVED_EXTERNAL_REPO_FLAGS, SilentReport, assert_parse_args_rejects, working_directory
 
 import setup_environment
+import environment_checks
 from project_config import OBSIDIAN_PLUGINS_DIR, SETUP_RECOMMENDED_CHECKS
 
 
 class SetupEnvironmentTests(unittest.TestCase):
+    def test_setup_succeeds_when_curl_and_unzip_are_missing(self) -> None:
+        report = SilentReport()
+
+        with (
+            mock.patch.object(setup_environment, "change_to_project_root"),
+            mock.patch.object(setup_environment, "Report", return_value=report),
+            mock.patch.object(setup_environment, "validate_local_skills"),
+            mock.patch.object(setup_environment, "install_external_layer"),
+            mock.patch.object(setup_environment, "install_obsidian_panel_layer"),
+            mock.patch.object(setup_environment, "install_obsidian_research_plugin_layer"),
+            mock.patch.object(setup_environment, "run_recommendations"),
+            mock.patch.object(
+                environment_checks,
+                "command_exists",
+                side_effect=lambda command: command not in {"curl", "unzip"},
+            ),
+        ):
+            self.assertEqual(setup_environment.main(["--dry-run"]), 0)
+
+        self.assertEqual(report.failed, [])
+        report_messages = [message for bucket in report.summary_sections() for message in bucket[1]]
+        self.assertFalse(any(tool in message for tool in ("curl", "unzip") for message in report_messages))
+
+    def test_setup_still_fails_when_git_is_missing(self) -> None:
+        report = SilentReport()
+
+        with (
+            mock.patch.object(setup_environment, "change_to_project_root"),
+            mock.patch.object(setup_environment, "Report", return_value=report),
+            mock.patch.object(setup_environment, "validate_local_skills"),
+            mock.patch.object(setup_environment, "install_external_layer"),
+            mock.patch.object(setup_environment, "install_obsidian_panel_layer"),
+            mock.patch.object(setup_environment, "install_obsidian_research_plugin_layer"),
+            mock.patch.object(setup_environment, "run_recommendations"),
+            mock.patch.object(
+                environment_checks,
+                "command_exists",
+                side_effect=lambda command: command not in {"git", "curl", "unzip"},
+            ),
+        ):
+            self.assertEqual(setup_environment.main(["--dry-run"]), 1)
+
+        self.assertIn("git missing; system install not requested", report.failed)
+        report_messages = [message for bucket in report.summary_sections() for message in bucket[1]]
+        self.assertFalse(any(tool in message for tool in ("curl", "unzip") for message in report_messages))
+
+    def test_removed_download_tools_have_no_install_commands(self) -> None:
+        for manager in ("brew", "apt", "dnf", "pacman", "choco"):
+            with self.subTest(manager=manager):
+                self.assertIsNone(environment_checks.package_install_command(manager, "curl"))
+                self.assertIsNone(environment_checks.package_install_command(manager, "unzip"))
+
     def test_default_obsidian_vault_is_project_root(self) -> None:
         args = setup_environment.parse_args(["--dry-run"])
 

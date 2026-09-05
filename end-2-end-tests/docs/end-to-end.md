@@ -24,8 +24,6 @@ Required for core scaffold QA:
 
 - Git
 - Python 3.11 or newer
-- `curl`
-- `unzip`
 - `pre-commit` for local hook QA
 - Codex CLI installed and logged in for local agent workflows
 
@@ -60,8 +58,6 @@ Record versions before setup:
 ```sh
 git --version
 python3 --version
-curl --version
-unzip -v
 pre-commit --version
 codex --version
 quarto --version
