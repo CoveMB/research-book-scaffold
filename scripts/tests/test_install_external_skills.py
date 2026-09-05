@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import tempfile
 import unittest
@@ -15,17 +16,56 @@ add_scripts_to_path()
 import install_external_skills
 
 
-class SilentReport(install_external_skills.Report):
-    def add(self, bucket: str, message: str) -> None:
-        getattr(self, bucket).append(message)
+EXPECTED_ARS_SKILLS = (
+    "deep-research",
+    "academic-paper",
+    "academic-paper-reviewer",
+    "academic-pipeline",
+)
+EXPECTED_RBS_WRAPPERS = (
+    ("research-intent-router", "rbs-research-intent-router"),
+    ("dyslexia-research-companion", "rbs-dyslexia-research-companion"),
+    ("dictation-to-research-notes", "rbs-dictation-to-research-notes"),
+    ("reading-load-reducer", "rbs-reading-load-reducer"),
+    ("dyslexia-friendly-prose-editor", "rbs-dyslexia-friendly-prose-editor"),
+    ("research-book-orchestrator", "rbs-research-book-orchestrator"),
+    ("scholarly-research-agenda", "rbs-scholarly-research-agenda"),
+    ("systematic-source-discovery", "rbs-systematic-source-discovery"),
+    ("discovery-runner-deduper", "rbs-discovery-runner-deduper"),
+    ("annotation-to-source-note", "rbs-annotation-to-source-note"),
+    ("extraction-table-builder", "rbs-extraction-table-builder"),
+    ("literature-review-mapper", "rbs-literature-review-mapper"),
+    ("annotated-bibliography-builder", "rbs-annotated-bibliography-builder"),
+    ("methodology-source-auditor", "rbs-methodology-source-auditor"),
+    ("claim-evidence-ledger", "rbs-claim-evidence-ledger"),
+    ("claim-traceability-graph", "rbs-claim-traceability-graph"),
+    ("argument-architecture", "rbs-argument-architecture"),
+    ("counterargument-peer-review", "rbs-counterargument-peer-review"),
+    ("chapter-architecture", "rbs-chapter-architecture"),
+    ("scholarly-prose-editor", "rbs-scholarly-prose-editor"),
+    ("citation-integrity-auditor", "rbs-citation-integrity-auditor"),
+    ("figure-table-integrity-auditor", "rbs-figure-table-integrity-auditor"),
+    ("scholarly-integrity-gate", "rbs-scholarly-integrity-gate"),
+    ("ai-human-workflow-log", "rbs-ai-human-workflow-log"),
+    ("rights-privacy-release-auditor", "rbs-rights-privacy-release-auditor"),
+    ("manuscript-continuity-editor", "rbs-manuscript-continuity-editor"),
+    ("case-study-integration", "rbs-case-study-integration"),
+    ("book-proposal-scholarship", "rbs-book-proposal-scholarship"),
+    ("book-comps-verifier", "rbs-book-comps-verifier"),
+)
+EXPECTED_OBSIDIAN_WRAPPERS = (
+    ("obsidian-markdown", "obsidian-research-markdown"),
+    ("obsidian-bases", "obsidian-research-bases"),
+    ("json-canvas", "obsidian-research-canvas"),
+    ("obsidian-cli", "obsidian-research-cli"),
+    ("defuddle", "obsidian-research-defuddle"),
+)
 
 
-class InstallExternalSkillsTests(unittest.TestCase):
-    def test_wrapper_generators_emit_compact_family_contracts(self) -> None:
-        def ars_expected(skill_name: str) -> str:
-            wrapper_name = f"ars-{skill_name}"
-            upstream_path = f"skill-plugins/academic-research-skills/{skill_name}/SKILL.md"
-            return f"""---
+def expected_ars_wrapper(skill_name: str) -> str:
+    wrapper_name = f"ars-{skill_name}"
+    upstream_path = f"skill-plugins/academic-research-skills/{skill_name}/SKILL.md"
+    return f"""---
 name: {wrapper_name}
 description: Use this wrapper to consult the external Academic Research Skills `{skill_name}` workflow after reading and validating the upstream instructions.
 ---
@@ -44,10 +84,14 @@ Read `{upstream_path}` before use. Obey `AGENTS.md`; local scaffold rules overri
 - Report the upstream guidance used, evidence checked, and remaining uncertainty.
 """
 
-        def rbs_expected(skill_name: str) -> str:
-            wrapper_name = f"rbs-{skill_name}"
-            upstream_path = f"skill-plugins/research-book-skills/skills/{skill_name}/SKILL.md"
-            return f"""---
+
+def expected_rbs_wrapper(
+    skill_name: str,
+    source_root: str = "skill-plugins/research-book-skills",
+) -> str:
+    wrapper_name = f"rbs-{skill_name}"
+    upstream_path = f"{source_root}/skills/{skill_name}/SKILL.md"
+    return f"""---
 name: {wrapper_name}
 description: Use when the external Research Book Skills `{skill_name}` guidance is needed through the local scaffold safety wrapper.
 ---
@@ -70,9 +114,10 @@ Read `{upstream_path}` before use. Obey `AGENTS.md`; local scaffold rules overri
 - Preserve uncertainty, run relevant checks, and report skipped checks and remaining evidence gaps.
 """
 
-        def obsidian_expected(skill_name: str, wrapper_name: str) -> str:
-            upstream_path = f"skill-plugins/obsidian-skills/skills/{skill_name}/SKILL.md"
-            return f"""---
+
+def expected_obsidian_wrapper(skill_name: str, wrapper_name: str) -> str:
+    upstream_path = f"skill-plugins/obsidian-skills/skills/{skill_name}/SKILL.md"
+    return f"""---
 name: {wrapper_name}
 description: Use when the external Obsidian Skills `{skill_name}` guidance is needed for a research vault while preserving local citation, evidence, and folder rules.
 ---
@@ -97,17 +142,33 @@ Read `{upstream_path}` before use. Obey `AGENTS.md`; local citation, evidence, a
 - Mark evidence gaps instead of filling them from memory.
 """
 
-        for skill_name in install_external_skills.ARS_SKILLS:
+
+class SilentReport(install_external_skills.Report):
+    def add(self, bucket: str, message: str) -> None:
+        getattr(self, bucket).append(message)
+
+
+class InstallExternalSkillsTests(unittest.TestCase):
+    def test_wrapper_generators_emit_compact_family_contracts(self) -> None:
+        self.assertEqual(tuple(install_external_skills.ARS_SKILLS), EXPECTED_ARS_SKILLS)
+        self.assertEqual(tuple(install_external_skills.RBS_SKILL_WRAPPERS.items()), EXPECTED_RBS_WRAPPERS)
+        self.assertEqual(tuple(install_external_skills.OBSIDIAN_SKILL_WRAPPERS.items()), EXPECTED_OBSIDIAN_WRAPPERS)
+        self.assertEqual(
+            tuple(install_external_skills.OBSIDIAN_SKILLS),
+            tuple(skill_name for skill_name, _ in EXPECTED_OBSIDIAN_WRAPPERS),
+        )
+
+        for skill_name in EXPECTED_ARS_SKILLS:
             with self.subTest(family="ARS", skill=skill_name):
-                self.assertEqual(install_external_skills.ars_wrapper_text(skill_name), ars_expected(skill_name))
-        for skill_name in install_external_skills.RBS_SKILL_WRAPPERS:
+                self.assertEqual(install_external_skills.ars_wrapper_text(skill_name), expected_ars_wrapper(skill_name))
+        for skill_name, _ in EXPECTED_RBS_WRAPPERS:
             with self.subTest(family="RBS", skill=skill_name):
-                self.assertEqual(install_external_skills.rbs_wrapper_text(skill_name), rbs_expected(skill_name))
-        for skill_name, wrapper_name in install_external_skills.OBSIDIAN_SKILL_WRAPPERS.items():
+                self.assertEqual(install_external_skills.rbs_wrapper_text(skill_name), expected_rbs_wrapper(skill_name))
+        for skill_name, wrapper_name in EXPECTED_OBSIDIAN_WRAPPERS:
             with self.subTest(family="Obsidian", skill=skill_name):
                 self.assertEqual(
                     install_external_skills.obsidian_wrapper_text(skill_name, wrapper_name),
-                    obsidian_expected(skill_name, wrapper_name),
+                    expected_obsidian_wrapper(skill_name, wrapper_name),
                 )
 
     def test_update_conflict_is_rejected_during_argparse(self) -> None:
@@ -170,13 +231,18 @@ Read `{upstream_path}` before use. Obey `AGENTS.md`; local citation, evidence, a
         )
 
     def test_write_marketplace_preserves_skipped_existing_plugins(self) -> None:
-        args = install_external_skills.parse_args(["--force"])
+        args = install_external_skills.parse_args(["--force", "--no-rbs-plugin"])
         report = SilentReport()
         existing_payload = {
             "name": "local-research-workflow-plugins",
             "interface": {"displayName": "Local Research Workflow Plugins"},
             "plugins": [
-                install_external_skills.marketplace_entry("research-book-skills", "./skill-plugins/research-book-skills"),
+                {
+                    "name": "research-book-skills",
+                    "source": {"source": "local", "path": "./skill-plugins/research-book-skills"},
+                    "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+                    "category": "Productivity",
+                },
                 {
                     "name": "custom-plugin",
                     "source": {"source": "local", "path": "./custom"},
@@ -193,13 +259,215 @@ Read `{upstream_path}` before use. Obey `AGENTS.md`; local citation, evidence, a
                     args,
                     report,
                     include_rbs=False,
+                    remove_plugin_names={"research-book-skills"},
                 )
             plugin_names = [
                 plugin.get("name")
                 for plugin in json.loads(marketplace.read_text(encoding="utf-8"))["plugins"]
             ]
 
-        self.assertEqual(plugin_names, ["research-book-skills", "custom-plugin"])
+        self.assertTrue(args.no_rbs_plugin)
+        self.assertEqual(plugin_names, ["custom-plugin"])
+        self.assertEqual(report.installed, [f"wrote plugin marketplace: {marketplace}"])
+
+    def test_report_text_uses_explicit_wrapper_and_warning_records(self) -> None:
+        self.assertEqual(
+            install_external_skills.report_text(
+                "Installed Test Skills",
+                "https://example.invalid/test.git",
+                "stable",
+                "abc123",
+                Path("skill-plugins/test-skills"),
+                [Path(".agents/skills/test-wrapper/SKILL.md")],
+                None,
+                None,
+                "Test license verified.",
+                ["Keep this test local."],
+            ),
+            """# Installed Test Skills
+
+- Repo: `https://example.invalid/test.git`
+- Ref: `stable`
+- Commit: `abc123`
+- Source path: `skill-plugins/test-skills`
+- License note: Test license verified.
+- Upstream files edited: no.
+
+## Wrappers
+- `.agents/skills/test-wrapper/SKILL.md`
+
+## Warnings
+- Keep this test local.
+- Upstream files were not edited.
+""",
+        )
+
+    def test_stale_wrappers_are_preserved_without_force_and_replaced_with_force(self) -> None:
+        cases = (
+            (
+                "ARS",
+                "academic-paper",
+                "ars-academic-paper",
+                expected_ars_wrapper("academic-paper"),
+                "ARS wrapper academic-paper",
+                install_external_skills.create_ars_wrappers,
+                (mock.patch.object(install_external_skills, "ARS_SKILLS", ["academic-paper"]),),
+            ),
+            (
+                "RBS",
+                "claim-evidence-ledger",
+                "rbs-claim-evidence-ledger",
+                expected_rbs_wrapper("claim-evidence-ledger"),
+                "RBS wrapper claim-evidence-ledger",
+                install_external_skills.create_rbs_wrappers,
+                (
+                    mock.patch.object(
+                        install_external_skills,
+                        "RBS_SKILL_WRAPPERS",
+                        {"claim-evidence-ledger": "rbs-claim-evidence-ledger"},
+                    ),
+                ),
+            ),
+            (
+                "Obsidian",
+                "obsidian-markdown",
+                "obsidian-research-markdown",
+                expected_obsidian_wrapper("obsidian-markdown", "obsidian-research-markdown"),
+                "Obsidian Skills wrapper obsidian-markdown",
+                install_external_skills.create_obsidian_wrappers,
+                (
+                    mock.patch.object(install_external_skills, "OBSIDIAN_SKILLS", ["obsidian-markdown"]),
+                    mock.patch.object(
+                        install_external_skills,
+                        "OBSIDIAN_SKILL_WRAPPERS",
+                        {"obsidian-markdown": "obsidian-research-markdown"},
+                    ),
+                ),
+            ),
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            skills_dir = Path(temp_dir) / ".agents" / "skills"
+            for family, skill_name, wrapper_name, expected_text, label, create_wrappers, family_patches in cases:
+                with self.subTest(family=family):
+                    wrapper_path = skills_dir / wrapper_name / "SKILL.md"
+                    wrapper_path.parent.mkdir(parents=True, exist_ok=True)
+                    wrapper_path.write_text("stale wrapper\n", encoding="utf-8")
+
+                    report = SilentReport()
+                    with contextlib.ExitStack() as stack:
+                        stack.enter_context(mock.patch.object(install_external_skills, "SKILLS_DIR", skills_dir))
+                        for family_patch in family_patches:
+                            stack.enter_context(family_patch)
+                        self.assertEqual(create_wrappers(install_external_skills.parse_args([]), report), [])
+
+                    self.assertEqual(wrapper_path.read_text(encoding="utf-8"), "stale wrapper\n")
+                    self.assertEqual(
+                        report.skipped,
+                        [f"{wrapper_path} exists; use --force to replace"],
+                    )
+
+                    forced_report = SilentReport()
+                    with contextlib.ExitStack() as stack:
+                        stack.enter_context(mock.patch.object(install_external_skills, "SKILLS_DIR", skills_dir))
+                        for family_patch in family_patches:
+                            stack.enter_context(family_patch)
+                        self.assertEqual(
+                            create_wrappers(install_external_skills.parse_args(["--force"]), forced_report),
+                            [wrapper_path],
+                        )
+
+                    self.assertEqual(wrapper_path.read_text(encoding="utf-8"), expected_text)
+                    self.assertEqual(forced_report.installed, [f"wrote {label}: {wrapper_path}"])
+
+    def test_no_rbs_plugin_removes_marketplace_entry_and_records_wrapper_report(self) -> None:
+        args = install_external_skills.parse_args(
+            ["--force", "--skip-ars", "--skip-obsidian-skills", "--no-rbs-plugin"]
+        )
+        report = SilentReport()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "skill-plugins" / "research-book-skills"
+            skills_dir = root / ".agents" / "skills"
+            marketplace = root / ".agents" / "plugins" / "marketplace.json"
+            skill_path = source / "skills" / "claim-evidence-ledger" / "SKILL.md"
+            skill_path.parent.mkdir(parents=True)
+            skill_path.write_text("---\nname: claim-evidence-ledger\n---\n", encoding="utf-8")
+            plugin_json = source / ".codex-plugin" / "plugin.json"
+            plugin_json.parent.mkdir(parents=True)
+            plugin_json.write_text('{"name": "research-skills-plugin"}\n', encoding="utf-8")
+            marketplace.parent.mkdir(parents=True)
+            marketplace.write_text(
+                json.dumps(
+                    {
+                        "name": "local-research-workflow-plugins",
+                        "interface": {"displayName": "Local Research Workflow Plugins"},
+                        "plugins": [
+                            {
+                                "name": "research-book-skills",
+                                "source": {
+                                    "source": "local",
+                                    "path": "./skill-plugins/research-book-skills",
+                                },
+                                "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+                                "category": "Productivity",
+                            },
+                            {
+                                "name": "custom-plugin",
+                                "source": {"source": "local", "path": "./custom"},
+                                "category": "Productivity",
+                            },
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            plugin_spec = install_external_skills.ExternalPluginSpec(
+                "rbs",
+                "RBS",
+                "research-book-skills",
+                "./skill-plugins/research-book-skills",
+                source,
+                "research-skills-plugin",
+                source / "skills",
+                ("claim-evidence-ledger",),
+            )
+
+            with (
+                mock.patch.object(install_external_skills, "RBS_SOURCE", source),
+                mock.patch.object(install_external_skills, "RBS_PLUGIN_SPEC", plugin_spec),
+                mock.patch.object(
+                    install_external_skills,
+                    "RBS_SKILL_WRAPPERS",
+                    {"claim-evidence-ledger": "rbs-claim-evidence-ledger"},
+                ),
+                mock.patch.object(install_external_skills, "SKILLS_DIR", skills_dir),
+                mock.patch.object(install_external_skills, "PLUGIN_MARKETPLACE", marketplace),
+                mock.patch.object(install_external_skills, "clone_or_update") as clone_or_update,
+            ):
+                install_external_skills.install_external(args, report)
+
+            self.assertEqual(
+                json.loads(marketplace.read_text(encoding="utf-8"))["plugins"],
+                [
+                    {
+                        "name": "custom-plugin",
+                        "source": {"source": "local", "path": "./custom"},
+                        "category": "Productivity",
+                    }
+                ],
+            )
+            self.assertEqual(
+                (skills_dir / "rbs-claim-evidence-ledger" / "SKILL.md").read_text(encoding="utf-8"),
+                expected_rbs_wrapper("claim-evidence-ledger", source.as_posix()),
+            )
+            install_report = (skills_dir / "RBS_INSTALLED.md").read_text(encoding="utf-8")
+            self.assertIn("# Installed Research Book Skills\n", install_report)
+            self.assertIn(f"- Marketplace path: `{marketplace}`\n", install_report)
+            self.assertNotIn("## Plugin\n", install_report)
+            self.assertIn("RBS marketplace exposure skipped by --no-rbs-plugin", report.skipped)
+            clone_or_update.assert_called_once_with(source, None, args, report, "RBS")
 
     def test_validate_rbs_requires_expected_skill_files(self) -> None:
         report = SilentReport()

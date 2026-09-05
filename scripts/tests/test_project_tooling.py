@@ -44,13 +44,51 @@ SCRIPT_LAYOUT = {
     "scripts/lib/script_env.sh",
 }
 
-OBSIDIAN_SKILL_WRAPPERS = {
-    "obsidian-markdown": "obsidian-research-markdown",
-    "obsidian-bases": "obsidian-research-bases",
-    "json-canvas": "obsidian-research-canvas",
-    "obsidian-cli": "obsidian-research-cli",
-    "defuddle": "obsidian-research-defuddle",
-}
+EXPECTED_ARS_SKILLS = (
+    "deep-research",
+    "academic-paper",
+    "academic-paper-reviewer",
+    "academic-pipeline",
+)
+EXPECTED_RBS_SKILLS = (
+    "research-intent-router",
+    "dyslexia-research-companion",
+    "dictation-to-research-notes",
+    "reading-load-reducer",
+    "dyslexia-friendly-prose-editor",
+    "research-book-orchestrator",
+    "scholarly-research-agenda",
+    "systematic-source-discovery",
+    "discovery-runner-deduper",
+    "annotation-to-source-note",
+    "extraction-table-builder",
+    "literature-review-mapper",
+    "annotated-bibliography-builder",
+    "methodology-source-auditor",
+    "claim-evidence-ledger",
+    "claim-traceability-graph",
+    "argument-architecture",
+    "counterargument-peer-review",
+    "chapter-architecture",
+    "scholarly-prose-editor",
+    "citation-integrity-auditor",
+    "figure-table-integrity-auditor",
+    "scholarly-integrity-gate",
+    "ai-human-workflow-log",
+    "rights-privacy-release-auditor",
+    "manuscript-continuity-editor",
+    "case-study-integration",
+    "book-proposal-scholarship",
+    "book-comps-verifier",
+)
+EXPECTED_RBS_WRAPPERS = tuple((skill_name, f"rbs-{skill_name}") for skill_name in EXPECTED_RBS_SKILLS)
+EXPECTED_OBSIDIAN_WRAPPERS = (
+    ("obsidian-markdown", "obsidian-research-markdown"),
+    ("obsidian-bases", "obsidian-research-bases"),
+    ("json-canvas", "obsidian-research-canvas"),
+    ("obsidian-cli", "obsidian-research-cli"),
+    ("defuddle", "obsidian-research-defuddle"),
+)
 
 CI_PYTHON_VERSION = "3.11"
 
@@ -98,14 +136,19 @@ class ProjectToolingTests(unittest.TestCase):
             project_config.DEFAULT_OBSIDIAN_SKILLS_REPO,
         )
         self.assertEqual(
-            project_config.OBSIDIAN_SKILLS,
-            ["obsidian-markdown", "obsidian-bases", "json-canvas", "obsidian-cli", "defuddle"],
+            tuple(project_config.ARS_SKILLS),
+            EXPECTED_ARS_SKILLS,
         )
-        self.assertEqual(project_config.OBSIDIAN_SKILL_WRAPPERS, OBSIDIAN_SKILL_WRAPPERS)
         self.assertEqual(
-            project_config.RBS_SKILL_WRAPPERS,
-            {skill_name: f"rbs-{skill_name}" for skill_name in project_config.RBS_SKILLS},
+            tuple(project_config.RBS_SKILLS),
+            EXPECTED_RBS_SKILLS,
         )
+        self.assertEqual(tuple(project_config.RBS_SKILL_WRAPPERS.items()), EXPECTED_RBS_WRAPPERS)
+        self.assertEqual(
+            tuple(project_config.OBSIDIAN_SKILLS),
+            tuple(skill_name for skill_name, _ in EXPECTED_OBSIDIAN_WRAPPERS),
+        )
+        self.assertEqual(tuple(project_config.OBSIDIAN_SKILL_WRAPPERS.items()), EXPECTED_OBSIDIAN_WRAPPERS)
     def test_repo_scoped_skill_manifest_matches_skill_directories(self) -> None:
         skill_files = (ROOT / project_config.SKILLS_DIR).glob("*/SKILL.md")
         actual_skill_names = {skill_file.parent.name for skill_file in skill_files}
@@ -131,7 +174,7 @@ class ProjectToolingTests(unittest.TestCase):
                 ),
                 install_external_skills.ars_wrapper_text(skill_name),
             )
-            for skill_name in project_config.ARS_SKILLS
+            for skill_name in EXPECTED_ARS_SKILLS
         )
         wrappers.extend(
             (
@@ -145,7 +188,7 @@ class ProjectToolingTests(unittest.TestCase):
                 ),
                 install_external_skills.rbs_wrapper_text(skill_name),
             )
-            for skill_name, wrapper_name in project_config.RBS_SKILL_WRAPPERS.items()
+            for skill_name, wrapper_name in EXPECTED_RBS_WRAPPERS
         )
         wrappers.extend(
             (
@@ -159,7 +202,7 @@ class ProjectToolingTests(unittest.TestCase):
                 ),
                 install_external_skills.obsidian_wrapper_text(skill_name, wrapper_name),
             )
-            for skill_name, wrapper_name in OBSIDIAN_SKILL_WRAPPERS.items()
+            for skill_name, wrapper_name in EXPECTED_OBSIDIAN_WRAPPERS
         )
 
         self.assertEqual(len(wrappers), 38)
