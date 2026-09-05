@@ -24,8 +24,6 @@ Required for core scaffold QA:
 
 - Git
 - Python 3.11 or newer
-- `curl`
-- `unzip`
 - `pre-commit` for local hook QA
 - Codex CLI installed and logged in for local agent workflows
 
@@ -60,8 +58,6 @@ Record versions before setup:
 ```sh
 git --version
 python3 --version
-curl --version
-unzip -v
 pre-commit --version
 codex --version
 quarto --version
@@ -840,38 +836,6 @@ Research Book Skills wrapper usage:
 - `rbs-case-study-integration`
 - `rbs-book-proposal-scholarship`
 - `rbs-book-comps-verifier`
-
-Upstream skill names covered by those wrappers:
-
-- `research-intent-router`
-- `dyslexia-research-companion`
-- `dictation-to-research-notes`
-- `reading-load-reducer`
-- `dyslexia-friendly-prose-editor`
-- `research-book-orchestrator`
-- `scholarly-research-agenda`
-- `systematic-source-discovery`
-- `discovery-runner-deduper`
-- `annotation-to-source-note`
-- `extraction-table-builder`
-- `literature-review-mapper`
-- `annotated-bibliography-builder`
-- `methodology-source-auditor`
-- `claim-evidence-ledger`
-- `claim-traceability-graph`
-- `argument-architecture`
-- `counterargument-peer-review`
-- `chapter-architecture`
-- `scholarly-prose-editor`
-- `citation-integrity-auditor`
-- `figure-table-integrity-auditor`
-- `scholarly-integrity-gate`
-- `ai-human-workflow-log`
-- `rights-privacy-release-auditor`
-- `manuscript-continuity-editor`
-- `case-study-integration`
-- `book-proposal-scholarship`
-- `book-comps-verifier`
 
 Safe fixture prompt pattern:
 

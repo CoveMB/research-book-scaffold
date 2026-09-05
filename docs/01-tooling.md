@@ -14,8 +14,6 @@
 | Git | Version history, submodules, and checkpoints | Required for setup and source checks |
 | Python 3.11+ | Local scripts, checks, setup, and tests | Required |
 | pre-commit | Lightweight local commit hooks for file hygiene, Python syntax, citations, and internal links | Optional |
-| curl | Core command checked by setup and health checks for download workflows | Required by setup and doctor checks |
-| unzip | Core command checked by setup and health checks for archive workflows | Required by setup and doctor checks |
 | Codex CLI | Local agent workflows | Required |
 | Repo-scoped skills | Task-specific agent procedures | Optional |
 | MCP | Controlled access to tools and data | Optional |

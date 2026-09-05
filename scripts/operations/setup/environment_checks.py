@@ -19,7 +19,7 @@ from script_utils import StatusReport, run_command
 
 configure_script_paths(__file__)
 
-CORE_TOOLS = ["git", "python3", "curl", "unzip", "codex"]
+CORE_TOOLS = ["git", "python3", "codex"]
 OPTIONAL_TOOLS = ["node", "npm", "quarto", "pandoc"]
 MINIMUM_PYTHON_VERSION = (3, 11)
 MINIMUM_PYTHON_VERSION_TEXT = ".".join(str(part) for part in MINIMUM_PYTHON_VERSION)
@@ -67,27 +67,19 @@ def package_install_command(manager: str, package_name: str) -> list[str] | None
     package_maps = {
         "brew": {
             "git": ["brew", "install", "git"],
-            "curl": ["brew", "install", "curl"],
-            "unzip": ["brew", "install", "unzip"],
             "pandoc": ["brew", "install", "pandoc"],
             "quarto": ["brew", "install", "--cask", "quarto"],
         },
         "apt": {
             "git": ["apt", "install", "-y", "git"],
-            "curl": ["apt", "install", "-y", "curl"],
-            "unzip": ["apt", "install", "-y", "unzip"],
             "pandoc": ["apt", "install", "-y", "pandoc"],
         },
         "dnf": {
             "git": ["dnf", "install", "-y", "git"],
-            "curl": ["dnf", "install", "-y", "curl"],
-            "unzip": ["dnf", "install", "-y", "unzip"],
             "pandoc": ["dnf", "install", "-y", "pandoc"],
         },
         "pacman": {
             "git": ["pacman", "-S", "--noconfirm", "--needed", "git"],
-            "curl": ["pacman", "-S", "--noconfirm", "--needed", "curl"],
-            "unzip": ["pacman", "-S", "--noconfirm", "--needed", "unzip"],
             "pandoc": ["pacman", "-S", "--noconfirm", "--needed", "pandoc"],
         },
         "winget": {
@@ -97,8 +89,6 @@ def package_install_command(manager: str, package_name: str) -> list[str] | None
         },
         "choco": {
             "git": ["choco", "install", "git", "-y"],
-            "curl": ["choco", "install", "curl", "-y"],
-            "unzip": ["choco", "install", "unzip", "-y"],
             "pandoc": ["choco", "install", "pandoc", "-y"],
             "quarto": ["choco", "install", "quarto", "-y"],
         },
