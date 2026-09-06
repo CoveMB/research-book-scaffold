@@ -44,12 +44,6 @@ SCRIPT_LAYOUT = {
     "scripts/lib/script_env.sh",
 }
 
-EXPECTED_ARS_SKILLS = (
-    "deep-research",
-    "academic-paper",
-    "academic-paper-reviewer",
-    "academic-pipeline",
-)
 EXPECTED_RBS_SKILLS = (
     "research-intent-router",
     "dyslexia-research-companion",
@@ -123,9 +117,10 @@ class ProjectToolingTests(unittest.TestCase):
     def test_external_source_specs_are_canonical(self) -> None:
         specs_by_key = {spec.key: spec for spec in project_config.EXTERNAL_SOURCE_SPECS}
 
-        self.assertEqual(specs_by_key["ars"].label, "ARS")
-        self.assertEqual(specs_by_key["ars"].path, project_config.ARS_SOURCE)
-        self.assertEqual(specs_by_key["ars"].default_repo, project_config.DEFAULT_ARS_REPO)
+        self.assertEqual(specs_by_key["ars"].label, "ARS Codex")
+        self.assertEqual(specs_by_key["ars"].path, project_config.ARS_CODEX_SOURCE)
+        self.assertEqual(specs_by_key["ars"].default_repo, project_config.ARS_CODEX_REPO)
+        self.assertEqual(specs_by_key["ars"].pinned_ref, project_config.ARS_CODEX_PIN)
         self.assertEqual(specs_by_key["rbs"].label, "RBS")
         self.assertEqual(specs_by_key["rbs"].path, project_config.RBS_SOURCE)
         self.assertEqual(specs_by_key["rbs"].default_repo, project_config.DEFAULT_RBS_REPO)
@@ -134,10 +129,6 @@ class ProjectToolingTests(unittest.TestCase):
         self.assertEqual(
             specs_by_key["obsidian-skills"].default_repo,
             project_config.DEFAULT_OBSIDIAN_SKILLS_REPO,
-        )
-        self.assertEqual(
-            tuple(project_config.ARS_SKILLS),
-            EXPECTED_ARS_SKILLS,
         )
         self.assertEqual(
             tuple(project_config.RBS_SKILLS),
@@ -149,6 +140,8 @@ class ProjectToolingTests(unittest.TestCase):
             tuple(skill_name for skill_name, _ in EXPECTED_OBSIDIAN_WRAPPERS),
         )
         self.assertEqual(tuple(project_config.OBSIDIAN_SKILL_WRAPPERS.items()), EXPECTED_OBSIDIAN_WRAPPERS)
+        self.assertNotIn("academic-research-suite", project_config.REPO_SCOPED_SKILL_NAMES)
+
     def test_repo_scoped_skill_manifest_matches_skill_directories(self) -> None:
         skill_files = (ROOT / project_config.SKILLS_DIR).glob("*/SKILL.md")
         actual_skill_names = {skill_file.parent.name for skill_file in skill_files}
@@ -162,20 +155,6 @@ class ProjectToolingTests(unittest.TestCase):
             return text[: text.index("\n---\n", 4) + 5]
 
         wrappers: list[tuple[str, str, str]] = []
-        wrappers.extend(
-            (
-                f"ars-{skill_name}",
-                (
-                    "---\n"
-                    f"name: ars-{skill_name}\n"
-                    "description: Use this wrapper to consult the external Academic Research Skills "
-                    f"`{skill_name}` workflow after reading and validating the upstream instructions.\n"
-                    "---\n"
-                ),
-                install_external_skills.ars_wrapper_text(skill_name),
-            )
-            for skill_name in EXPECTED_ARS_SKILLS
-        )
         wrappers.extend(
             (
                 wrapper_name,
@@ -205,7 +184,7 @@ class ProjectToolingTests(unittest.TestCase):
             for skill_name, wrapper_name in EXPECTED_OBSIDIAN_WRAPPERS
         )
 
-        self.assertEqual(len(wrappers), 38)
+        self.assertEqual(len(wrappers), 34)
         for wrapper_name, expected_front_matter, expected_text in wrappers:
             with self.subTest(wrapper=wrapper_name):
                 wrapper_path = ROOT / project_config.SKILLS_DIR / wrapper_name / "SKILL.md"
@@ -215,7 +194,6 @@ class ProjectToolingTests(unittest.TestCase):
 
     def test_representative_external_wrappers_load_read_only(self) -> None:
         expected_wrappers = {
-            "ars-academic-paper": "skill-plugins/academic-research-skills/academic-paper/SKILL.md",
             "rbs-claim-evidence-ledger": "skill-plugins/research-book-skills/skills/claim-evidence-ledger/SKILL.md",
             "obsidian-research-markdown": "skill-plugins/obsidian-skills/skills/obsidian-markdown/SKILL.md",
         }
@@ -238,9 +216,25 @@ class ProjectToolingTests(unittest.TestCase):
     def test_external_plugin_specs_are_canonical(self) -> None:
         specs_by_key = {spec.source_key: spec for spec in project_config.EXTERNAL_PLUGIN_SPECS}
 
+        ars = specs_by_key["ars"]
+        self.assertEqual(ars.marketplace_name, "ars-codex")
+        self.assertEqual(
+            ars.plugin_path,
+            "./skill-plugins/academic-research-skills-codex/plugins/ars-codex",
+        )
+        self.assertEqual(
+            ars.plugin_root,
+            project_config.ARS_CODEX_SOURCE / "plugins" / "ars-codex",
+        )
+        self.assertEqual(ars.plugin_json_name, "ars-codex")
+        self.assertEqual(ars.skills_root, ars.plugin_root / "skills")
+        self.assertEqual(ars.skill_names, ("academic-research-suite",))
+        self.assertEqual(ars.category, "Research")
+
         self.assertEqual(specs_by_key["rbs"].marketplace_name, project_config.RBS_MARKETPLACE_NAME)
         self.assertEqual(specs_by_key["rbs"].plugin_path, project_config.MARKETPLACE_PLUGIN_PATH)
         self.assertEqual(specs_by_key["rbs"].skills_root, project_config.RBS_SOURCE / "skills")
+        self.assertEqual(specs_by_key["rbs"].category, "Productivity")
 
     def test_scripts_are_grouped_by_use_case(self) -> None:
         for relative_path in sorted(SCRIPT_LAYOUT):

@@ -18,7 +18,7 @@
 | Repo-scoped skills | Task-specific agent procedures | Optional |
 | MCP | Controlled access to tools and data | Optional |
 | Codex Panel Obsidian plugin | Agent work inside Obsidian | Recommended; setup default unless skipped |
-| Academic Research Skills skill/plugin source repo | External academic paper and pipeline workflows | Optional |
+| ARS Codex native plugin source | External academic paper and pipeline workflows through `academic-research-suite` | Optional; not auto-installed |
 | Research Book Skills plugin | External research book workflows | Optional |
 | Obsidian Skills skill/plugin source repo | Obsidian Markdown, Bases, Canvas, CLI, and Defuddle wrapper guidance | Optional |
 
@@ -26,7 +26,7 @@ Discovery tools such as Elicit, Semantic Scholar, OpenAlex, and Scite can help f
 
 Do not store API keys or credentials in this repository.
 
-External repositories live under `skill-plugins/`. The marketplace in `.agents/plugins/marketplace.json` points directly at the Research Book Skills source submodule.
+External repositories live under `skill-plugins/`. The marketplace in `.agents/plugins/marketplace.json` exposes both the native `ars-codex` plugin and Research Book Skills from their local submodule paths; both remain optional.
 
 `bash setup.sh` uses network access when it initializes skill/plugin source submodules or
 downloads Obsidian plugin release assets. For offline or CLI-only setup, use

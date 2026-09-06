@@ -8,10 +8,13 @@ External workflows extend the scaffold. They do not replace local safety rules.
 | --- | --- | --- |
 | Local scaffold skills | `.agents/skills/` | Primary safety and workflow layer |
 | External skill/plugin sources | `skill-plugins/` | Reviewed upstream source copies pinned as Git submodules |
-| Immediate wrapper skills | `.agents/skills/<skill-name>/SKILL.md` | Codex and Codex Panel discoverable skills after setup |
+| Immediate wrapper skills | `.agents/skills/<skill-name>/SKILL.md` | Local, RBS, and Obsidian skills discoverable after setup |
 | Plugin marketplace | `.agents/plugins/marketplace.json` | Optional plugin exposure from skill/plugin source paths |
 
-Do not rely on marketplace exposure for immediate skill availability. Codex Panel can use the project skills immediately because safe wrappers are committed and refreshed under `.agents/skills`.
+Codex Panel can use committed local, RBS, and Obsidian wrappers immediately.
+Native ARS is intentionally different: marketplace exposure does not install
+`ars-codex`, and `academic-research-suite` is available only after the user
+explicitly installs that optional plugin.
 
 ## Rules
 
@@ -19,7 +22,7 @@ Do not rely on marketplace exposure for immediate skill availability. Codex Pane
 - Do not run external source scripts automatically.
 - Do not store API keys or credentials.
 - Do not edit upstream files in `skill-plugins/`.
-- Keep marketplace exposure separate from skill wrapper creation.
+- Keep marketplace exposure separate from RBS and Obsidian wrapper creation.
 - Keep plugin marketplace entries optional/available unless a user explicitly chooses to install a repo plugin.
 - External skills can guide workflow discipline, but citations and claims still need independent verification.
 - Subagents can organize work, but cannot authorize evidence.
@@ -40,7 +43,7 @@ Read the upstream `SKILL.md` before use. Check for:
 
 ## Updating or removing
 
-Initialize external repositories with `git submodule update --init --recursive` or by running setup. Update pinned submodule commits only after review. Remove integrations by deleting wrapper skills, marketplace entries, install reports, and submodule references. Leave bibliography and manuscript files untouched.
+Initialize external repositories with `git submodule update --init --recursive` or by running setup. Update pinned submodule commits only after review. Remove integrations by deleting their owned wrappers, marketplace entries, reports, and submodule references as applicable. Leave bibliography and manuscript files untouched.
 
 ## New-user setup path
 
@@ -59,7 +62,12 @@ make check-obsidian-research-plugins
 make audit
 ```
 
-`bash setup.sh` initializes skill/plugin source submodules when needed, refreshes all immediate-use wrappers, installs Codex Panel and the recommended Zotero/Pandoc/QMD Obsidian plugins unless skipped, and leaves marketplace entries available but optional. If a clone omitted submodules, run `git submodule update --init --recursive` or rerun `bash setup.sh`.
+`bash setup.sh` initializes skill/plugin source submodules when needed, refreshes
+RBS and Obsidian wrappers, installs Codex Panel and the recommended
+Zotero/Pandoc/QMD Obsidian plugins unless skipped, and leaves marketplace
+entries available but optional. It does not run `codex plugin add`. If a clone
+omitted submodules, run `git submodule update --init --recursive` or rerun
+`bash setup.sh`.
 
 ## Updating skill/plugin sources
 
@@ -74,12 +82,63 @@ The updater:
 - fetches the parent repository refs
 - syncs and initializes the configured skill/plugin source submodules
 - refuses to continue if a source has uncommitted changes
-- fast-forwards each selected source with `git pull --ff-only`
-- refreshes local skill wrappers, marketplace metadata, and install reports through the local installer
+- keeps ARS Codex at its reviewed pin and fast-forwards only selected unpinned sources with `git pull --ff-only`
+- refreshes RBS and Obsidian wrappers, marketplace metadata, and their install reports through the local installer
 - runs `python3 scripts/operations/skill_plugins/check_external_skills.py`
 - runs `bash scripts/operations/health/doctor.sh`
 
 After a successful run, review the submodule pointer changes and any refreshed files before committing. Use `--skip-ars`, `--skip-rbs`, or `--skip-obsidian-skills` to leave a source pinned while updating others. Use `--skip-checks` only when another verification command will be run immediately afterward.
+
+## ARS Codex
+
+`Imbad0202/academic-research-skills-codex` is checked out at
+`skill-plugins/academic-research-skills-codex/` at the reviewed commit
+`925975e933a20893b81681d925a3404e3b7f73b7`. The local marketplace exposes
+`plugins/ars-codex` as plugin `ars-codex`, category `Research`, with
+installation policy `AVAILABLE` and authentication policy `ON_INSTALL`.
+Setup does not install it.
+
+After a user explicitly installs the plugin, its native entrypoint is
+`academic-research-suite`, invoked as `$ars-codex:academic-research-suite`.
+There are no local ARS aliases or generated ARS installation report. Local
+source, citation, evidence, manuscript, and audit rules still govern use.
+
+### One-time migration for existing clones
+
+The old and new repositories have unrelated histories, so setup never swaps the
+legacy checkout's URL in place. Before removing an initialized legacy checkout
+at `skill-plugins/academic-research-skills/`, the installer requires both:
+
+- no tracked, untracked, or ignored changes; and
+- `HEAD` exactly `81c7300b4066d233914563fc1c3f80512347b33c`.
+
+It also requires the checkout's Git directory to resolve under this
+superproject's `.git/modules/` storage. When every guard passes, only the legacy
+working-tree directory is removed. The separate Git directory, commits, refs,
+and recovery history remain intact, and the new repository is initialized at
+its distinct path.
+
+If changed files are reported, inspect and copy them elsewhere or commit them
+to a named legacy branch before rerunning. If the checkout is clean but at a
+divergent commit, preserve that commit or ref, then explicitly return the
+legacy checkout to the recorded gitlink before rerunning. If the path is a
+nonempty non-submodule directory, a standalone clone, or uses Git storage
+outside the current superproject module area, move or preserve it manually;
+setup stops without deleting it. Never delete the legacy Git module directory
+or local refs as migration cleanup.
+
+Validate repository-owned boundaries with:
+
+```sh
+python3 scripts/operations/skill_plugins/check_external_skills.py
+python3 scripts/operations/skill_plugins/check_external_skills.py --native-ars-smoke
+```
+
+The opt-in smoke uses a temporary `CODEX_HOME`, installs only into that
+temporary directory, and performs no model turn. It verifies marketplace
+discovery and native catalog loading; it does not enable the optional full
+runtime, hooks, resolver clients, automatic subagents, external providers,
+credentials, or network calls.
 
 ## Obsidian Skills
 
@@ -113,6 +172,6 @@ If a skill is missing, check that Codex Panel is running from the repo root or a
 
 ## License caution
 
-- `Imbad0202/academic-research-skills`: CC-BY-NC-4.0.
+- `Imbad0202/academic-research-skills-codex`: CC-BY-NC-4.0.
 - `CoveMB/research-book-skills`: MIT.
 - `kepano/obsidian-skills`: MIT.

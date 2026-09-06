@@ -24,7 +24,7 @@
 | Step | Purpose | Inputs | Outputs | Tool | Workflow support | Gate |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1. Project charter | Set scope | User brief | Charter note | Create from `templates/project-charter-template.md` | RBS research agenda workflow | Boundaries clear |
-| 2. Research question refinement | Narrow inquiry | Charter | Questions | Notes | RBS or ARS planning workflow | Questions testable |
+| 2. Research question refinement | Narrow inquiry | Charter | Questions | Notes | RBS workflow or optional native `academic-research-suite` | Questions testable |
 | 3. Search planning | Plan discovery | Questions | Search plan | `skill-plugins/research-book-skills/skills/systematic-source-discovery/assets/search-log-template.md` | RBS source discovery workflow | Query reproducible |
 | 4. Source discovery | Find candidates | Search plan | Candidate list | Zotero, indexes | RBS source discovery workflow | Criteria applied |
 | 5. Candidate dedupe and screening | Filter duplicates and search results | Candidate exports | Candidate matrix | CSV/BIB/RIS or pasted records | RBS discovery runner/deduper workflow | Duplicate and rejection reasons recorded |

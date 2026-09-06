@@ -55,8 +55,9 @@ class ProductionReleaseQaDocTests(unittest.TestCase):
             self.assertIn(f"`{script_path}`", self.runbook_text, script_path)
 
     def test_runbook_mentions_external_skill_surfaces(self) -> None:
-        for skill_name in project_config.ARS_SKILLS:
-            self.assertIn(f"`ars-{skill_name}`", self.runbook_text)
+        self.assertIn("`ars-codex`", self.runbook_text)
+        self.assertIn("`academic-research-suite`", self.runbook_text)
+        self.assertIn("`--native-ars-smoke`", self.runbook_text)
         rbs_start = self.runbook_text.index("Research Book Skills wrapper usage:")
         rbs_end = self.runbook_text.index("Safe fixture prompt pattern:", rbs_start)
         listed_wrappers = re.findall(

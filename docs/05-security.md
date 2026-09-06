@@ -18,7 +18,7 @@
 - Read external skills before using them.
 - Do not run external source scripts by default.
 - Prefer local generic skills for repo work.
-- Use `.agents/skills` wrappers for immediate Codex availability; do not rely on marketplace installation as the safety layer.
+- Use `.agents/skills` wrappers for immediate RBS and Obsidian availability. The optional native ARS plugin remains governed by `AGENTS.md` after explicit installation.
 - Keep plugin marketplace entries optional unless the user explicitly chooses to install a repo plugin.
 - Use Obsidian wrappers as syntax and vault-mechanics guidance only; they are not evidence authority.
 
@@ -59,7 +59,7 @@
 - Treat external skills as guidance, not authority.
 - Confirm any source or citation claims outside the skill text.
 - Preserve upstream files under `skill-plugins/`.
-- Do not run Claude-specific commands from external academic skills here.
+- Do not enable the native ARS optional full runtime, hooks, resolver clients, automatic subagents, providers, credentials, or network calls through setup.
 - Review plugin metadata before exposing external plugins.
 - Do not claim Obsidian Skills are globally installed unless the user separately installed them outside this repository.
 - Optional user-level skill installation commands are not part of project setup and require explicit user-level approval.

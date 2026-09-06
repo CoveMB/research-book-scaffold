@@ -119,6 +119,14 @@ class SetupEnvironmentTests(unittest.TestCase):
                     [flag, "https://example.invalid/repo.git"],
                 )
 
+    def test_ars_ref_override_is_rejected(self) -> None:
+        assert_parse_args_rejects(self, setup_environment.parse_args, ["--ars-ref", "main"])
+        assert_parse_args_rejects(
+            self,
+            setup_environment.install_external_skills.parse_args,
+            ["--ars-ref", "main"],
+        )
+
     def test_missing_local_skills_directory_dry_run_does_not_crash(self) -> None:
         report = SilentReport()
 
