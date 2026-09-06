@@ -593,6 +593,30 @@ class CheckExternalSkillsTests(unittest.TestCase):
         self.assertNotIn("exec", [argument for command in commands for argument in command])
         codex_homes = {call.kwargs["env"]["CODEX_HOME"] for call in run.call_args_list}
         self.assertEqual(len(codex_homes), 1)
+        self.assertEqual({call.kwargs.get("timeout") for call in run.call_args_list}, {60})
+
+    def test_native_ars_smoke_timeout_is_reported_as_a_failure(self) -> None:
+        command = ["codex", "plugin", "marketplace", "add", "/tmp/project", "--json"]
+        failures: list[str] = []
+
+        with (
+            mock.patch.object(
+                check_external_skills.subprocess,
+                "run",
+                side_effect=subprocess.TimeoutExpired(command, 60),
+            ),
+            contextlib.redirect_stdout(io.StringIO()),
+        ):
+            try:
+                result = check_external_skills.run_json_command(command, {}, failures)
+            except subprocess.TimeoutExpired:
+                result = "timeout escaped"
+
+        self.assertIsNone(result)
+        self.assertEqual(
+            failures,
+            ["native ARS smoke command timed out after 60 seconds: " + " ".join(command)],
+        )
 
     def test_obsidian_missing_wrapper_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

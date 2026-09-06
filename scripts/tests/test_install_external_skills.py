@@ -318,16 +318,16 @@ class InstallExternalSkillsTests(unittest.TestCase):
                 encoding="utf-8",
             )
             marketplace = root / ".agents" / "plugins" / "marketplace.json"
-            legacy_path = root / "skill-plugins" / "academic-research-skills"
             native_path = root / "skill-plugins" / "academic-research-skills-codex"
             with (
-                mock.patch.object(install_external_skills, "GITMODULES_PATH", gitmodules),
-                mock.patch.object(install_external_skills, "PLUGIN_MARKETPLACE", marketplace),
-                mock.patch.object(install_external_skills, "LEGACY_ARS_SOURCE", legacy_path),
-                mock.patch.object(install_external_skills, "ARS_CODEX_SOURCE", native_path),
+                contextlib.chdir(root),
                 mock.patch.object(install_external_skills, "git_available", return_value=True),
-                mock.patch.object(install_external_skills, "is_configured_submodule", return_value=True),
             ):
+                self.assertTrue(
+                    install_external_skills.is_configured_submodule(
+                        install_external_skills.ARS_CODEX_SOURCE
+                    )
+                )
                 install_external_skills.install_external(args, report)
 
             self.assertFalse(marketplace.exists())
@@ -338,6 +338,16 @@ class InstallExternalSkillsTests(unittest.TestCase):
         self.assertIn("dry-run would initialize ARS Codex submodule", messages)
         self.assertIn("dry-run would write", messages)
         self.assertIn("available for optional installation", "\n".join(report.already_present))
+        report_messages = "\n".join(
+            report.installed
+            + report.already_present
+            + report.skipped
+            + report.failed
+            + report.warnings
+        )
+        self.assertNotIn("ARS_INSTALLED.md", report_messages)
+        self.assertNotIn("ARS install report", report_messages)
+        self.assertNotIn("ARS wrapper", report_messages)
 
     def test_report_text_uses_explicit_wrapper_and_warning_records(self) -> None:
         self.assertEqual(
