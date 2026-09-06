@@ -50,3 +50,6 @@ zotero-storage/
 tmp/
 temp/
 *.tmp
+
+# Previous skill 
+/skill-plugins/academic-research-skills/
