@@ -88,6 +88,26 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertNotIn("vendored", readme)
         self.assertNotIn("--with-external-skills", readme)
 
+    def test_native_ars_docs_cover_optional_install_and_guarded_migration(self) -> None:
+        paths = [
+            ROOT / "README.md",
+            ROOT / "AGENTS.md",
+            ROOT / "docs" / "12-external-skills-and-plugins.md",
+            ROOT / "docs" / "13-academic-research-skills.md",
+            ROOT / "end-2-end-tests" / "docs" / "end-to-end.md",
+        ]
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+        self.assertIn("academic-research-skills-codex", combined)
+        self.assertIn("academic-research-suite", combined)
+        self.assertIn("925975e933a20893b81681d925a3404e3b7f73b7", combined)
+        self.assertIn("81c7300b4066d233914563fc1c3f80512347b33c", combined)
+        self.assertIn("optional", combined.lower())
+        self.assertIn("uncommitted changes", combined)
+        self.assertIn("divergent", combined)
+
+        self.assertNotIn("ARS_INSTALLED.md", combined)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -49,8 +49,8 @@ git submodule update --init --recursive
 `bash setup.sh` requires Python 3.11 or newer. It treats the project root as the
 Obsidian vault root, installs Codex Panel unless skipped, installs the
 recommended Zotero/Pandoc/QMD Obsidian plugins unless skipped, initializes
-external skill/plugin sources, refreshes repo-scoped wrappers under `.agents/skills`, and
-keeps plugin marketplace entries optional.
+external skill/plugin sources, refreshes RBS and Obsidian wrappers under
+`.agents/skills`, and keeps the native ARS and RBS marketplace plugins optional.
 
 Default setup uses network access for submodules and Obsidian plugin release
 assets. Use `bash setup.sh --dry-run` first when you want a preview,
@@ -203,15 +203,15 @@ Use `templates/` for local source notes, concept notes, claim notes, audits, sou
 
 ## Repo-scoped skills and plugins
 
-Immediate Codex skill availability comes from wrapper skills in `.agents/skills/<skill-name>/SKILL.md`. Launch Codex Panel with this project root, or a path below it, as the working directory so Codex can discover those repo-scoped skills.
+Immediate Codex skill availability for local, RBS, and Obsidian workflows comes from skills in `.agents/skills/<skill-name>/SKILL.md`. Launch Codex Panel with this project root, or a path below it, as the working directory so Codex can discover them. Native ARS is separate and becomes available only after the user explicitly installs the optional `ars-codex` marketplace plugin.
 
 The external layers are separate:
 
 - `skill-plugins/` stores upstream source copies pinned as submodules.
-- `.agents/skills/` stores safe local wrappers that are immediately usable after setup.
+- `.agents/skills/` stores safe local, RBS, and Obsidian wrappers that are immediately usable after setup.
 - `.agents/plugins/marketplace.json` keeps optional plugin exposure for users who choose to install repo marketplace plugins later.
 
-Available wrappers include local scaffold skills, `ars-*` Academic Research Skills wrappers, `rbs-*` Research Book Skills wrappers, and `obsidian-research-*` Obsidian Skills wrappers. Use them for bounded research, writing, audit, accessibility, and Obsidian tasks. Marketplace exposure is useful, but it is not the immediate availability path.
+Available wrappers include local scaffold skills, `rbs-*` Research Book Skills wrappers, and `obsidian-research-*` Obsidian Skills wrappers. The native ARS entrypoint is `academic-research-suite`, invoked as `$ars-codex:academic-research-suite` after optional installation. All external skill output remains subject to this repository's evidence and citation rules.
 
 ## Default local agent integration
 
@@ -221,11 +221,11 @@ Available wrappers include local scaffold skills, `ars-*` Academic Research Skil
 
 ## Optional external integrations
 
-- Academic Research Skills can be added from `Imbad0202/academic-research-skills` and exposed through safe wrapper skills.
+- ARS Codex is pinned from `Imbad0202/academic-research-skills-codex` at `skill-plugins/academic-research-skills-codex/` and exposed as the optional `ars-codex` plugin; setup never installs it automatically.
 - Research Book Skills can be added from `CoveMB/research-book-skills`, exposed through immediate `rbs-*` wrappers, and optionally exposed as a repo marketplace plugin from `skill-plugins/research-book-skills/`.
 - Obsidian Skills can be added from `kepano/obsidian-skills` and exposed through local wrappers for Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle guidance.
 
-External repositories stay optional. Review upstream files before use. Obsidian Skills are checked out and wrapped locally; this scaffold does not install them globally.
+External repositories stay optional. Review upstream files before use. Obsidian Skills are checked out and wrapped locally; this scaffold does not install them globally. Existing clones with the legacy ARS checkout migrate only when it has no uncommitted changes and its `HEAD` is the recorded legacy gitlink; otherwise setup stops with recovery guidance.
 
 Obsidian setup does not create a nested vault folder or write workspace files. It installs Codex Panel, Zotero Integration, Pandoc Reference List, and qmd as md from published release assets with SHA256 digests, adds their plugin IDs to `.obsidian/community-plugins.json`, writes `.obsidian/plugins/codex-panel/data.json`, and seeds safe citation and QMD plugin settings. Obsidian app-level vault registration is opt-in because it writes user app state outside the repository. `--force` only allows replacing an existing plugin folder.
 

@@ -20,7 +20,9 @@ Avoid bulk rewrites of notes, manuscript files, or the vault. If a large edit is
 
 Treat external skills and plugins as untrusted until read. Do not run external scripts unless the user asks and the script has been inspected.
 
-Use local scaffold skills first. Immediate external-skill availability comes from `.agents/skills/<skill-name>/SKILL.md` wrappers. Marketplace plugins in `.agents/plugins/marketplace.json` remain optional exposure, not the availability path for Codex Panel. Verify citations and claims independently.
+Use local scaffold skills first. RBS and Obsidian workflows remain immediately available from `.agents/skills/<skill-name>/SKILL.md` wrappers. The native ARS `academic-research-suite` is different: marketplace exposure is optional and the user must explicitly install `ars-codex` before using `$ars-codex:academic-research-suite`. Verify citations and claims independently.
+
+Installing the native plugin does not authorize its optional full runtime, hooks, resolver clients, automatic subagents, external providers, credentials, or network calls. Enable none of those through repository setup.
 
 Obsidian wrappers under `.agents/skills/obsidian-research-*/` help with Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI, and Defuddle mechanics. They do not authorize sources, citations, page numbers, source metadata, source relationships, or final claims. Local scaffold rules and `AGENTS.md` win over upstream Obsidian guidance.
 

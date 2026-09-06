@@ -18,8 +18,9 @@ from import_paths import configure_script_paths
 configure_script_paths(__file__)
 
 from git_utils import GitCommandError, git_stdout_required, has_git_checkout
+from install_external_skills import migrate_legacy_ars_checkout
 from project_config import EXTERNAL_SOURCE_SPECS, SKILL_PLUGIN_UPDATE_HEALTH_CHECKS, ExternalSourceSpec, change_to_project_root
-from script_utils import CommandError, run_command_required as run_checked
+from script_utils import CommandError, StatusReport, run_command_required as run_checked
 
 
 @dataclass(frozen=True)
@@ -57,6 +58,16 @@ def source_specs(args: argparse.Namespace) -> list[ExternalSourceSpec]:
     if not sources:
         raise UpdateError("No skill/plugin sources selected; remove one skip flag.")
     return sources
+
+
+def migrate_legacy_ars_before_updates(sources: list[ExternalSourceSpec]) -> None:
+    if not any(source.key == "ars" for source in sources):
+        return
+    report = StatusReport()
+    if migrate_legacy_ars_checkout(argparse.Namespace(dry_run=False), report):
+        return
+    details = "; ".join(report.failed) or "legacy checkout validation failed"
+    raise UpdateError(f"ARS migration preflight failed: {details}")
 
 
 def submodule_status(path: Path) -> str:
@@ -101,6 +112,14 @@ def update_skill_plugin(source: ExternalSourceSpec) -> SkillPluginUpdate:
             f"initialize {source.label} submodule",
         )
     fail_if_dirty(source)
+    if source.pinned_ref:
+        pinned_head = git_stdout_required(["git", "-C", path, "rev-parse", "HEAD"])
+        if pinned_head != source.pinned_ref:
+            raise UpdateError(
+                f"{source.label} skill/plugin source is at {pinned_head}; "
+                f"expected pinned commit {source.pinned_ref}."
+            )
+        return SkillPluginUpdate(source.label, source.path, pinned_head, pinned_head)
     run_checked(["git", "-C", path, "fetch", "--prune"], f"fetch {source.label} remote")
     ensure_source_branch(source)
     old_ref = git_stdout_required(["git", "-C", path, "rev-parse", "HEAD"])
@@ -153,7 +172,9 @@ def update_skill_plugins(args: argparse.Namespace) -> list[SkillPluginUpdate]:
     print(f"Branch: {current_branch}")
     run_checked(["git", "status", "--short", "--branch"], "show parent repository status")
     run_checked(["git", "fetch", "--all", "--prune"], "fetch parent repository refs")
-    summaries = [update_skill_plugin(source) for source in source_specs(args)]
+    sources = source_specs(args)
+    migrate_legacy_ars_before_updates(sources)
+    summaries = [update_skill_plugin(source) for source in sources]
     refresh_integrations(args)
     run_health_checks(args)
     run_checked(["git", "status", "--short", "--branch"], "show final parent repository status")

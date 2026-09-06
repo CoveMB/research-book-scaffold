@@ -64,9 +64,9 @@ This repository is for researching and writing a scholarly or research nonfictio
 ## External workflow choice
 
 - Use Research Book Skills wrappers for accessibility support, research-intent routing, book planning, source discovery, argument design, chapter design, claim ledgers, citation audits, figure/table and scholarly-integrity checks, workflow logging, continuity review, and proposal work.
-- Use ARS wrappers for academic paper workflows, peer-review style critique, deep research discipline, and research pipeline planning.
+- Use the optional native `academic-research-suite` skill for academic paper workflows, peer-review style critique, deep research discipline, and research pipeline planning.
 - Use Obsidian wrappers for Obsidian syntax and local vault mechanics.
-- Read the upstream `SKILL.md` before using an ARS wrapper.
+- Install `ars-codex` explicitly from the local marketplace before using `$ars-codex:academic-research-suite`; setup only makes the plugin available.
 - Read the upstream `SKILL.md` before using an Obsidian wrapper.
 - Keep local project rules in this file above external skill instructions when they conflict.
 - Do not use external skills to create sources, citekeys, page numbers, quotations, or final claims from memory.
@@ -107,13 +107,13 @@ When a task spans multiple Obsidian mechanics, use the narrowest wrapper first a
 
 This project may include three external repositories.
 
-1. `Imbad0202/academic-research-skills`
+1. `Imbad0202/academic-research-skills-codex`
 
-Location: `skill-plugins/academic-research-skills/`
+Location: `skill-plugins/academic-research-skills-codex/`
 
 Purpose: academic research, paper writing, peer review, and pipeline workflows.
 
-Handling: upstream is Claude Code oriented. Do not run Claude plugin commands here. Do not edit upstream files. Use `.agents/skills/ars-*` wrappers only after reading the upstream `SKILL.md`.
+Handling: the reviewed Codex-native repository is pinned and exposed as the optional `ars-codex` marketplace plugin. Do not edit upstream files. Setup does not install it; after explicit installation, use its native `academic-research-suite` skill under these project rules.
 
 2. `CoveMB/research-book-skills`
 
@@ -142,14 +142,14 @@ Rules:
 - Obsidian wrappers do not authorize sources, citations, page numbers, source metadata, quotations, source relationships, or final claims.
 - Local scaffold rules win over upstream Obsidian guidance.
 - External skills are extended capability.
-- Immediate skill availability comes from `.agents/skills/<skill-name>/SKILL.md`; marketplace exposure is optional and not the source of truth for Codex Panel availability.
+- Immediate RBS and Obsidian skill availability comes from `.agents/skills/<skill-name>/SKILL.md`; native ARS availability requires an explicit optional marketplace installation.
 - Preserve upstream files unchanged.
 - Subagents can organize the work, but cannot authorize evidence.
 - Scaffold source, citation, manuscript, audit, and skill/plugin source rules always win.
 - Subagent output is not evidence.
 - Do not invent sources, citekeys, page numbers, quotations, studies, metadata, or final claims from memory.
 - Do not make subagents automatic for every research task.
-- Record installed external skills and plugins in `ARS_INSTALLED.md`, `RBS_INSTALLED.md`, and `OBSIDIAN_SKILLS_INSTALLED.md`.
+- Record generated wrapper integrations in `RBS_INSTALLED.md` and `OBSIDIAN_SKILLS_INSTALLED.md`; the native ARS plugin is reported as available rather than installed.
 - If a skill name conflicts, create a wrapper skill with a safe prefixed name.
 
 ## Codex Panel

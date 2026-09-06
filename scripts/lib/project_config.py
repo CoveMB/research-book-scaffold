@@ -8,12 +8,15 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_ARS_REPO = "https://github.com/Imbad0202/academic-research-skills.git"
+ARS_CODEX_REPO = "https://github.com/Imbad0202/academic-research-skills-codex.git"
+ARS_CODEX_PIN = "925975e933a20893b81681d925a3404e3b7f73b7"
+LEGACY_ARS_GITLINK = "81c7300b4066d233914563fc1c3f80512347b33c"
 DEFAULT_RBS_REPO = "https://github.com/CoveMB/research-book-skills.git"
 DEFAULT_OBSIDIAN_SKILLS_REPO = "https://github.com/kepano/obsidian-skills.git"
 
 GITMODULES_PATH = Path(".gitmodules")
-ARS_SOURCE = Path("skill-plugins/academic-research-skills")
+LEGACY_ARS_SOURCE = Path("skill-plugins/academic-research-skills")
+ARS_CODEX_SOURCE = Path("skill-plugins/academic-research-skills-codex")
 RBS_SOURCE = Path("skill-plugins/research-book-skills")
 OBSIDIAN_SKILLS_SOURCE = Path("skill-plugins/obsidian-skills")
 SKILLS_DIR = Path(".agents/skills")
@@ -21,6 +24,8 @@ PLUGIN_MARKETPLACE = Path(".agents/plugins/marketplace.json")
 MARKETPLACE_PLUGIN_PATH = "./skill-plugins/research-book-skills"
 RBS_MARKETPLACE_NAME = "research-book-skills"
 RBS_PLUGIN_JSON_NAME = "research-skills-plugin"
+MARKETPLACE_INSTALLATION_POLICY = "AVAILABLE"
+MARKETPLACE_AUTHENTICATION_POLICY = "ON_INSTALL"
 
 
 @dataclass(frozen=True)
@@ -30,6 +35,7 @@ class ExternalSourceSpec:
     path: Path
     default_repo: str
     branch: str = "main"
+    pinned_ref: str | None = None
 
 
 @dataclass(frozen=True)
@@ -42,6 +48,7 @@ class ExternalPluginSpec:
     plugin_json_name: str
     skills_root: Path
     skill_names: tuple[str, ...]
+    category: str
 
 
 @dataclass(frozen=True)
@@ -53,7 +60,6 @@ class CommandSpec:
         return " ".join(self.command)
 
 
-ARS_SKILLS = ["deep-research", "academic-paper", "academic-paper-reviewer", "academic-pipeline"]
 OBSIDIAN_SKILLS = ["obsidian-markdown", "obsidian-bases", "json-canvas", "obsidian-cli", "defuddle"]
 OBSIDIAN_SKILL_WRAPPERS = {
     "obsidian-markdown": "obsidian-research-markdown",
@@ -102,7 +108,6 @@ REPO_SCOPED_SKILL_NAMES = tuple(
     sorted(
         (
             *LOCAL_PROJECT_SKILLS,
-            *(f"ars-{skill_name}" for skill_name in ARS_SKILLS),
             *RBS_SKILL_WRAPPERS.values(),
             *OBSIDIAN_SKILL_WRAPPERS.values(),
         )
@@ -110,7 +115,7 @@ REPO_SCOPED_SKILL_NAMES = tuple(
 )
 
 EXTERNAL_SOURCE_SPECS = (
-    ExternalSourceSpec("ars", "ARS", ARS_SOURCE, DEFAULT_ARS_REPO),
+    ExternalSourceSpec("ars", "ARS Codex", ARS_CODEX_SOURCE, ARS_CODEX_REPO, pinned_ref=ARS_CODEX_PIN),
     ExternalSourceSpec("rbs", "RBS", RBS_SOURCE, DEFAULT_RBS_REPO),
     ExternalSourceSpec(
         "obsidian-skills",
@@ -129,8 +134,21 @@ RBS_PLUGIN_SPEC = ExternalPluginSpec(
     RBS_PLUGIN_JSON_NAME,
     RBS_SOURCE / "skills",
     tuple(RBS_SKILLS),
+    "Productivity",
 )
-EXTERNAL_PLUGIN_SPECS = (RBS_PLUGIN_SPEC,)
+ARS_CODEX_PLUGIN_ROOT = ARS_CODEX_SOURCE / "plugins" / "ars-codex"
+ARS_CODEX_PLUGIN_SPEC = ExternalPluginSpec(
+    "ars",
+    "ARS Codex",
+    "ars-codex",
+    "./skill-plugins/academic-research-skills-codex/plugins/ars-codex",
+    ARS_CODEX_PLUGIN_ROOT,
+    "ars-codex",
+    ARS_CODEX_PLUGIN_ROOT / "skills",
+    ("academic-research-suite",),
+    "Research",
+)
+EXTERNAL_PLUGIN_SPECS = (ARS_CODEX_PLUGIN_SPEC, RBS_PLUGIN_SPEC)
 
 SETUP_RECOMMENDED_CHECKS = (
     CommandSpec(("bash", "scripts/operations/health/doctor.sh"), "run repository doctor"),

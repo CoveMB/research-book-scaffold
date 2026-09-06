@@ -70,7 +70,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--obsidian-registry-path", help=argparse.SUPPRESS)
     parser.add_argument("--install-optional", action="store_true")
     parser.add_argument("--install-system", action="store_true")
-    parser.add_argument("--ars-ref")
     parser.add_argument("--rbs-ref")
     parser.add_argument("--obsidian-skills-ref")
     parser.add_argument("--no-rbs-plugin", action="store_true")
@@ -157,7 +156,6 @@ def external_args_from_setup_args(args: argparse.Namespace) -> argparse.Namespac
         skip_ars=args.skip_ars,
         skip_rbs=args.skip_rbs,
         skip_obsidian_skills=args.skip_obsidian_skills,
-        ars_ref=args.ars_ref,
         rbs_ref=args.rbs_ref,
         obsidian_skills_ref=args.obsidian_skills_ref,
         no_rbs_plugin=args.no_rbs_plugin,

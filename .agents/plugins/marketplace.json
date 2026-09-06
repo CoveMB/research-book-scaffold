@@ -5,6 +5,18 @@
   },
   "plugins": [
     {
+      "name": "ars-codex",
+      "source": {
+        "source": "local",
+        "path": "./skill-plugins/academic-research-skills-codex/plugins/ars-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Research"
+    },
+    {
       "name": "research-book-skills",
       "source": {
         "source": "local",

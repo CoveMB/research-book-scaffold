@@ -4,8 +4,8 @@ Repo-scoped wrapper skills live in subfolders.
 
 Each skill should include a `SKILL.md` file with YAML front matter.
 
-External integration reports are recorded in `ARS_INSTALLED.md`,
-`RBS_INSTALLED.md`, and `OBSIDIAN_SKILLS_INSTALLED.md`.
+Generated wrapper integration reports are recorded in `RBS_INSTALLED.md` and
+`OBSIDIAN_SKILLS_INSTALLED.md`.
 
 ## Local project skills
 
@@ -21,10 +21,6 @@ external plugin skills.
 These wrappers adapt upstream skill/plugin guidance to this repository's citation,
 evidence, and vault rules.
 
-- `ars-deep-research`: Academic Research Skills deep-research guidance through the local safety wrapper.
-- `ars-academic-paper`: Academic Research Skills academic-paper guidance through the local safety wrapper.
-- `ars-academic-paper-reviewer`: Academic Research Skills reviewer guidance through the local safety wrapper.
-- `ars-academic-pipeline`: Academic Research Skills pipeline guidance through the local safety wrapper.
 - `rbs-*`: Research Book Skills guidance through local wrappers for accessibility support, research-intent routing, source discovery, source notes, extraction tables, literature maps, claim ledgers, argument and chapter design, citation audits, figure/table integrity, scholarly integrity, workflow logging, release audits, continuity work, proposal support, and comps verification.
 - `obsidian-research-markdown`: Obsidian Markdown guidance through the local safety wrapper.
 - `obsidian-research-bases`: Obsidian Bases guidance through the local safety wrapper.
@@ -42,4 +38,6 @@ quotations, source relationships, or final claims.
 
 Marketplace entries under `.agents/plugins/marketplace.json` are optional plugin
 exposure. Immediate Codex and Codex Panel availability comes from the wrappers
-in this directory.
+in this directory for RBS and Obsidian workflows. Native ARS is not wrapped;
+after the user explicitly installs `ars-codex`, use its
+`academic-research-suite` entrypoint as `$ars-codex:academic-research-suite`.

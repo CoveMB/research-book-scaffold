@@ -139,7 +139,7 @@ Expected result:
 
 - Required tools are found or reported with clear manual steps.
 - `.agents/skills/` exists and local skill front matter validates.
-- ARS, RBS, and Obsidian Skills wrappers are present under `.agents/skills/`.
+- RBS and Obsidian Skills wrappers are present under `.agents/skills/`; native `ars-codex` remains an optional marketplace plugin.
 - The project root is treated as the Obsidian vault root.
 - `.obsidian/plugins/codex-panel/` is installed or an existing plugin folder is reported as skipped unless `--force` was intentionally used.
 - Setup writes `.obsidian/community-plugins.json` so `codex-panel` is listed as enabled.
@@ -398,7 +398,7 @@ Expected result:
 | `make check-external-references` | Checks external URLs and DOI resolution without archive lookup | Run only when network QA is in scope; warnings are reviewed without blocking ordinary writing |
 | `make external-reference-report` | Writes `reports/external-reference-check.json` for external-reference audit review | Run only when a generated report is useful; archive lookup still requires an explicit script flag |
 | `make check-manuscript-readiness` | Detects remaining scaffold manuscript entries | Exits 0 for initialized production manuscripts and exits nonzero for a fresh uninitialized scaffold |
-| `make check-external-skills` | Validates skill/plugin source submodules, wrappers, plugins, and marketplace entries | Exits 0 with zero failures |
+| `make check-external-skills` | Validates owned submodule, wrapper, plugin, and marketplace boundaries | Exits 0 with zero failures |
 | `make install-external-skills` | Prepares external skills and updates marketplace | Use only in disposable QA or intentional integration updates; verify resulting diff |
 | `make update-skill-plugins` | Fast-forwards external skill repositories and refreshes integrations | Use only when the release includes source updates |
 | `make check-obsidian-codex` | Verifies Codex Panel install, configured Codex CLI path, and app-server support | Exits 0 after plugin files, settings, and Codex CLI are present |
@@ -616,8 +616,8 @@ git submodule status --recursive
 
 Expected result:
 
-- The updater fast-forwards only selected skill/plugin source submodules.
-- Local skill wrappers, marketplace metadata, and install reports are refreshed.
+- The updater keeps ARS Codex at its reviewed pin and fast-forwards only selected unpinned skill/plugin source submodules.
+- RBS and Obsidian wrappers, marketplace metadata, and their install reports are refreshed.
 - Post-update checks pass.
 - Submodule pointer changes are visible for review.
 - No unexpected files are modified.
@@ -756,26 +756,30 @@ python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --
 python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --skip-rbs
 python3 scripts/operations/skill_plugins/install_external_skills.py --dry-run --yes --no-rbs-plugin
 python3 scripts/operations/skill_plugins/check_external_skills.py
+python3 scripts/operations/skill_plugins/check_external_skills.py --native-ars-smoke
+python3 -m unittest scripts.tests.test_ars_codex_migration
 ```
 
 Expected result:
 
 - Dry runs report source operations without changing submodules, wrappers, marketplace files, or install reports.
 - Skipped integrations are reported as skipped and are not claimed as installed.
-- `.agents/skills/ARS_INSTALLED.md`, `.agents/skills/RBS_INSTALLED.md`, and `.agents/skills/OBSIDIAN_SKILLS_INSTALLED.md` exist when selected.
-- `.agents/plugins/marketplace.json` points Research Book Skills to its plugin source path.
+- ARS Codex is reported as available for optional installation; no local ARS alias or generated installation report is created.
+- `.agents/skills/RBS_INSTALLED.md` and `.agents/skills/OBSIDIAN_SKILLS_INSTALLED.md` exist when selected.
+- `.agents/plugins/marketplace.json` contains one exact `ars-codex` entry and keeps the Research Book Skills entry.
 - External upstream files remain unchanged.
+- The migration fixtures prove that uncommitted changes and a clean divergent legacy commit stop without deletion, while a clean initialized checkout with unrelated old/new histories migrates at distinct paths and preserves legacy Git storage.
 
-Skill smoke tests are part of full release QA when the release claims ARS or Research Book Skills usability. Run smoke tests only against synthetic seed material or named read-only scaffold files, and record the result in the evidence log.
+Skill smoke tests are part of full release QA when the release claims ARS or Research Book Skills usability. The `--native-ars-smoke` check uses a temporary `CODEX_HOME`, makes no model call, and leaves the user's Codex profile untouched. Run behavioral smoke tests only against synthetic seed material or named read-only scaffold files, and record the result in the evidence log.
 
-Loadability checks are not the same as live behavioral smoke tests. If QA only reads wrapper files, upstream `SKILL.md` files, plugin manifests, and marketplace paths, record the result as loadability coverage and do not claim full skill smoke-test coverage.
+Loadability checks are not the same as live behavioral smoke tests. The native smoke verifies marketplace discovery and the namespaced catalog entry plus installed `SKILL.md` path; it does not prove full skill-body execution or workflow behavior.
 
-For each listed ARS wrapper:
+For native ARS:
 
-1. Read the local wrapper `SKILL.md`.
-2. Read the referenced upstream `SKILL.md`.
-3. Run only a bounded read-only prompt against synthetic seed files.
-4. Record whether the skill loaded, which files it read, what it would check, and what uncertainty remains.
+1. Confirm the `ars-codex` marketplace entry remains optional and exact.
+2. Run `--native-ars-smoke` for offline discovery/catalog-loading coverage.
+3. If behavioral coverage is separately authorized, install the plugin in a disposable profile and run only a bounded read-only prompt against synthetic seed files.
+4. Record whether `academic-research-suite` loaded, which files it read, what it would check, and what uncertainty remains.
 
 For each listed Research Book Skills wrapper:
 
@@ -791,18 +795,16 @@ Expected skill smoke-test result:
 - No skill output is treated as scholarly evidence.
 - No upstream command, Claude-specific command, hook, global config, or global agent is executed.
 
-ARS wrapper usage:
+Native ARS plugin usage:
 
-- `ars-deep-research`
-- `ars-academic-paper`
-- `ars-academic-paper-reviewer`
-- `ars-academic-pipeline`
+- Plugin: `ars-codex`
+- Skill entrypoint: `academic-research-suite`
+- Invocation after explicit installation: `$ars-codex:academic-research-suite`
 
 Expected usage behavior:
 
-- Read the wrapper first.
-- Read the referenced upstream `SKILL.md`.
-- Do not run Claude-specific commands, external source scripts, hooks, or provider-specific commands.
+- Keep installation explicit; repository setup does not install the plugin.
+- Do not enable the optional full runtime, external source scripts, hooks, resolver clients, automatic subagents, providers, credentials, or network calls.
 - Verify citations, claims, page numbers, and source metadata independently.
 
 Research Book Skills wrapper usage:

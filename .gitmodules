@@ -1,9 +1,9 @@
-[submodule "skill-plugins/academic-research-skills"]
-	path = skill-plugins/academic-research-skills
-	url = https://github.com/Imbad0202/academic-research-skills.git
 [submodule "skill-plugins/research-book-skills"]
 	path = skill-plugins/research-book-skills
 	url = https://github.com/CoveMB/research-book-skills.git
 [submodule "skill-plugins/obsidian-skills"]
 	path = skill-plugins/obsidian-skills
 	url = https://github.com/kepano/obsidian-skills.git
+[submodule "skill-plugins/academic-research-skills-codex"]
+	path = skill-plugins/academic-research-skills-codex
+	url = https://github.com/Imbad0202/academic-research-skills-codex.git
