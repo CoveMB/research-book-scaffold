@@ -410,26 +410,59 @@ class CheckExternalSkillsTests(unittest.TestCase):
             [f"unexpected ARS Codex origin: {ARS_CODEX_REPO.removesuffix('.git')}"],
         )
 
-    def test_ars_plugin_contract_rejects_wrong_skills_field(self) -> None:
+    def test_ars_plugin_contract_rejects_each_required_manifest_and_entrypoint_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             plugin_spec = self.ars_plugin_spec(root)
             self.write_plugin_fixture(plugin_spec)
             manifest = plugin_spec.plugin_root / ".codex-plugin" / "plugin.json"
-            manifest.write_text(
-                json.dumps({"name": "ars-codex", "skills": "./wrong/"}),
-                encoding="utf-8",
+            suite_entrypoint = plugin_spec.skills_root / "academic-research-suite" / "SKILL.md"
+            cases = (
+                ("missing manifest", None, True, "ARS Codex plugin.json missing"),
+                ("invalid manifest", "{", True, "ARS Codex plugin.json invalid JSON"),
+                (
+                    "wrong name",
+                    json.dumps({"name": "wrong", "skills": "./skills/"}),
+                    True,
+                    "ARS Codex plugin name unexpected: wrong",
+                ),
+                (
+                    "wrong skills",
+                    json.dumps({"name": "ars-codex", "skills": "./wrong/"}),
+                    True,
+                    "ARS Codex plugin skills unexpected: ./wrong/",
+                ),
+                (
+                    "missing entrypoint",
+                    json.dumps({"name": "ars-codex", "skills": "./skills/"}),
+                    False,
+                    "ARS Codex native suite missing",
+                ),
             )
-            failures: list[str] = []
-            with contextlib.redirect_stdout(io.StringIO()):
-                check_external_skills.check_ars_plugin_contract(plugin_spec, failures)
-
-        self.assertIn("ARS Codex plugin skills unexpected: ./wrong/", failures)
+            for name, manifest_text, entrypoint_exists, expected_failure in cases:
+                with self.subTest(name=name):
+                    if manifest_text is None:
+                        manifest.unlink(missing_ok=True)
+                    else:
+                        manifest.parent.mkdir(parents=True, exist_ok=True)
+                        manifest.write_text(manifest_text, encoding="utf-8")
+                    if entrypoint_exists:
+                        suite_entrypoint.parent.mkdir(parents=True, exist_ok=True)
+                        suite_entrypoint.write_text("native suite\n", encoding="utf-8")
+                    else:
+                        suite_entrypoint.unlink(missing_ok=True)
+                    failures: list[str] = []
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        check_external_skills.check_ars_plugin_contract(plugin_spec, failures)
+                    self.assertTrue(
+                        any(expected_failure in failure for failure in failures),
+                        failures,
+                    )
 
     def test_ars_marketplace_entry_must_be_exact_and_unique(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             plugin_spec = self.ars_plugin_spec(Path(temp_dir))
-            expected = {
+            expected: dict[str, object] = {
                 "name": "ars-codex",
                 "source": {
                     "source": "local",
@@ -441,15 +474,27 @@ class CheckExternalSkillsTests(unittest.TestCase):
                 },
                 "category": "Research",
             }
-            failures: list[str] = []
-            with contextlib.redirect_stdout(io.StringIO()):
-                check_external_skills.check_exact_marketplace_entry(
-                    [expected, dict(expected)],
-                    plugin_spec,
-                    failures,
-                )
-
-        self.assertEqual(failures, ["marketplace must contain exactly one ars-codex entry; found 2"])
+            cases: tuple[tuple[list[object], str], ...] = (
+                ([], "marketplace must contain exactly one ars-codex entry; found 0"),
+                ([expected, dict(expected)], "marketplace must contain exactly one ars-codex entry; found 2"),
+                (
+                    [{**expected, "category": "Productivity"}],
+                    "marketplace contract unexpected for ars-codex",
+                ),
+            )
+            for plugins, expected_failure in cases:
+                with self.subTest(expected_failure=expected_failure):
+                    failures: list[str] = []
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        check_external_skills.check_exact_marketplace_entry(
+                            plugins,
+                            plugin_spec,
+                            failures,
+                        )
+                    self.assertTrue(
+                        any(expected_failure in failure for failure in failures),
+                        failures,
+                    )
 
     def test_native_ars_catalog_ignores_user_prompt_echo(self) -> None:
         cache_path = (

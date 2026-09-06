@@ -52,7 +52,7 @@
 - `.gitmodules` — remove the complete legacy stanza and add a distinct native-repository stanza/path.
 - `scripts/lib/project_config.py` — own the legacy guard constants, native source pin/path, plugin spec, one native skill name, and exact marketplace contract; remove ARS wrapper inventory.
 - `scripts/operations/skill_plugins/install_external_skills.py` — guard and remove only safe legacy checkouts, initialize the pinned native submodule, expose its marketplace entry, and remove ARS wrapper/report generation.
-- `scripts/operations/skill_plugins/update_skill_plugins.py` — keep ARS Codex pinned instead of fast-forwarding it while retaining existing RBS and Obsidian update behavior.
+- `scripts/operations/skill_plugins/update_skill_plugins.py` — run the same legacy guard before any native initialization, then keep ARS Codex pinned instead of fast-forwarding it while retaining existing RBS and Obsidian update behavior.
 - `scripts/operations/skill_plugins/check_external_skills.py` — replace wrapper/internal checks with exact integration-boundary checks and the opt-in offline native Codex smoke.
 - `scripts/operations/setup/setup_environment.py` — remove the arbitrary `--ars-ref` override and pass the remaining installer arguments unchanged.
 - `scripts/tests/test_install_external_skills.py` — cover native installer dry-run/report behavior, exact marketplace merge behavior, and absence of ARS wrapper/report generation.
@@ -217,13 +217,15 @@
 
   Configure an initialized legacy submodule using `git -c protocol.file.allow=always submodule add ...`, then simulate the post-migration superproject metadata with a distinct new submodule path. Retain the legacy checkout's resolved `git rev-parse --absolute-git-dir` path for preservation assertions.
 
-- [ ] **Step 2: Write the three required failing migration tests**
+- [ ] **Step 2: Write the required failing migration tests**
 
   Add exactly these behavior tests:
 
   1. `test_dirty_legacy_checkout_stops_without_removal_or_new_initialization`: modify a tracked legacy file and add an untracked file; assert `False`, both paths remain, the report names changed files and recovery, and no new-submodule command runs.
   2. `test_clean_divergent_legacy_head_stops_without_removal_or_new_initialization`: commit a local legacy change; assert the report includes actual and expected hashes plus instructions to preserve the commit and return to the recorded gitlink; assert nothing is removed.
-  3. `test_initialized_unrelated_legacy_checkout_migrates_without_deleting_legacy_gitdir`: create old and new histories from distinct parentless commits, assert the hashes differ and both parent lists are empty, then leave legacy clean at its recorded commit; assert the checkout path is removed, its resolved module Git directory can still resolve the old commit, the new submodule initializes at its independent pin/origin, and no command contains `set-url`.
+  3. `test_initialized_unrelated_legacy_checkout_migrates_without_deleting_legacy_gitdir`: create old and new histories from distinct parentless commits, assert the hashes differ and both parent lists are empty, then leave legacy clean at its recorded commit; assert the checkout path is removed and its resolved module Git directory can still resolve the old commit without rewriting either history or using `set-url`.
+  4. `test_linked_worktree_migration_accepts_its_worktree_specific_module_gitdir`: initialize the legacy submodule in a linked worktree, advance that worktree to the migration metadata, and assert the guard accepts Git's worktree-specific module path, removes only the checkout, and preserves the module Git directory.
+  5. `test_prepare_migrates_then_initializes_exact_native_pin_and_origin`: begin with the native checkout uninitialized, run the complete ARS preparation path, and assert successful legacy removal is followed by native initialization at the exact independent pin and origin while the legacy Git directory remains.
 
   Also cover an ignored file and an occupied non-Git legacy path as fail-closed data-loss guards. They are branches of the same migration contract, not wrapper-style smokes.
 
@@ -241,7 +243,7 @@
 
   1. If the legacy path is absent, report no migration needed and return `True`.
   2. If the path exists without a Git checkout, remove it only when it is empty; otherwise report failure with manual recovery and return `False`.
-  3. Resolve `git rev-parse --absolute-git-dir` and require that it is outside the checkout but under this superproject's common `.git/modules/` storage. If `git rev-parse --show-superproject-working-tree` still reports a path, require it to identify this repository; allow an empty result because Git stops reporting the superproject after the legacy gitlink/stanza has been removed. Any other ownership result fails closed because deleting the path could remove history/refs or strand an unrelated worktree.
+  3. Resolve `git rev-parse --absolute-git-dir`, require that it is outside the checkout, and require exact equality with `git rev-parse --git-path modules/skill-plugins/academic-research-skills` from the current superproject. This uses `.git/modules/` in a primary checkout and the current worktree's `.git/worktrees/<name>/modules/` storage in a linked worktree. If `git rev-parse --show-superproject-working-tree` still reports a path, require it to identify this repository; allow an empty result because Git stops reporting the superproject after the legacy gitlink/stanza has been removed. Any other ownership result fails closed because deleting the path could remove history/refs or strand an unrelated worktree.
   4. Run `git status --porcelain=v1 --untracked-files=all --ignored=matching`. Any tracked, untracked, or ignored-path output is a hard stop. Include the changed paths and tell the user to inspect and preserve them by copy, branch, or commit as applicable before rerunning. Never reset, clean, stash, or discard them.
   5. Read `git rev-parse HEAD`. Any value other than `LEGACY_ARS_GITLINK` is a hard stop. Include both hashes and tell the user to preserve the local commit/ref, then explicitly check out the recorded legacy gitlink before rerunning.
   6. In dry-run mode, report the verified checkout and the exact path that would be removed; change nothing.
@@ -345,7 +347,7 @@
   - Existing non-ARS entries, especially the current `research-book-skills` object, are preserved.
   - Installer behavior creates no ARS wrapper or `ARS_INSTALLED.md` artifact and reports only native marketplace availability; avoid source-text assertions about removed private helper names.
 
-  Updater tests must assert the pinned ARS source is synced/initialized and verified at its configured pin without `fetch`, `pull`, `submodule update --remote`, or branch checkout, while the unchanged RBS and Obsidian sources still fast-forward as before.
+  Updater tests must assert the legacy guard runs before any ARS source initialization and stops all source updates on failure. After a successful guard, the pinned ARS source is synced/initialized and verified at its configured pin without `fetch`, `pull`, `submodule update --remote`, or branch checkout, while the unchanged RBS and Obsidian sources still fast-forward as before.
 
 - [ ] **Step 3: Run focused installer/updater tests and confirm failures**
 
@@ -390,7 +392,7 @@
 
 - [ ] **Step 6: Make the updater pin-aware**
 
-  For an `ExternalSourceSpec` with `pinned_ref`, sync/initialize its gitlink, require `HEAD == pinned_ref`, and report it as pinned. Do not fetch/pull it. Keep the existing fast-forward flow byte-for-byte in behavior for unpinned RBS and Obsidian sources. A future ARS Codex upgrade therefore requires a separately reviewed change to the gitlink and `ARS_CODEX_PIN`; the routine updater cannot silently move it.
+  Before updating any selected source, run the same legacy ARS migration guard whenever ARS is selected; a failure stops before native initialization or any other source update. For an `ExternalSourceSpec` with `pinned_ref`, then sync/initialize its gitlink, require `HEAD == pinned_ref`, and report it as pinned. Do not fetch/pull it. Keep the existing fast-forward flow byte-for-byte in behavior for unpinned RBS and Obsidian sources. A future ARS Codex upgrade therefore requires a separately reviewed change to the gitlink and `ARS_CODEX_PIN`; the routine updater cannot silently move it.
 
 - [ ] **Step 7: Delete wrapper/report artifacts and update the tracked marketplace**
 
@@ -485,7 +487,7 @@
 
 **Interfaces:**
 - Consumes: implemented native source/plugin/marketplace behavior and Task 2 stop/recovery semantics.
-- Produces: one consistent user story: source available at a reviewed pin, marketplace entry tracked, user installation optional, native suite invoked as `$academic-research-suite`, and legacy checkout removal guarded.
+- Produces: one consistent user story: source available at a reviewed pin, marketplace entry tracked, user installation optional, native suite invoked as `$ars-codex:academic-research-suite`, and legacy checkout removal guarded.
 
 - [ ] **Step 1: Write focused documentation/runbook contract tests**
 
@@ -504,7 +506,7 @@
 
   In `AGENTS.md`, replace only the ARS-specific routing, repository, location, handling, and report sentence. State that the installed native suite remains subordinate to scaffold source/citation/privacy rules and that plugin installation is optional. Do not touch the EOF `## Sub-Agents` area in any checkout where it exists.
 
-  In `.agents/skills/README.md`, remove ARS from repo-scoped wrappers and reports; explain that `$academic-research-suite` appears only after the user installs `ars-codex`. Keep all RBS and Obsidian wrapper inventory. In `.agents/plugins/README.md`, explain that setup prepares marketplace metadata but does not install either marketplace plugin.
+  In `.agents/skills/README.md`, remove ARS from repo-scoped wrappers and reports; explain that `$ars-codex:academic-research-suite` appears only after the user installs `ars-codex`. Keep all RBS and Obsidian wrapper inventory. In `.agents/plugins/README.md`, explain that setup prepares marketplace metadata but does not install either marketplace plugin.
 
 - [ ] **Step 4: Document the one-time migration and recovery precisely**
 

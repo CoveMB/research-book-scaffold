@@ -175,6 +175,74 @@ class ArsCodexMigrationTests(unittest.TestCase):
             self.assertEqual(report.failed, [])
             self.assertTrue(any("preserved legacy Git directory" in message for message in report.installed))
 
+    def test_linked_worktree_migration_accepts_its_worktree_specific_module_gitdir(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            superproject, legacy_path, _, old_commit, _, _ = self.create_fixture(root)
+            legacy_superproject_commit = self.git(superproject, "rev-parse", "HEAD~1")
+            final_superproject_commit = self.git(superproject, "rev-parse", "HEAD")
+            linked_worktree = root / "linked-worktree"
+            self.git(
+                superproject,
+                "worktree",
+                "add",
+                "--detach",
+                str(linked_worktree),
+                legacy_superproject_commit,
+            )
+            self.git(
+                linked_worktree,
+                "submodule",
+                "update",
+                "--init",
+                "--recursive",
+                "--",
+                legacy_path.as_posix(),
+            )
+            legacy_checkout = linked_worktree / legacy_path
+            legacy_git_dir = Path(self.git(legacy_checkout, "rev-parse", "--absolute-git-dir"))
+            self.assertIn("worktrees", legacy_git_dir.parts)
+            self.git(linked_worktree, "checkout", final_superproject_commit)
+
+            migrated, report = self.migrate(linked_worktree, legacy_path, old_commit)
+
+            self.assertTrue(migrated, report.failed)
+            self.assertFalse(legacy_checkout.exists())
+            self.assertTrue(legacy_git_dir.exists())
+
+    def test_prepare_migrates_then_initializes_exact_native_pin_and_origin(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            superproject, legacy_path, native_path, old_commit, new_commit, legacy_git_dir = self.create_fixture(root)
+            new_repository = root / "new-repository"
+            self.git(superproject, "submodule", "deinit", "-f", "--", native_path.as_posix())
+            self.assertFalse((superproject / native_path / ".git").exists())
+            report = SilentReport()
+            args = argparse.Namespace(
+                dry_run=False,
+                preserve_skill_plugin_checkouts=False,
+                update=False,
+            )
+
+            with (
+                working_directory(superproject),
+                mock.patch.object(install_external_skills, "LEGACY_ARS_SOURCE", legacy_path),
+                mock.patch.object(install_external_skills, "LEGACY_ARS_GITLINK", old_commit),
+                mock.patch.object(install_external_skills, "ARS_CODEX_SOURCE", native_path),
+                mock.patch.object(install_external_skills, "ARS_CODEX_PIN", new_commit),
+                mock.patch.object(install_external_skills, "ARS_CODEX_REPO", str(new_repository)),
+            ):
+                prepared = install_external_skills.prepare_ars_codex(args, report)
+
+            self.assertTrue(prepared, report.failed)
+            self.assertFalse((superproject / legacy_path).exists())
+            self.assertTrue(legacy_git_dir.exists())
+            self.assertEqual(self.git(superproject / native_path, "rev-parse", "HEAD"), new_commit)
+            self.assertEqual(
+                self.git(superproject / native_path, "remote", "get-url", "origin"),
+                str(new_repository),
+            )
+
     def test_ignored_legacy_path_stops_before_removal(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             superproject, legacy_path, _, old_commit, _, _ = self.create_fixture(Path(temp_dir))

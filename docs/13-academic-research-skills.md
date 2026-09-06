@@ -58,10 +58,12 @@ Before it removes an initialized legacy checkout at
 2. Its `HEAD` is exactly `81c7300b4066d233914563fc1c3f80512347b33c`,
    the legacy superproject gitlink.
 
-The checkout must also use separate Git storage under this superproject's
-`.git/modules/` area. When the guards pass, migration removes only the old
-working-tree directory and preserves its Git directory, commits, and local
-refs. It then initializes ARS Codex at the distinct native path and exact pin.
+The checkout must also use the exact separate module storage Git selects for
+this checkout: `.git/modules/` in a primary checkout or the corresponding
+`.git/worktrees/<name>/modules/` path in a linked worktree. When the guards pass,
+migration removes only the old working-tree directory and preserves its Git
+directory, commits, and local refs. It then initializes ARS Codex at the
+distinct native path and exact pin.
 
 Migration stops without deletion when the old checkout contains uncommitted
 changes, is clean but at a divergent commit, resolves Git storage inside the

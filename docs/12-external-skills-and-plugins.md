@@ -112,11 +112,12 @@ at `skill-plugins/academic-research-skills/`, the installer requires both:
 - no tracked, untracked, or ignored changes; and
 - `HEAD` exactly `81c7300b4066d233914563fc1c3f80512347b33c`.
 
-It also requires the checkout's Git directory to resolve under this
-superproject's `.git/modules/` storage. When every guard passes, only the legacy
-working-tree directory is removed. The separate Git directory, commits, refs,
-and recovery history remain intact, and the new repository is initialized at
-its distinct path.
+It also requires the checkout's Git directory to exactly match the module path
+Git selects for this checkout: `.git/modules/` in a primary checkout or the
+corresponding `.git/worktrees/<name>/modules/` path in a linked worktree. When
+every guard passes, only the legacy working-tree directory is removed. The
+separate Git directory, commits, refs, and recovery history remain intact, and
+the new repository is initialized at its distinct path.
 
 If changed files are reported, inspect and copy them elsewhere or commit them
 to a named legacy branch before rerunning. If the checkout is clean but at a

@@ -139,13 +139,14 @@ def migrate_legacy_ars_checkout(args: argparse.Namespace, report: Report) -> boo
             "Convert or relocate the standalone clone manually before rerunning.",
         )
 
-    common_dir_text = git_stdout(["git", "rev-parse", "--git-common-dir"])
-    common_dir = Path(common_dir_text).resolve() if common_dir_text else None
-    modules_dir = common_dir / "modules" if common_dir else None
-    if not modules_dir or not git_dir.is_relative_to(modules_dir):
+    expected_git_dir_text = git_stdout(
+        ["git", "rev-parse", "--git-path", f"modules/{legacy_path.as_posix()}"]
+    )
+    expected_git_dir = Path(expected_git_dir_text).resolve() if expected_git_dir_text else None
+    if not expected_git_dir or git_dir != expected_git_dir:
         return fail_legacy_migration(
             report,
-            f"Legacy ARS Git directory is not owned by this superproject: {git_dir}. "
+            f"Legacy ARS Git directory is not the expected module path for this superproject: {git_dir}. "
             "Inspect and relocate it manually before rerunning.",
         )
 
